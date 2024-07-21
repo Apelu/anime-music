@@ -1,22 +1,38 @@
 import {
+    FilterOptions,
+    FormatOptions,
+    getSortIcon,
+    GroupOptions,
+    SortDirection,
+    SortOptions,
+    SortType,
+    StatusOptions,
+    TagOptions,
+    ViewType,
+    ViewTypeIcons,
+} from "@data/constants";
+import HrWithName from "@features/ui/HrWithName";
+import TheUltimateDropdown, {
+    TitleType,
+} from "@features/ui/TheUltimateDropdown";
+import {
+    faArrowDown91,
+    faArrowDownAZ,
+    faArrowDownWideShort,
+    faArrowDownZA,
     faArrowLeft,
     faArrowRight,
     faArrowsDownToLine,
     faArrowsUpToLine,
-    faCaretDown,
-    faCaretUp,
-    faCheck,
+    faArrowUp91,
+    faArrowUpWideShort,
+    faArrowUpZA,
     faCheckCircle,
-    faCircleUp,
-    faCircleXmark,
+    faCircleCheck,
     faClose,
-    faDiagramNext,
-    faEnvelope,
-    faExpand,
     faEye,
     faFilter,
     faFilterCircleXmark,
-    faForward,
     faGrip,
     faSearch,
     faTableList,
@@ -25,134 +41,30 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import {
-    Badge,
     Button,
-    ButtonGroup,
-    Container,
     Dropdown,
-    DropdownButton,
-    Form,
     FormControl,
-    ToggleButton,
     ToggleButtonGroup,
+    ToggleButton,
+    Container,
+    ButtonGroup,
+    DropdownButton,
+    Badge,
+    Form,
 } from "react-bootstrap";
-import { OrderDirectionButton } from "@pages/App";
-import { faOpensuse } from "@fortawesome/free-brands-svg-icons";
-import {
-    FilterOptions,
-    FormatOptions,
-    GroupOptions,
-    SortDirection,
-    SortOptions,
-    SortType,
-    StatusOptions,
-    TagOptions,
-    ViewType,
-} from "@data/constants";
 
-function HrWithName({ name }: { name: string }) {
-    return (
-        <div className="d-flex align-items-center">
-            <hr className="flex-grow-1" />
-            <span className="m-2 text-center">{name}</span>
-            <hr className="flex-grow-1" />
-        </div>
-    );
-}
-
-function TestFilter() {
-    const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const handleItemClick = (item: string) => {
-        if (selectedItems.includes(item)) {
-            setSelectedItems(
-                selectedItems.filter(selectedItem => selectedItem !== item)
-            );
-        } else {
-            setSelectedItems([...selectedItems, item]);
-        }
-    };
-
-    return (
-        <MultiSelectFilterDropdown
-            title="Status"
-            selectedItems={selectedItems}
-            items={Object.values(StatusOptions)}
-            handleItemClick={handleItemClick}
-        />
-    );
-}
-
-function MultiSelectFilterDropdown({
-    title,
-    selectedItems,
-    items,
-    handleItemClick,
-}: {
-    title?: string;
-    selectedItems: string[];
-    items: string[];
-    handleItemClick: (item: string) => void;
-}) {
-    const [filterText, setFilterText] = useState("");
-
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFilterText(e.target.value);
-    };
-
-    const filterItems = (items: string[]) => {
-        return items.filter(item =>
-            item.toLowerCase().includes(filterText.toLowerCase())
-        );
-    };
-
-    return (
-        <Dropdown>
-            <Dropdown.Toggle variant="success" id="dropdown-basic">
-                {title}{" "}
-                {selectedItems.length > 0
-                    ? `[${selectedItems.join(", ")}]`
-                    : ""}
-            </Dropdown.Toggle>
-
-            <Dropdown.Menu>
-                <FormControl
-                    type="text"
-                    placeholder="Filter"
-                    value={filterText}
-                    onChange={handleFilterChange}
-                />
-                {filterItems(items).map((item, index) => (
-                    <Dropdown.Item
-                        key={index}
-                        active={selectedItems.includes(item)}
-                        onClick={() => handleItemClick(item)}
-                    >
-                        {selectedItems.includes(item) && (
-                            <FontAwesomeIcon
-                                icon={faCheckCircle}
-                                className="me-2"
-                            />
-                        )}
-                        {item}
-                    </Dropdown.Item>
-                ))}
-            </Dropdown.Menu>
-        </Dropdown>
-    );
-}
-
-export function AnimeSubBar() {
+function AnimeSubBar() {
     const [displaySettings, setDisplaySettings] = useState({
-        isOpen: false,
+        isOpen: true,
 
-        showingFilters: false,
+        showingFilters: true,
         filter: {
             [FilterOptions.Status]: [] as string[],
             [FilterOptions.Format]: [] as string[],
             [FilterOptions.Tag]: [] as string[],
         },
 
-        isSearching: false,
+        isSearching: true,
         searchText: "123",
 
         sortBy: SortOptions.LastAdded,
@@ -163,28 +75,6 @@ export function AnimeSubBar() {
 
         viewType: ViewType.Card,
     });
-
-    const toggleIsFiltering = () => {
-        setDisplaySettings({
-            ...displaySettings,
-            showingFilters: !displaySettings.showingFilters,
-        });
-    };
-
-    const toggleIsSearching = () => {
-        setDisplaySettings({
-            ...displaySettings,
-            isSearching: !displaySettings.isSearching,
-            searchText: "",
-        });
-    };
-
-    const handleSearchTextUpdates = (newSearchText: string) => {
-        setDisplaySettings({
-            ...displaySettings,
-            searchText: newSearchText,
-        });
-    };
 
     return (
         <div className="sticky-top">
@@ -200,12 +90,7 @@ export function AnimeSubBar() {
             ></div>
             <div
                 className="d-flex flex-column align-items-center justify-items-center bg-primary text-light"
-                onClick={() =>
-                    setDisplaySettings({
-                        ...displaySettings,
-                        isOpen: !displaySettings.isOpen,
-                    })
-                }
+                onClick={toggleSubBarVisibility()}
             >
                 <div className="d-flex flex-row">
                     <FontAwesomeIcon
@@ -256,84 +141,60 @@ export function AnimeSubBar() {
                         <div className="d-flex flex-column">
                             Sort By
                             <ButtonGroup className="me-2">
-                                <DropdownButton
-                                    as={ButtonGroup}
+                                <TheUltimateDropdown
+                                    dropdownProps={{
+                                        as: ButtonGroup,
+                                    }}
+                                    toggleProps={{
+                                        variant: "primary",
+                                    }}
                                     title={displaySettings.sortBy}
-                                >
-                                    {Object.values(SortOptions).map(option => (
-                                        <Dropdown.Item
-                                            key={option}
-                                            onClick={() =>
-                                                setDisplaySettings({
-                                                    ...displaySettings,
-                                                    sortBy: option,
-                                                })
-                                            }
-                                        >
-                                            {option}
-                                        </Dropdown.Item>
-                                    ))}
-                                </DropdownButton>
-
-                                <OrderDirectionButton
-                                    sortDirection={
-                                        displaySettings.sortDirection
-                                    }
-                                    sortType={SortType.Numeric}
-                                    handleFlipDirection={() =>
-                                        setDisplaySettings({
-                                            ...displaySettings,
-                                            sortDirection:
-                                                displaySettings.sortDirection ===
-                                                SortDirection.Ascending
-                                                    ? SortDirection.Descending
-                                                    : SortDirection.Ascending,
-                                        })
-                                    }
+                                    selectedItems={[displaySettings.sortBy]}
+                                    items={Object.values(SortOptions)}
+                                    handleItemClick={handleSortBySelection()}
                                 />
+
+                                <Button
+                                    variant={"secondary"}
+                                    onClick={toggleSortDirection()}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={getSortIcon(
+                                            SortType.Numeric,
+                                            displaySettings.sortDirection
+                                        )}
+                                    />
+                                </Button>
                             </ButtonGroup>
                         </div>
 
                         <div className="d-flex flex-column me-2">
                             Group By
                             <ButtonGroup>
-                                <DropdownButton
-                                    as={ButtonGroup}
-                                    title={displaySettings.groupBy}
-                                >
-                                    {Object.values(GroupOptions).map(
-                                        groupType => (
-                                            <Dropdown.Item
-                                                key={groupType}
-                                                onClick={() =>
-                                                    setDisplaySettings({
-                                                        ...displaySettings,
-                                                        groupBy: groupType,
-                                                    })
-                                                }
-                                            >
-                                                {groupType}
-                                            </Dropdown.Item>
-                                        )
-                                    )}
-                                </DropdownButton>
-
-                                <OrderDirectionButton
-                                    sortDirection={
-                                        displaySettings.groupDirection
-                                    }
-                                    sortType={SortType.Alphabetical}
-                                    handleFlipDirection={() =>
-                                        setDisplaySettings({
-                                            ...displaySettings,
-                                            groupDirection:
-                                                displaySettings.groupDirection ===
-                                                SortDirection.Ascending
-                                                    ? SortDirection.Descending
-                                                    : SortDirection.Ascending,
-                                        })
-                                    }
+                                <TheUltimateDropdown
+                                    dropdownProps={{
+                                        as: ButtonGroup,
+                                    }}
+                                    toggleProps={{
+                                        variant: "primary",
+                                    }}
+                                    titleType={TitleType.SelectedItems}
+                                    selectedItems={[displaySettings.groupBy]}
+                                    items={Object.values(GroupOptions)}
+                                    handleItemClick={handleGroupBySelection()}
                                 />
+
+                                <Button
+                                    variant={"secondary"}
+                                    onClick={toggleGroupDirection()}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={getSortIcon(
+                                            SortType.Alphabetical,
+                                            displaySettings.groupDirection
+                                        )}
+                                    />
+                                </Button>
                             </ButtonGroup>
                         </div>
 
@@ -378,15 +239,26 @@ export function AnimeSubBar() {
                         </Button>
 
                         <div className="d-flex flex-column align-items-center ms-auto me-2">
-                            <ViewTypeSelection
-                                viewType={displaySettings.viewType}
-                                handleViewTypeChange={newValue => {
-                                    setDisplaySettings({
-                                        ...displaySettings,
-                                        viewType: newValue,
-                                    });
-                                }}
-                            />
+                            <ToggleButtonGroup
+                                type="radio"
+                                name="viewToggle"
+                                defaultValue={displaySettings.viewType}
+                                onChange={handleViewTypeChange()}
+                            >
+                                {Object.values(ViewType).map(viewType => (
+                                    <ToggleButton
+                                        key={viewType}
+                                        id={`tbg-radio-${viewType}`}
+                                        value={viewType}
+                                        variant="outline-success"
+                                    >
+                                        {viewType}{" "}
+                                        <FontAwesomeIcon
+                                            icon={ViewTypeIcons[viewType]}
+                                        />
+                                    </ToggleButton>
+                                ))}
+                            </ToggleButtonGroup>
                         </div>
 
                         <Button
@@ -426,8 +298,15 @@ export function AnimeSubBar() {
                                     filterOption => (
                                         <div className="d-flex flex-column me-2">
                                             {filterOption}
-                                            <MultiSelectFilterDropdown
+                                            <TheUltimateDropdown
+                                                dropdownProps={{
+                                                    as: ButtonGroup,
+                                                }}
+                                                toggleProps={{
+                                                    variant: "success",
+                                                }}
                                                 title={filterOption}
+                                                titleType={TitleType.Both}
                                                 selectedItems={
                                                     displaySettings.filter[
                                                         filterOption
@@ -487,97 +366,94 @@ export function AnimeSubBar() {
                                         </div>
                                     )
                                 )}
-
-                                {/* }
-                                <div className="d-flex flex-column me-2">
-                                    Status
-                                    <MultiSelectFilterDropdown
-                                        title="Status"
-                                        selectedItems={
-                                            displaySettings.filter["Status"] ||
-                                            []
-                                        }
-                                        items={Object.values(StatusOptions)}
-                                        handleItemClick={handleItemClick}
-                                    />
-                                    
-                                </div>
-
-                                <div className="d-flex flex-column me-2">
-                                    Format
-                                    <MultiSelectFilterDropdown
-                                        title="Format"
-                                        selectedItems={selectedItems}
-                                        items={Object.values(FormatOptions)}
-                                        handleItemClick={handleItemClick}
-                                    />
-                                </div>
-
-                                <div className="d-flex flex-column me-2">
-                                    Tags
-                                    <MultiSelectFilterDropdown
-                                        title="Tags"
-                                        selectedItems={selectedItems}
-                                        items={Object.values(TagOptions)}
-                                        handleItemClick={handleItemClick}
-                                    />
-                                </div> */}
                             </div>
                         </>
                     )}
-
-                    {/* {JSON.stringify(displaySettings, null, 2)} */}
                 </Container>
             )}
         </div>
     );
+
+    function toggleIsFiltering() {
+        setDisplaySettings({
+            ...displaySettings,
+            showingFilters: !displaySettings.showingFilters,
+        });
+    }
+
+    function toggleIsSearching() {
+        setDisplaySettings({
+            ...displaySettings,
+            isSearching: !displaySettings.isSearching,
+            searchText: "",
+        });
+    }
+
+    function handleSearchTextUpdates(newSearchText: string) {
+        setDisplaySettings({
+            ...displaySettings,
+            searchText: newSearchText,
+        });
+    }
+
+    function handleViewTypeChange():
+        | ((value: any, event: any) => void)
+        | undefined {
+        return newValue => {
+            setDisplaySettings({
+                ...displaySettings,
+                viewType: newValue,
+            });
+        };
+    }
+
+    function toggleGroupDirection() {
+        return () =>
+            setDisplaySettings({
+                ...displaySettings,
+                groupDirection:
+                    displaySettings.groupDirection === SortDirection.Ascending
+                        ? SortDirection.Descending
+                        : SortDirection.Ascending,
+            });
+    }
+
+    function handleGroupBySelection(): ((item: string) => void) | undefined {
+        return (item: string) => {
+            setDisplaySettings({
+                ...displaySettings,
+                groupBy: item as GroupOptions,
+            });
+        };
+    }
+
+    function toggleSortDirection() {
+        return () =>
+            setDisplaySettings({
+                ...displaySettings,
+                sortDirection:
+                    displaySettings.sortDirection === SortDirection.Ascending
+                        ? SortDirection.Descending
+                        : SortDirection.Ascending,
+            });
+    }
+
+    function handleSortBySelection(): ((item: string) => void) | undefined {
+        return (item: string) => {
+            setDisplaySettings({
+                ...displaySettings,
+                sortBy: item as SortOptions,
+            });
+        };
+    }
+
+    function toggleSubBarVisibility() {
+        return () =>
+            setDisplaySettings({
+                ...displaySettings,
+                isOpen: !displaySettings.isOpen,
+            });
+    }
 }
 
-function ViewTypeSelection({
-    viewType,
-    handleViewTypeChange,
-}: {
-    viewType: ViewType;
-    handleViewTypeChange: (newValue: ViewType) => void;
-}) {
-    const options = [
-        {
-            id: ViewType.Card,
-            label: (
-                <>
-                    <FontAwesomeIcon icon={faGrip} /> Card
-                </>
-            ),
-            value: ViewType.Card,
-        },
-        {
-            id: ViewType.List,
-            label: (
-                <>
-                    <FontAwesomeIcon icon={faTableList} /> List
-                </>
-            ),
-            value: ViewType.List,
-        },
-    ];
-
-    return (
-        <ToggleButtonGroup
-            type="radio"
-            name="options"
-            defaultValue={options[0].value}
-            onChange={newValue => handleViewTypeChange(newValue)}
-        >
-            {options.map(option => (
-                <ToggleButton
-                    key={option.id}
-                    id={`tbg-radio-${option.id}`}
-                    value={option.value}
-                    variant="outline-success"
-                >
-                    {option.label}
-                </ToggleButton>
-            ))}
-        </ToggleButtonGroup>
-    );
-}
+export default AnimeSubBar;

@@ -1,4 +1,16 @@
+import {
+    faArrowUpZA,
+    faArrowDownZA,
+    faArrowUp91,
+    faArrowDown91,
+    faArrowDownWideShort,
+    faArrowUpWideShort,
+    IconDefinition,
+    faTableList,
+    faGrip,
+} from "@fortawesome/free-solid-svg-icons";
 import exp from "constants";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export enum SortDirection {
     Ascending = "Ascending",
@@ -9,6 +21,28 @@ export enum SortType {
     Alphabetical = "Alphabetical",
     Numeric = "Numeric",
     Other = "Other",
+}
+
+export const SortIcons = {
+    [SortType.Alphabetical]: {
+        [SortDirection.Ascending]: faArrowUpZA,
+        [SortDirection.Descending]: faArrowDownZA,
+    },
+    [SortType.Numeric]: {
+        [SortDirection.Ascending]: faArrowUp91,
+        [SortDirection.Descending]: faArrowDown91,
+    },
+    [SortType.Other]: {
+        [SortDirection.Ascending]: faArrowDownWideShort,
+        [SortDirection.Descending]: faArrowUpWideShort,
+    },
+};
+
+export function getSortIcon(
+    sortType: SortType,
+    sortDirection: SortDirection
+): IconDefinition {
+    return SortIcons[sortType][sortDirection];
 }
 
 export enum SortOptions {
@@ -35,6 +69,11 @@ export enum ViewType {
     Card = "Card",
     List = "List",
 }
+
+export const ViewTypeIcons = {
+    [ViewType.Card]: faGrip,
+    [ViewType.List]: faTableList,
+};
 
 export enum GroupOptions {
     None = "None",
