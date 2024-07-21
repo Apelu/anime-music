@@ -36,7 +36,7 @@ import {
     ToggleButton,
     ToggleButtonGroup,
 } from "react-bootstrap";
-import { OrderDirectionButton } from "../App";
+import { OrderDirectionButton } from "@pages/App";
 import { faOpensuse } from "@fortawesome/free-brands-svg-icons";
 import {
     FilterOptions,
@@ -48,7 +48,7 @@ import {
     StatusOptions,
     TagOptions,
     ViewType,
-} from "../utils/constants";
+} from "@data/constants";
 
 function HrWithName({ name }: { name: string }) {
     return (

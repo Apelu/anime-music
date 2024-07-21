@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import "./App.css";
-import "./custom.scss";
+import "@assets/custom.scss";
 
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -42,8 +42,8 @@ import Dropdown from "react-bootstrap/Dropdown";
 import FormControl from "react-bootstrap/FormControl";
 import { ButtonGroup, ToggleButton } from "react-bootstrap";
 import { faMicrosoft, faUps } from "@fortawesome/free-brands-svg-icons";
-import { AnimeSubBar } from "./components/AnimeSubBar";
-import { SortType, SortDirection } from "./utils/constants";
+import { AnimeSubBar } from "@features/anime/AnimeSubBar";
+import { SortType, SortDirection } from "@data/constants";
 // Site Planning:
 
 /**
@@ -70,7 +70,6 @@ function NavBar() {
                     >
                         <Nav.Link href="#action1">Anime</Nav.Link>
                         <Nav.Link href="#action1">Controller</Nav.Link>
-                        <Nav.Link href="#action1">Sites</Nav.Link>
                         <Nav.Link href="#action1">Music</Nav.Link>
                     </Nav>
                     <Form className="d-flex">
@@ -384,7 +383,7 @@ function SubBarGroupBy() {
  *
  */
 
-function App() {
+export function App() {
     return (
         <main>
             <NavBar />
