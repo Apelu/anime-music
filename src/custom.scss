@@ -1,0 +1,28 @@
+$custom-colors: (
+    // "dark": #000000,
+    "primary": #003049,
+    "secondary": #eae2b7,
+
+    "success": #04724d,
+
+    "info": #db5461,
+    "warning": #eed202,
+
+    "danger": #d62828
+);
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins";
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+@import "node_modules/bootstrap/scss/bootstrap";
+
+:root {
+    fa-layers {
+        font-size: 1em;
+
+        fa-layers-counter {
+            font-size: 2.2em;
+        }
+    }
+}
