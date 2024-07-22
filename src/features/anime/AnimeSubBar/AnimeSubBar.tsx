@@ -78,6 +78,7 @@ function AnimeSubBar() {
 
     return (
         <div className="sticky-top">
+            {/* Fix white line */}
             <div
                 style={{
                     position: "absolute",
@@ -88,6 +89,8 @@ function AnimeSubBar() {
                 }}
                 className="bg-primary"
             ></div>
+
+            {/* SubBar Actions Bar */}
             <div
                 className="d-flex flex-column align-items-center justify-items-center bg-primary text-light"
                 onClick={toggleSubBarVisibility()}
@@ -135,9 +138,11 @@ function AnimeSubBar() {
                 </div>
             </div>
 
+            {/* SubBar */}
             {displaySettings.isOpen && (
                 <Container fluid className="pt-2 pb-2 bg-dark text-light">
                     <div className=" d-flex align-items-end mb-2">
+                        {/* Sort By */}
                         <div className="d-flex flex-column">
                             Sort By
                             <ButtonGroup className="me-2">
@@ -168,6 +173,7 @@ function AnimeSubBar() {
                             </ButtonGroup>
                         </div>
 
+                        {/* Group By */}
                         <div className="d-flex flex-column me-2">
                             Group By
                             <ButtonGroup>
@@ -198,13 +204,16 @@ function AnimeSubBar() {
                             </ButtonGroup>
                         </div>
 
+                        {/* Toggle Filters */}
                         <Button
                             variant={"outline-success"}
                             onClick={toggleIsFiltering}
                             title={
                                 displaySettings.showingFilters
                                     ? "Hide Filters"
-                                    : "Show Filters"
+                                    : "Show Filters <Current Filter: " +
+                                      JSON.stringify(displaySettings.filter) +
+                                      ">"
                             }
                             className="position-relative"
                         >
@@ -238,6 +247,7 @@ function AnimeSubBar() {
                             )}
                         </Button>
 
+                        {/* View Type */}
                         <div className="d-flex flex-column align-items-center ms-auto me-2">
                             <ToggleButtonGroup
                                 type="radio"
@@ -261,6 +271,7 @@ function AnimeSubBar() {
                             </ToggleButtonGroup>
                         </div>
 
+                        {/* Toggle Search */}
                         <Button
                             variant={"outline-success"}
                             onClick={toggleIsSearching}
@@ -275,6 +286,7 @@ function AnimeSubBar() {
                         </Button>
                     </div>
 
+                    {/* Search Bar */}
                     {displaySettings.isSearching && (
                         <>
                             Keyword Search
@@ -290,6 +302,7 @@ function AnimeSubBar() {
                         </>
                     )}
 
+                    {/* Filters */}
                     {displaySettings.showingFilters && (
                         <>
                             <HrWithName name="Filters" />

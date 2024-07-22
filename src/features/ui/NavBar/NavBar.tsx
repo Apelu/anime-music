@@ -6,39 +6,65 @@
  * -Profile Image (Login, Register, Profile, Settings)
  */
 
-import { faDragon } from "@fortawesome/free-solid-svg-icons";
+import { Paths } from "@features/routing/routes";
+import {
+    faDragon,
+    faMobile,
+    faMobileButton,
+    faMobileScreen,
+    faMobileScreenButton,
+    faMusic,
+    faPhone,
+    faTv,
+    faUser,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Navbar, Container, Nav, Form, Button } from "react-bootstrap";
+import { useState } from "react";
+import { Navbar, Container, Nav, Form, Button, Image } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 export function NavBar() {
+    interface User {
+        profileImageUrl: string;
+        // Add other properties as needed
+    }
+
+    const [loggedInUser, setLoggedInUser] = useState<User | null>({
+        profileImageUrl:
+            "https://s4.anilist.co/file/anilistcdn/user/avatar/large/b6022064-o8AALZTxaDZK.png",
+    });
     return (
         <Navbar expand="lg" bg="dark" data-bs-theme="dark">
             <Container fluid>
-                <Navbar.Brand href="#">
+                <Navbar.Toggle></Navbar.Toggle>
+                <Navbar.Brand href="#home">
                     <FontAwesomeIcon icon={faDragon} />
                 </Navbar.Brand>
-                <Navbar.Toggle aria-controls="navbarScroll" />
-                <Navbar.Collapse id="navbarScroll">
-                    <Nav
-                        className="me-auto my-2 my-lg-0"
-                        style={{ maxHeight: "100px" }}
-                        navbarScroll
-                    >
-                        <Nav.Link href="#action1">Anime</Nav.Link>
-                        <Nav.Link href="#action1">Controller</Nav.Link>
-                        <Nav.Link href="#action1">Music</Nav.Link>
-                    </Nav>
-                    <Form className="d-flex">
-                        <Form.Control
-                            type="search"
-                            placeholder="Profile"
-                            className="me-2"
-                            aria-label="Search"
-                        />
-                        <Button variant="outline-success">Placeholder</Button>
-                    </Form>
+
+                <Navbar.Collapse>
+                    {loggedInUser ? (
+                        <Nav className="ms-auto me-auto my-2 my-lg-0">
+                            <Nav.Link as={Link} to={Paths.Anime}>
+                                Anime
+                            </Nav.Link>
+                            <Nav.Link as={Link} to={Paths.Controller}>
+                                Controller
+                            </Nav.Link>
+                            <Nav.Link as={Link} to={Paths.Music}>
+                                Music
+                            </Nav.Link>
+                            {/* Add Profile */}
+                            <Nav.Link as={Link} to={Paths.Profile}>
+                                Profile
+                            </Nav.Link>
+                        </Nav>
+                    ) : (
+                        <Button>Login with AniList</Button>
+                    )}
                 </Navbar.Collapse>
             </Container>
         </Navbar>
     );
 }
+
+export default NavBar;

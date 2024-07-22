@@ -1,4 +1,4 @@
-function HrWithName({ name }: { name: string }) {
+function HrWithName({ name }: { name: any }) {
     return (
         <div className="d-flex align-items-center">
             <hr className="flex-grow-1" />

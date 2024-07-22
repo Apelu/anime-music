@@ -1,6 +1,9 @@
+import "@assets/custom.scss";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "@pages/App";
+
+import router from "@features/routing/routes";
+import { RouterProvider } from "react-router-dom";
 
 const root = ReactDOM.createRoot(
     document.getElementById("root") as HTMLElement
@@ -8,6 +11,6 @@ const root = ReactDOM.createRoot(
 
 root.render(
     <React.StrictMode>
-        <App />
+        <RouterProvider router={router} />
     </React.StrictMode>
 );
