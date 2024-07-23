@@ -37,7 +37,7 @@ export function NavBar() {
         <Navbar expand="lg" bg="dark" data-bs-theme="dark">
             <Container fluid>
                 <Navbar.Toggle></Navbar.Toggle>
-                <Navbar.Brand href="#home">
+                <Navbar.Brand href="/">
                     <FontAwesomeIcon icon={faDragon} />
                 </Navbar.Brand>
 

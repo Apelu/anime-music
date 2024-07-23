@@ -1,124 +1,207 @@
-import { Button, Container } from "react-bootstrap";
-import { useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { getRandomNumber } from "@data/constants";
+import AniListAPI, { AniListQueries } from "@features/anilist/AniListAPI";
 import HrWithName from "@features/ui/HrWithName";
+import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useState } from "react";
+import { Button, ButtonGroup, Container } from "react-bootstrap";
 
-interface AnimeSeries {
-    id: string;
+interface NewSeries {
+    imageUrl: string;
     title: string;
-    coverImage: string;
-}
-
-function getShortTitle(title: string, maxLength = 40) {
-    return title.length > maxLength ? title.slice(0, maxLength) + "..." : title;
-}
-
-enum Side {
-    left = "left",
-    right = "right",
-}
-
-interface AnimeSeriesPair {
-    [Side.left]: AnimeSeries;
-    [Side.right]: AnimeSeries;
+    aniListUrl: string;
 }
 
 function ErrorPage() {
-    const [imageUrls, setImageUrls] = useState<AnimeSeries[]>([]);
-    const [animeSeries, setAnimeSeries] = useState<AnimeSeriesPair | null>(
-        null
-    );
+    const PAGE_MAX = 75;
+    const [data, setData] = useState<{
+        isFetching: boolean;
+        unfetchedPages: number[];
+        fetchedSeries: NewSeries[];
+        leftSeries?: NewSeries;
+        rightSeries?: NewSeries;
+        previousSeries: NewSeries[];
+        viewIndex: number;
+    }>({
+        unfetchedPages: Array.from({ length: PAGE_MAX }, (_, i) => i + 1),
+        isFetching: true,
+        fetchedSeries: [],
+        previousSeries: [],
+        viewIndex: -1,
+    });
 
-    function pullMoreUrls() {
-        const randomPage = Math.floor(Math.random() * 50) + 1;
-        fetch("https://graphql.anilist.co", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
-            body: JSON.stringify({
-                query: `
-                    query {
-                        Page(page: ${randomPage}, perPage: 50) {
-                            media(sort: SCORE_DESC, type: ANIME, isAdult: false) {
-                                id
-                                title {
-                                    romaji
-                                    english
-                                }
-                                bannerImage
-                                coverImage {
-                                    extraLarge
-                                }
-                            }
-                        }
-                    }
-                `,
-            }),
-        })
+    const { isFetching, fetchedSeries, leftSeries, rightSeries } = data;
+
+    useEffect(() => {
+        const handleKeyPress = (event: KeyboardEvent) => {
+            if (event.key === "ArrowLeft") {
+                showPreviousSeries(true);
+            } else if (event.key === "ArrowRight") {
+                showPreviousSeries(false);
+            }
+        };
+
+        const handleKeyUp = (event: KeyboardEvent) => {
+            if (event.key === " ") {
+                randomizeSeries();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyPress);
+        document.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyPress);
+            document.removeEventListener("keyup", handleKeyUp);
+        };
+    }, [showPreviousSeries, randomizeSeries]);
+
+    useEffect(() => {
+        if (data.isFetching) {
+            fetchSeriesData();
+        } else if (!data.leftSeries && !data.rightSeries) {
+            randomizeSeries();
+        }
+    }, [data]);
+
+    function fetchSeriesData() {
+        let randomPageIndex = getRandomNumber(0, 10);
+
+        if (data.unfetchedPages.length < PAGE_MAX - 2) {
+            randomPageIndex = getRandomNumber(
+                0,
+                data.unfetchedPages.length - 1
+            );
+        }
+
+        var randomPageNumber = data.unfetchedPages[randomPageIndex];
+
+        AniListAPI.performFetch(
+            AniListQueries.getMedia({
+                page: randomPageNumber,
+                perPage: 50,
+            })
+        )
             .then(response => response.json())
-            .then(data => {
-                const media = data?.data?.Page?.media;
+            .then(jsonData => {
+                console.log("Fetch");
+                const media = jsonData?.data?.Page?.media;
                 if (media) {
-                    console.log("Fetched media:", media);
-                    const urls = media.map(
-                        (m: {
-                            id: string;
+                    const fetchedSeries = media.map(
+                        (series: {
                             coverImage: { extraLarge: string };
-                            bannerImage: string;
                             title: {
                                 romaji: string;
                                 english: string;
                             };
+                            siteUrl: string;
                         }) => {
-                            const animeSeries: AnimeSeries = {
-                                id: m.id,
-                                title: m.title.romaji || m.title.english,
-                                coverImage: m.coverImage.extraLarge,
+                            const animeSeries: NewSeries = {
+                                imageUrl: series.coverImage.extraLarge,
+                                title:
+                                    series.title.romaji || series.title.english,
+                                aniListUrl: series.siteUrl,
                             };
                             return animeSeries;
                         }
                     );
-                    setImageUrls(urls);
+
+                    setData({
+                        ...data,
+                        isFetching: false,
+                        fetchedSeries: [
+                            ...data.fetchedSeries,
+                            ...fetchedSeries,
+                        ],
+                        unfetchedPages: data.unfetchedPages.filter(
+                            it => it !== randomPageNumber
+                        ),
+                    });
                 }
             })
             .catch(error => {
+                setData({
+                    ...data,
+                    isFetching: false,
+                    fetchedSeries: [],
+                });
                 console.error("Error fetching image URLs:", error);
             });
     }
-    useEffect(() => {
-        pullMoreUrls();
-    }, []);
 
-    useEffect(() => {
-        if (imageUrls.length > 0 && animeSeries === null) {
-            handleClick();
+    function randomizeSeries() {
+        if (data.isFetching) return;
+
+        console.log("Rand");
+
+        const randomIndex1 = getRandomNumber(0, data.fetchedSeries.length - 1);
+        let randomIndex2 = getRandomNumber(0, data.fetchedSeries.length - 1);
+
+        while (randomIndex1 === randomIndex2 && data.fetchedSeries.length > 1) {
+            randomIndex2 = getRandomNumber(0, data.fetchedSeries.length - 1);
         }
-    }, [imageUrls]);
 
-    const handleClick = () => {
-        const randomIndex1 = Math.floor(Math.random() * imageUrls.length);
-        let randomIndex2 = Math.floor(Math.random() * imageUrls.length);
+        const leftSeries = { ...data.fetchedSeries[randomIndex1] };
+        const rightSeries = { ...data.fetchedSeries[randomIndex2] };
 
-        while (randomIndex1 === randomIndex2) {
-            randomIndex2 = Math.floor(Math.random() * imageUrls.length);
+        if (
+            !leftSeries ||
+            !rightSeries ||
+            Object.keys(leftSeries).length == 0 ||
+            Object.keys(rightSeries).length == 0
+        )
+            return;
+
+        const remainingSeries = data.fetchedSeries.filter(
+            (it, index) => index !== randomIndex1 && index !== randomIndex2
+        );
+
+        var newPreviousSeries = [
+            ...data.previousSeries,
+            leftSeries,
+            rightSeries,
+        ];
+
+        const newData = {
+            ...data,
+            leftSeries: leftSeries,
+            rightSeries: rightSeries,
+            fetchedSeries: remainingSeries,
+            previousSeries: newPreviousSeries,
+            viewIndex: newPreviousSeries.length - 1,
+        };
+
+        if (!data.isFetching) {
+            newData.isFetching = remainingSeries.length < 10;
         }
-        setAnimeSeries({
-            left: imageUrls[randomIndex1],
-            right: imageUrls[randomIndex2],
-        });
 
-        const newImageUrls = [...imageUrls];
-        newImageUrls.splice(randomIndex1, 1);
-        newImageUrls.splice(randomIndex2, 1);
-        setImageUrls(newImageUrls);
+        setData(newData);
+    }
 
-        if (imageUrls.length <= 10) {
-            pullMoreUrls();
-        }
-    };
+    function showPreviousSeries(isLeftClick: boolean = true) {
+        if (
+            (isLeftClick && data.viewIndex < 2) ||
+            (!isLeftClick && data.viewIndex >= data.previousSeries.length - 2)
+        )
+            return;
+
+        const indexRight = data.viewIndex + (isLeftClick ? -2 : 2);
+        const indexLeft = indexRight - 1;
+
+        const leftSeries = { ...data.previousSeries[indexLeft] };
+        const rightSeries = { ...data.previousSeries[indexRight] };
+
+        console.log({ indexLeft, indexRight, leftSeries, rightSeries });
+
+        const newData = {
+            ...data,
+            leftSeries: leftSeries,
+            rightSeries: rightSeries,
+            viewIndex: indexRight,
+        };
+
+        setData(newData);
+    }
 
     return (
         <Container
@@ -129,120 +212,137 @@ function ErrorPage() {
                 display: "flex",
                 flexDirection: "row",
             }}
-            className="p-0"
+            className="p-0 bg-info"
         >
-            <SeriesImage animeSeries={animeSeries} side={Side.left} />
+            <SeriesImage animeSeries={leftSeries} />
+            {/* {JSON.stringify({
+                isFetching,
+                fetchedSeries: fetchedSeries.length,
+                leftSeries,
+                rightSeries,
+            })} */}
 
-            <div style={{ flexGrow: 1 }} className="p-3 bg-info">
+            <div style={{ flexGrow: 1 }} className="p-3">
                 <HrWithName name={<Button disabled>Error 404</Button>} />
                 <div className="text-center text-secondary">
                     <p className="p-0 m-0">
                         The page you are looking for does not exist.
                     </p>
-                    {animeSeries && (
-                        <p className="p-0 m-0">
+                    {leftSeries && rightSeries && (
+                        <p className="p-0 m-0 ">
                             But hey, at least you found some anime
                         </p>
                     )}
                 </div>
 
-                <SeriesDetails
-                    animeSeries={animeSeries}
-                    side={Side.left}
-                    handleClick={handleClick}
-                />
-                <SeriesDetails
-                    animeSeries={animeSeries}
-                    side={Side.right}
-                    handleClick={handleClick}
-                />
+                <HrWithName name={<Button href={"/"}>Return to Home</Button>} />
+
+                {leftSeries && rightSeries && (
+                    <>
+                        <HrWithName
+                            name={
+                                <Button
+                                    size="lg"
+                                    onClick={randomizeSeries}
+                                    variant="outline-secondary"
+                                >
+                                    Randomize Series
+                                </Button>
+                            }
+                        />
+
+                        <HrWithName
+                            name={
+                                <ButtonGroup>
+                                    {data.viewIndex > 1 && (
+                                        <Button
+                                            size="sm"
+                                            onClick={() =>
+                                                showPreviousSeries(true)
+                                            }
+                                            variant="outline-primary"
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faArrowLeft}
+                                            />
+                                        </Button>
+                                    )}
+                                    <Button disabled>
+                                        {parseInt(data.viewIndex / 2 + "") + 1}
+                                    </Button>
+                                    {data.viewIndex <
+                                        data.previousSeries.length - 1 && (
+                                        <Button
+                                            size="sm"
+                                            onClick={() =>
+                                                showPreviousSeries(false)
+                                            }
+                                            variant="outline-primary"
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faArrowRight}
+                                            />
+                                        </Button>
+                                    )}
+                                </ButtonGroup>
+                            }
+                        />
+                        <SeriesDetails animeSeries={leftSeries} alignLeft />
+                        <HrWithName name="" />
+                        <SeriesDetails animeSeries={rightSeries} />
+                    </>
+                )}
             </div>
 
-            <SeriesImage animeSeries={animeSeries} side={Side.right} />
+            <SeriesImage animeSeries={rightSeries} />
         </Container>
     );
 }
 
 function SeriesDetails({
     animeSeries,
-    side,
-    handleClick,
+    alignLeft,
 }: {
-    animeSeries: AnimeSeriesPair | null;
-    side: Side;
-    handleClick: () => void;
+    animeSeries: NewSeries;
+    alignLeft?: boolean;
 }) {
     if (!animeSeries) return null;
 
-    const isLeft = side === Side.left;
-    const series = animeSeries[side];
     return (
         <>
-            <HrWithName
-                name={
-                    side == Side.right ? (
-                        <Button
-                            size="sm"
-                            onClick={handleClick}
-                            variant="outline-secondary"
-                        >
-                            Randomize Series
-                        </Button>
-                    ) : (
-                        <Button href={"/"}>Return to Home</Button>
-                    )
-                }
-            />
-
-            <div className="d-flex align-items-center">
-                {isLeft && (
-                    <FontAwesomeIcon
-                        icon={faArrowLeft}
-                        size="lg"
-                        className={"me-2"}
-                    />
-                )}
-                <span className={!isLeft ? "ms-auto" : ""} title={series.title}>
-                    {getShortTitle(series.title)}
+            <div className="d-flex align-items-center justify-items-center text-secondary">
+                <span
+                    className={!alignLeft ? "ms-auto" : ""}
+                    title={animeSeries.title}
+                >
+                    {animeSeries.title}
                 </span>
-                {!isLeft && (
-                    <FontAwesomeIcon
-                        icon={faArrowRight}
-                        size="lg"
-                        className={"ms-2"}
-                    />
-                )}
             </div>
+
             <div className="d-flex">
                 <Button
                     size="sm"
-                    className={isLeft ? "mt-2" : "ms-auto mt-2"}
+                    className={alignLeft ? "" : "ms-auto"}
                     target="_blank"
-                    href={"https://anilist.co/anime/" + series.id}
+                    href={animeSeries.aniListUrl}
                 >
-                    Open AniList
+                    View in AniList
                 </Button>
             </div>
         </>
     );
 }
 
-function SeriesImage({
-    animeSeries,
-    side,
-}: {
-    animeSeries: AnimeSeriesPair | null;
-    side: Side;
-}) {
+function SeriesImage({ animeSeries }: { animeSeries?: NewSeries | null }) {
     if (!animeSeries) return null;
     return (
         <img
-            src={animeSeries?.[side].coverImage}
+            src={animeSeries.imageUrl}
             style={{
                 height: "100vh",
                 maxWidth: "40vw",
                 width: "fit-content",
-                objectFit: "contain",
+                objectFit: "cover",
             }}
         />
     );
@@ -251,7 +351,6 @@ function SeriesImage({
 /**
  * Things to fix:
  * - Title restricted by length but not to being a single line
- * - Images are repeating when they shouldn't
  * - Image width is not consistent
  */
 

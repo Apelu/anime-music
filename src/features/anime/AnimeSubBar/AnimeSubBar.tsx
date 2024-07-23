@@ -262,10 +262,10 @@ function AnimeSubBar() {
                                         value={viewType}
                                         variant="outline-success"
                                     >
-                                        {viewType}{" "}
                                         <FontAwesomeIcon
                                             icon={ViewTypeIcons[viewType]}
-                                        />
+                                        />{" "}
+                                        {viewType}
                                     </ToggleButton>
                                 ))}
                             </ToggleButtonGroup>
