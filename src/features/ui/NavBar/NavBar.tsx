@@ -7,21 +7,12 @@
  */
 
 import { Paths } from "@features/routing/routes";
-import {
-    faDragon,
-    faMobile,
-    faMobileButton,
-    faMobileScreen,
-    faMobileScreenButton,
-    faMusic,
-    faPhone,
-    faTv,
-    faUser,
-} from "@fortawesome/free-solid-svg-icons";
+import { faDragon } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import { Navbar, Container, Nav, Form, Button, Image } from "react-bootstrap";
+import { Button, Container, Nav, Navbar } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { FirebaseTest } from "./../../../pages/FirebaseTest";
 
 export function NavBar() {
     interface User {
@@ -34,7 +25,7 @@ export function NavBar() {
             "https://s4.anilist.co/file/anilistcdn/user/avatar/large/b6022064-o8AALZTxaDZK.png",
     });
     return (
-        <Navbar expand="lg" bg="dark" data-bs-theme="dark">
+        <Navbar expand="lg" data-bs-theme="dark">
             <Container fluid>
                 <Navbar.Toggle></Navbar.Toggle>
                 <Navbar.Brand href="/">
@@ -53,6 +44,12 @@ export function NavBar() {
                             <Nav.Link as={Link} to={Paths.Music}>
                                 Music
                             </Nav.Link>
+                            <Nav.Link as={Link} to={Paths.Features}>
+                                Features
+                            </Nav.Link>
+                            {/* <Nav.Link as={Link} to={Paths.FirebaseTest}>
+                                FirebaseTest
+                            </Nav.Link> */}
                             {/* Add Profile */}
                             <Nav.Link as={Link} to={Paths.Profile}>
                                 Profile

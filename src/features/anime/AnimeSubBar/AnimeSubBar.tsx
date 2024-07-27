@@ -11,61 +11,90 @@ import {
     ViewType,
     ViewTypeIcons,
 } from "@data/constants";
+import { Feature, FeatureStatus } from "@features/documentation/constants";
 import HrWithName from "@features/ui/HrWithName";
 import TheUltimateDropdown, {
     TitleType,
 } from "@features/ui/TheUltimateDropdown";
 import {
-    faArrowDown91,
-    faArrowDownAZ,
-    faArrowDownWideShort,
-    faArrowDownZA,
     faArrowLeft,
     faArrowRight,
     faArrowsDownToLine,
     faArrowsUpToLine,
-    faArrowUp91,
-    faArrowUpWideShort,
-    faArrowUpZA,
-    faCheckCircle,
-    faCircleCheck,
     faClose,
-    faEye,
     faFilter,
     faFilterCircleXmark,
-    faGrip,
+    faPhotoFilm,
     faSearch,
-    faTableList,
     faTv,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import {
-    Button,
-    Dropdown,
-    FormControl,
-    ToggleButtonGroup,
-    ToggleButton,
-    Container,
-    ButtonGroup,
-    DropdownButton,
     Badge,
+    Button,
+    ButtonGroup,
+    Container,
     Form,
+    ToggleButton,
+    ToggleButtonGroup,
 } from "react-bootstrap";
 
-function AnimeSubBar() {
-    const [displaySettings, setDisplaySettings] = useState({
-        isOpen: true,
+export const AnimeSubBarFeature: Feature = {
+    title: "Anime SubBar",
+    description:
+        "A small menu right below the NavBar that displays quick actions for the current page without taking up a lot of space.",
+    status: FeatureStatus.InProgress,
+    subfeatures: [
+        {
+            title: "Sort By",
+            description: "Sort the anime by [Sort By] in [Sort Direction]",
+            status: FeatureStatus.InProgress,
+        },
+        {
+            title: "Group By",
+            description: "Group the anime by [Group By] in [Group Direction]",
+            status: FeatureStatus.InProgress,
+        },
+        {
+            title: "Filters",
+            description: "Filter the anime by [Status, Format, Tag]",
+            status: FeatureStatus.InProgress,
+        },
+        {
+            title: "View Type",
+            description: "Change the view type [Card, List, Carousel]",
+            status: FeatureStatus.InProgress,
+        },
+        {
+            title: "Search",
+            description: "Search for anime by [Search Text]",
+            status: FeatureStatus.InProgress,
+        },
+    ],
+};
 
-        showingFilters: true,
+function AnimeSubBar({
+    currentItemIndex,
+    nextBackgroundItem,
+    previousBackgroundItem,
+}: {
+    currentItemIndex: number;
+    nextBackgroundItem: () => void;
+    previousBackgroundItem: () => void;
+}) {
+    const [displaySettings, setDisplaySettings] = useState({
+        isOpen: false,
+
+        showingFilters: false,
         filter: {
             [FilterOptions.Status]: [] as string[],
             [FilterOptions.Format]: [] as string[],
             [FilterOptions.Tag]: [] as string[],
         },
 
-        isSearching: true,
-        searchText: "123",
+        isSearching: false,
+        searchText: "",
 
         sortBy: SortOptions.LastAdded,
         sortDirection: SortDirection.Descending,
@@ -79,7 +108,7 @@ function AnimeSubBar() {
     return (
         <div className="sticky-top">
             {/* Fix white line */}
-            <div
+            {/* <div
                 style={{
                     position: "absolute",
                     top: -1,
@@ -88,25 +117,31 @@ function AnimeSubBar() {
                     height: "1px",
                 }}
                 className="bg-primary"
-            ></div>
+            ></div> */}
 
             {/* SubBar Actions Bar */}
             <div
-                className="d-flex flex-column align-items-center justify-items-center bg-primary text-light"
+                className="d-flex flex-column align-items-center justify-items-center text-light"
                 onClick={toggleSubBarVisibility()}
+                style={{
+                    backgroundColor: "transparent",
+                }}
             >
                 <div className="d-flex flex-row">
                     <FontAwesomeIcon
-                        title={"Previous Background"}
+                        title={"Previous Background <" + currentItemIndex + ">"}
                         icon={faArrowLeft}
-                        className="btn btn-sm text-secondary p-0 ms-5 me-5"
-                        onClick={e => e.stopPropagation()}
+                        className="btn btn-sm text-secondary p-0 ps-2 pe-2 ms-3 me-2 me-3"
+                        onClick={e => {
+                            previousBackgroundItem();
+                            e.stopPropagation();
+                        }}
                     />
 
                     <FontAwesomeIcon
                         title={"Toggle Visiblity"}
-                        icon={faEye}
-                        className="btn btn-sm text-secondary p-0 ms-5 me-5"
+                        icon={faPhotoFilm}
+                        className="btn btn-sm text-secondary p-0 ps-2 pe-2 ms-3 me-2 me-3"
                         onClick={e => e.stopPropagation()}
                     />
                     <FontAwesomeIcon
@@ -120,20 +155,23 @@ function AnimeSubBar() {
                                 ? faArrowsUpToLine
                                 : faArrowsDownToLine
                         }
-                        className="btn btn-sm text-secondary p-0 ms-5 me-5"
+                        className="btn btn-sm text-secondary p-0 ps-2 pe-2 ms-3 me-2 me-3"
                     />
                     <FontAwesomeIcon
                         title={"Watch Sites"}
                         icon={faTv}
-                        className="btn btn-sm text-secondary p-0 ms-5 me-5"
+                        className="btn btn-sm text-secondary p-0 ps-2 pe-2 ms-3 me-2 me-3"
                         onClick={e => e.stopPropagation()}
                     />
 
                     <FontAwesomeIcon
-                        title={"Next Background"}
+                        title={"Next Background <" + currentItemIndex + ">"}
                         icon={faArrowRight}
-                        className="btn btn-sm text-secondary p-0 ms-5 me-5"
-                        onClick={e => e.stopPropagation()}
+                        className="btn btn-sm text-secondary p-0 ps-2 pe-2 ms-3 me-2 me-3"
+                        onClick={e => {
+                            nextBackgroundItem();
+                            e.stopPropagation();
+                        }}
                     />
                 </div>
             </div>
