@@ -4,7 +4,16 @@ import TheUltimateDropdown, {
 } from "@features/ui/TheUltimateDropdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { Badge, Button, ButtonGroup, Card, Container } from "react-bootstrap";
+import {
+    Badge,
+    Button,
+    ButtonGroup,
+    Card,
+    Container,
+    OverlayTrigger,
+    Popover,
+    Tooltip,
+} from "react-bootstrap";
 
 class Nutrition {
     static Keys = {
@@ -159,6 +168,104 @@ class FactorMeal implements FactorMealType {
     }
 }
 
+interface FactorGroupType {
+    items: FactorMeal[];
+    nutrition: {
+        [nutrientName: string]: Nutrient;
+    };
+    ingredients: {
+        name: string;
+    }[];
+}
+
+class FactorGroup implements FactorGroupType {
+    name: string;
+    items: FactorMeal[];
+    nutrition: {
+        [nutrientName: string]: Nutrient;
+    };
+    ingredients: {
+        name: string;
+    }[];
+
+    constructor(factorGroup: FactorGroupType) {
+        const { items, nutrition, ingredients } = factorGroup;
+        this.items = items.map(item => new FactorMeal(item));
+        this.nutrition = nutrition;
+        this.ingredients = ingredients;
+
+        console.log(factorGroup);
+
+        this.name = this.items.map(item => item.name).join(", ");
+    }
+
+    toFactorMeal() {
+        return new FactorMeal({
+            id: this.name,
+            productCode: "",
+            name: this.name,
+            headline: "",
+            image: "",
+            websiteURL: "",
+            ingredients: this.ingredients,
+            nutrition: this.nutrition,
+        });
+    }
+
+    getNutrient(nutrientName: string) {
+        return this.nutrition[nutrientName];
+    }
+
+    getNutrientAmount(nutrientName: string) {
+        try {
+            return this.nutrition[nutrientName].amount;
+        } catch (error) {
+            console.error(
+                `Error getting nutrient amount for ${nutrientName} in ${this.name}`,
+                this.nutrition
+            );
+            return 0;
+        }
+    }
+
+    getDV(nutrientName: string) {
+        return Nutrition.DailyValues[nutrientName];
+    }
+
+    getDVPercent(nutrientName: string) {
+        return Math.floor(
+            (this.getNutrientAmount(nutrientName) / this.getDV(nutrientName)) *
+                100
+        );
+    }
+
+    getGoalType(nutrientName: string) {
+        return Nutrition.DailyGoals[nutrientName];
+    }
+
+    getNutrientPercentColor(nutrientName: string) {
+        const dvPercent = this.getDVPercent(nutrientName);
+
+        if (dvPercent >= 100) {
+            return "danger"; // 100+
+        } else if (dvPercent > 70) {
+            return this.getGoalType(nutrientName) === Nutrition.GoalTypes.Meet
+                ? "success"
+                : "warning"; // 71-99
+        } else if (dvPercent > 30) {
+            return "primary"; // 31-70
+        } else {
+            return this.getGoalType(nutrientName) === Nutrition.GoalTypes.Meet
+                ? "warning"
+                : "success"; // 0-30
+        }
+    }
+
+    getNutrientUnit(nutrientName: string) {
+        return this.nutrition[nutrientName].unit;
+    }
+}
+
 export function FactorPage() {
     const [data, setData] = useState<FactorMeal[]>([]);
     function pullDataFromServer() {
@@ -173,8 +280,23 @@ export function FactorPage() {
             });
     }
 
+    const [groups, setGroups] = useState<FactorGroup[]>([]);
+    function pullGroupsFromServer() {
+        fetch("http://localhost:5555/api/factor/getWeekMenuGroups")
+            .then(response => {
+                console.log(response);
+                return response.json();
+            })
+            .then(data => {
+                setGroups(
+                    Object.keys(data).map(key => new FactorGroup(data[key]))
+                );
+            });
+    }
+
     useEffect(() => {
-        pullDataFromServer();
+        // pullDataFromServer();
+        pullGroupsFromServer();
     }, []);
 
     const sortByOptions = Object.values(Nutrition.Keys);
@@ -185,6 +307,14 @@ export function FactorPage() {
 
     if (displaySettings.sortBy) {
         data.sort((a, b) => {
+            const nutrientA = a.getNutrientAmount(displaySettings.sortBy);
+            const nutrientB = b.getNutrientAmount(displaySettings.sortBy);
+            return displaySettings.sortDirection === SortDirection.Ascending
+                ? nutrientA - nutrientB
+                : nutrientB - nutrientA;
+        });
+
+        groups.sort((a, b) => {
             const nutrientA = a.getNutrientAmount(displaySettings.sortBy);
             const nutrientB = b.getNutrientAmount(displaySettings.sortBy);
             return displaySettings.sortDirection === SortDirection.Ascending
@@ -247,13 +377,17 @@ export function FactorPage() {
                 </ButtonGroup>
             </div>
 
-            {data && (
-                <Container fluid className="mt-3 d-flex flex-wrap">
-                    {data.map(factorMeal => (
+            <Container fluid className="mt-3 d-flex flex-wrap">
+                {/* {data &&
+                    data.map(factorMeal => (
                         <FactorItem factorMeal={factorMeal} />
+                    ))} */}
+                {/* {<FactorGroupItem} */}
+                {groups &&
+                    groups.map(factorGroup => (
+                        <FactorGroupItem factorGroup={factorGroup} />
                     ))}
-                </Container>
-            )}
+            </Container>
         </>
     );
 }
@@ -272,11 +406,13 @@ function FactorItem({ factorMeal }: { factorMeal: FactorMeal }) {
                 flex: 1,
                 minWidth: "300px",
             }}
+            className="m-1 bg-info"
         >
             <Card.Body>
                 <div className="d-flex flex-column align-items-center">
                     <a href={factorMeal.websiteURL} target="_blank">
                         <img
+                            loading="lazy"
                             src={factorMeal.image}
                             alt={factorMeal.name}
                             style={{
@@ -332,7 +468,7 @@ function FactorItem({ factorMeal }: { factorMeal: FactorMeal }) {
                     </div>
                 </div>
             </Card.Body>
-            <Card.Footer className="d-flex flex-column">
+            <Card.Footer className="d-flex flex-column bg-secondary">
                 <div className="d-flex">
                     <ItemName factorMeal={factorMeal} />
                     <div
@@ -393,6 +529,187 @@ function FactorItem({ factorMeal }: { factorMeal: FactorMeal }) {
                         </div> */}
                     </div>
                 </div>
+            </Card.Footer>
+        </Card>
+    );
+}
+
+function FactorGroupItem({ factorGroup }: { factorGroup: FactorGroup }) {
+    return (
+        <Card
+            style={{
+                flex: 1,
+                minWidth: "300px",
+            }}
+            className="m-1 bg-info"
+        >
+            <Card.Body>
+                <div>
+                    <div>
+                        {factorGroup.items.map((factorMeal: FactorMeal) => {
+                            const popover = (
+                                <Popover id="popover-basic">
+                                    <Popover.Header>
+                                        {factorMeal.name} ({factorMeal.headline}
+                                        )
+                                    </Popover.Header>
+                                    <Popover.Body>
+                                        <div>
+                                            <div>
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys.fat
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys
+                                                            .saturatedFat
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys
+                                                            .carbohydrate
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys.protein
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div>
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys
+                                                            .cholesterol
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys.sodium
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys.sugar
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                                <NutritionBadge
+                                                    nutrientName={
+                                                        Nutrition.Keys.fiber
+                                                    }
+                                                    factorMeal={factorMeal}
+                                                />
+                                            </div>
+                                        </div>
+                                    </Popover.Body>
+                                </Popover>
+                            );
+                            return (
+                                <OverlayTrigger
+                                    placement="bottom"
+                                    trigger={["hover", "focus"]}
+                                    overlay={popover}
+                                >
+                                    <a
+                                        href={factorMeal.websiteURL}
+                                        target="_blank"
+                                    >
+                                        <img
+                                            loading="lazy"
+                                            src={factorMeal.image}
+                                            alt={factorMeal.name}
+                                            style={{
+                                                objectFit: "cover",
+                                                maxWidth: "50%",
+                                            }}
+                                            className="rounded"
+                                        />
+                                    </a>
+                                </OverlayTrigger>
+                            );
+                        })}
+                    </div>
+                    <div className="text-center">
+                        <div>
+                            <div>
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.fat}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.saturatedFat}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.carbohydrate}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.protein}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.cholesterol}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.sodium}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.sugar}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                                <NutritionBadge
+                                    nutrientName={Nutrition.Keys.fiber}
+                                    factorMeal={factorGroup.toFactorMeal()}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card.Body>
+            <Card.Footer className="d-flex flex-column bg-secondary text-center">
+                <div className="d-flex flex-column">
+                    {/* <ItemName factorMeal={factorGroup.toFactorMeal()} /> */}
+                    {factorGroup.items.map(factorMeal => (
+                        <>
+                            <span
+                                style={{
+                                    display: "-webkit-box",
+                                    maxWidth: "400px",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                }}
+                                title={`${factorMeal.name}\n(${factorMeal.headline})`}
+                            >
+                                {factorMeal.name}
+                            </span>
+                        </>
+                    ))}
+                </div>
+                <NutritionBadge
+                    nutrientName={Nutrition.Keys.calories}
+                    factorMeal={factorGroup.toFactorMeal()}
+                />
             </Card.Footer>
         </Card>
     );
