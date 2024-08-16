@@ -1,6 +1,7 @@
 import { FeatureStatus } from "@features/documentation/constants";
-import { useEffect } from "react";
 import { BackgroundItem, BackgroundKey, BackgroundType } from "./constants";
+import { BackgroundImage } from "./ui/BackgroundImage";
+import { BackgroundVideo } from "./ui/BackgroundVideo";
 
 export const BackgroundFeatures = [
     {
@@ -130,120 +131,23 @@ function Background({
     currentItemID: number;
     setCurrentID: (index: number) => void;
 }) {
-    useEffect(() => {}, [backgroundItems]);
-
-    if (backgroundItems.length === 0) {
-        return null;
-    }
-
     const selectedBackgroundItem = backgroundItems.find(item => {
         return item[BackgroundKey.ID] === currentItemID;
-    });
-
-    console.log({ selectedBackgroundItem, currentItemID });
+    }) || {
+        id: 1721879935266,
+        type: BackgroundType.Video,
+        url: "/video/mylivewallpapers.com-Sakura-Drops.mp4",
+        description: "Sakura Drops Live Wallpaper",
+        poster: "",
+    };
     if (selectedBackgroundItem === undefined) return null;
 
-    return (
-        //     <div
-        //         style={{
-        //             position: "fixed",
-        //             left: 0,
-        //             top: 0,
-        //             width: "100vw",
-        //             height: "100vh",
-        //             zIndex: -1,
-        //             objectFit: "contain",
-        //             backgroundColor: "black",
-        //         }}
-        //         className="d-flex justify-items-center align-items-center text-light"
-        //     >
-        //         <h1 className="text-center bg-info w-100">
-        //             {parseInt(selectedBackgroundItem[BackgroundKey.ID] + "") -
-        //                 1721800000000}
-        //         </h1>
-        //     </div>
-        // );
-
-        selectedBackgroundItem[BackgroundKey.Type] == BackgroundType.Video ? (
-            <BackgroundVideo selectedBackgroundItem={selectedBackgroundItem} />
-        ) : (
-            <BackgroundImage selectedBackgroundItem={selectedBackgroundItem} />
-        )
+    return selectedBackgroundItem[BackgroundKey.Type] ==
+        BackgroundType.Video ? (
+        <BackgroundVideo selectedBackgroundItem={selectedBackgroundItem} />
+    ) : (
+        <BackgroundImage selectedBackgroundItem={selectedBackgroundItem} />
     );
 }
-
-function BackgroundImage({
-    selectedBackgroundItem,
-}: {
-    selectedBackgroundItem: BackgroundItem;
-}) {
-    return (
-        <img
-            src={selectedBackgroundItem[BackgroundKey.Url]}
-            title={selectedBackgroundItem[BackgroundKey.Description]}
-            style={{
-                position: "fixed",
-                left: 0,
-                top: 0,
-                width: "100vw",
-                height: "100vh",
-                zIndex: -1,
-                objectFit: "contain",
-                backgroundColor: "black",
-            }}
-        />
-    );
-}
-
-function BackgroundVideo({
-    selectedBackgroundItem,
-}: {
-    selectedBackgroundItem: BackgroundItem;
-}) {
-    return (
-        <video
-            autoPlay
-            muted={false}
-            // controls
-            loop
-            style={{
-                position: "fixed",
-                left: 0,
-                top: 0,
-                width: "100vw",
-                height: "100vh",
-                zIndex: -1,
-                objectFit: "cover",
-            }}
-            src={selectedBackgroundItem[BackgroundKey.Url]}
-            poster={selectedBackgroundItem[BackgroundKey.Poster]}
-            title={selectedBackgroundItem[BackgroundKey.Description]}
-        ></video>
-    );
-}
-
-// function generateObj() {
-//     var videoUrl = document.querySelector("div > div.post-inner > div.dd > div:nth-child(1) > ul > li:nth-child(1) > div > div > div > div > div.ml-3 > a").getAttribute("data-downloadurl")
-//     var posterUrl = document.querySelector("div > div.post-inner > div.post-content > div:nth-child(2) > div > div.plyr__video-wrapper > video > source").src
-//     var description = document.querySelector(" div > div.post-header > h1").innerText
-//     return {
-//         "[BackgroundKey.Type]": "BackgroundType.Video",
-//         "[BackgroundKey.Url]": videoUrl,
-//         "[BackgroundKey.Poster]":
-//             posterUrl,
-//         "[BackgroundKey.Description]": description
-//     }
-// }
-
-// console.log(generateObj())
-
-/*
-{
-        [BackgroundKey.Type]: BackgroundType.Video,
-        [BackgroundKey.Url]: "https://mylivewallpapers.com/?ddownload=13040",
-        [BackgroundKey.Poster]:
-            "https://mylivewallpapers.b-cdn.net/wp-content/uploads/Anime/thumb-Midoriya-Boku-no-Hero.jpg",
-    }
-*/
 
 export default Background;

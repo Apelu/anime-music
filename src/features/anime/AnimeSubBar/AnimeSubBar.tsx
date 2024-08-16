@@ -122,6 +122,7 @@ function AnimeSubBar({
             {/* SubBar Actions Bar */}
             <div
                 className="d-flex flex-column align-items-center justify-items-center text-light"
+                // bg-primary
                 onClick={toggleSubBarVisibility()}
                 style={{
                     backgroundColor: "transparent",

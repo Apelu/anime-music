@@ -54,6 +54,14 @@ interface MediaFieldList {
     siteUrl?: boolean;
 }
 
+export interface Anime {
+    id?: number;
+    title?: { romaji?: string; english?: string };
+    bannerImage?: string;
+    coverImage?: { extraLarge?: string; large?: string; medium?: string };
+    siteUrl?: string;
+}
+
 export class AniListQueries {
     static getMedia({
         page = 1,

@@ -7,12 +7,23 @@
  */
 
 import { Paths } from "@features/routing/routes";
-import { faDragon } from "@fortawesome/free-solid-svg-icons";
+import {
+    faDragon,
+    faImage,
+    faVideoSlash,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import { Button, Container, Nav, Navbar } from "react-bootstrap";
+import {
+    Button,
+    Container,
+    Dropdown,
+    DropdownButton,
+    DropdownDivider,
+    Nav,
+    Navbar,
+} from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { FirebaseTest } from "./../../../pages/FirebaseTest";
 
 export function NavBar() {
     interface User {
@@ -25,12 +36,15 @@ export function NavBar() {
             "https://s4.anilist.co/file/anilistcdn/user/avatar/large/b6022064-o8AALZTxaDZK.png",
     });
     return (
-        <Navbar expand="lg" data-bs-theme="dark">
-            <Container fluid>
+        <Navbar
+            expand="lg"
+            data-bs-theme="dark"
+            // bg="dark"
+            style={{ backgroundColor: "transparent" }}
+        >
+            <Container fluid className="d-flex">
                 <Navbar.Toggle></Navbar.Toggle>
-                <Navbar.Brand href="/">
-                    <FontAwesomeIcon icon={faDragon} />
-                </Navbar.Brand>
+                <ProfileDropdown isInvisible={true} />
 
                 <Navbar.Collapse>
                     {loggedInUser ? (
@@ -44,23 +58,54 @@ export function NavBar() {
                             <Nav.Link as={Link} to={Paths.Music}>
                                 Music
                             </Nav.Link>
-                            <Nav.Link as={Link} to={Paths.Features}>
-                                Features
-                            </Nav.Link>
-                            {/* <Nav.Link as={Link} to={Paths.FirebaseTest}>
-                                FirebaseTest
-                            </Nav.Link> */}
-                            {/* Add Profile */}
-                            <Nav.Link as={Link} to={Paths.Profile}>
-                                Profile
-                            </Nav.Link>
                         </Nav>
                     ) : (
                         <Button>Login with AniList</Button>
                     )}
                 </Navbar.Collapse>
+                <ProfileDropdown />
             </Container>
         </Navbar>
+    );
+}
+
+function ProfileDropdown({ isInvisible }: { isInvisible?: boolean }) {
+    return (
+        <Dropdown className={isInvisible ? "invisible" : ""}>
+            <Dropdown.Toggle
+                style={{
+                    backgroundColor: "transparent",
+                    borderColor: "transparent",
+                }}
+            >
+                <FontAwesomeIcon icon={faDragon} />
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu
+                align={{ lg: "end" }}
+                style={{ zIndex: 99999999999999999 }}
+            >
+                <Dropdown.Item>
+                    <Nav.Link as={Link} to={Paths.Profile}>
+                        Profile
+                    </Nav.Link>
+                </Dropdown.Item>
+                <Dropdown.Item>
+                    <Nav.Link as={Link} to={Paths.BackgroundLibrary}>
+                        My Backgrounds (Saved, Library)
+                    </Nav.Link>
+                </Dropdown.Item>
+                <DropdownDivider />
+                <Dropdown.Item>
+                    <Nav.Link as={Link} to={Paths.Features}>
+                        Features
+                    </Nav.Link>
+                </Dropdown.Item>
+
+                <DropdownDivider />
+                <Dropdown.Item>Log out</Dropdown.Item>
+            </Dropdown.Menu>
+        </Dropdown>
     );
 }
 

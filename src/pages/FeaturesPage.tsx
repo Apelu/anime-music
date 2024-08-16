@@ -53,6 +53,14 @@ function isValidLevel(level: number) {
     return level >= 0 && level < colorLevels.length;
 }
 
+const statusValues = {
+    [FeatureStatus.InProgress]: 0,
+    [FeatureStatus.PlannedNext]: 1,
+    [FeatureStatus.Planned]: 2,
+    [FeatureStatus.Completed]: 3,
+    [FeatureStatus.Canceled]: 4,
+};
+
 function DisplayFeatures({
     features,
     level,
@@ -73,67 +81,79 @@ function DisplayFeatures({
                 colorLevels[level]
             }`}
         >
-            {features.map(feature => {
-                if (!feature.status) {
-                    feature.status = FeatureStatus.Planned;
-                }
-                return (
-                    <>
-                        <Table className={`m-0`}>
-                            <tbody>
-                                <tr>
-                                    <td className="d-flex align-items-center">
-                                        <div>
-                                            <ToggleFeatureButton
-                                                target={`#${level}-${feature.title}`.replace(
-                                                    /\s/g,
-                                                    ""
-                                                )}
-                                                className={`m-0 ms-2 me-3 ${
-                                                    feature.subfeatures &&
-                                                    feature.subfeatures.length >
-                                                        0
-                                                        ? ""
-                                                        : "invisible"
-                                                }`}
-                                            />
-                                        </div>
+            {features
+                .sort(function (a, b) {
+                    var difference =
+                        statusValues[a.status || FeatureStatus.Planned] -
+                        statusValues[b.status || FeatureStatus.Planned];
+                    return difference === 0
+                        ? a.title.localeCompare(b.title)
+                        : difference;
 
-                                        <div className="d-flex flex-column">
-                                            <strong>
-                                                {feature.title}
-                                                {feature.status && (
-                                                    <Badge
-                                                        className={`ms-2 bg-${
-                                                            FeatureStatusColors[
-                                                                feature.status
-                                                            ]
-                                                        }`}
-                                                    >
-                                                        {feature.status}
-                                                    </Badge>
-                                                )}
-                                            </strong>
-                                            <div>{feature.description}</div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </Table>
+                    return a.title.localeCompare(b.title);
+                })
+                .map(feature => {
+                    if (!feature.status) {
+                        feature.status = FeatureStatus.Planned;
+                    }
+                    return (
+                        <>
+                            <Table className={`m-0`}>
+                                <tbody>
+                                    <tr>
+                                        <td className="d-flex align-items-center">
+                                            <div>
+                                                <ToggleFeatureButton
+                                                    target={`#${level}-${feature.title}`.replace(
+                                                        /\s/g,
+                                                        ""
+                                                    )}
+                                                    className={`m-0 ms-2 me-3 ${
+                                                        feature.subfeatures &&
+                                                        feature.subfeatures
+                                                            .length > 0
+                                                            ? ""
+                                                            : "invisible"
+                                                    }`}
+                                                />
+                                            </div>
 
-                        {feature.subfeatures && (
-                            <DisplayFeatures
-                                features={feature.subfeatures}
-                                level={level + 1}
-                                parentID={`${level}-${feature.title}`.replace(
-                                    /\s/g,
-                                    ""
-                                )}
-                            />
-                        )}
-                    </>
-                );
-            })}
+                                            <div className="d-flex flex-column">
+                                                <strong>
+                                                    {feature.title}
+                                                    {feature.status && (
+                                                        <Badge
+                                                            className={`ms-2 bg-${
+                                                                FeatureStatusColors[
+                                                                    feature
+                                                                        .status
+                                                                ]
+                                                            }`}
+                                                        >
+                                                            {feature.status}
+                                                        </Badge>
+                                                    )}
+                                                </strong>
+                                                <div>{feature.description}</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+
+                            {feature.subfeatures && (
+                                <DisplayFeatures
+                                    features={feature.subfeatures}
+                                    level={level + 1}
+                                    parentID={`${level}-${feature.title}`.replace(
+                                        /\s/g,
+                                        ""
+                                    )}
+                                />
+                            )}
+                        </>
+                    );
+                })}
         </Table>
     );
 }

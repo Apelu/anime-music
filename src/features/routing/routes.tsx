@@ -1,4 +1,3 @@
-import { db, handleSignIn } from "@assets/firebaseConfig";
 import AnimeSubBar from "@features/anime/AnimeSubBar";
 import Background from "@features/background/Background";
 import {
@@ -6,30 +5,32 @@ import {
     BackgroundKey,
     BackgroundType,
 } from "@features/background/constants";
-import { LiveWallPaper } from "@features/background/LiveWallPaper";
+import {
+    myLiveWallpapersRef,
+    performEmailPasswordSignIn,
+} from "@features/firebase/constants";
 
 import NavBar from "@features/ui/NavBar";
 import AnimePage from "@pages/AnimePage";
 import ControllerPage from "@pages/ControllerPage";
 import ErrorPage from "@pages/ErrorPage";
 import FeaturesPage from "@pages/FeaturesPage";
-import { FirebaseTest } from "@pages/FirebaseTest";
 import LoginPage from "@pages/LoginPage";
 import MusicPage from "@pages/MusicPage";
 import ProfilePage from "@pages/ProfilePage";
 import {
-    collection,
-    query,
-    where,
     getDocs,
-    orderBy,
     limit,
-    startAfter,
+    orderBy,
+    query,
     startAt,
-    endAt,
+    where,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { ContextType, useEffect, useState } from "react";
 import { Outlet, createBrowserRouter } from "react-router-dom";
+import BackgroundLibrary from "./../../pages/BackgroundLibrary";
+import { Anime } from "@features/anilist/AniListAPI";
+import { FactorPage } from "../../pages/FactorPage";
 
 export enum Paths {
     Anime = "/anime",
@@ -38,13 +39,91 @@ export enum Paths {
     Controller = "/controller",
     Profile = "/profile",
     Features = "/features",
-    FirebaseTest = "/firebase-test",
+    BackgroundLibrary = "/background-library",
 }
 
 function Root() {
-    const [backgroundItems, setBackgroundItems] = useState<BackgroundItem[]>(
-        []
-    );
+    const [animeData, setAnimeData] = useState<Anime[]>([]);
+
+    const [backgroundItems, setBackgroundItems] = useState<BackgroundItem[]>([
+        // {
+        //     id: 1721879935266,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12371",
+        //     description: "Sakura Drops Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Sakura-Drops.jpg",
+        // },
+        // {
+        //     id: 1721879935267,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12389",
+        //     description: "Reach Out-Nier Automata Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Reach-Out-Nier-Automata.jpg",
+        // },
+        // {
+        //     id: 1721879935268,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12409",
+        //     description: "Anime Girl Shooting Stars Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Anime-Girl-Shooting-Stars.jpg",
+        // },
+        // {
+        //     id: 1721879935269,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12447",
+        //     description: "Uraraka Ochako Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Uraraka-Ochako.jpg",
+        // },
+        // {
+        //     id: 1721879935270,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12471",
+        //     description: "Izumi Sagiri Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Izumi-Sagiri.jpg",
+        // },
+        // {
+        //     id: 1721879935272,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12493",
+        //     description: "Mashu Kyrielight-Fate Grand Order Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Mashu-Kyrielight-FGO.jpg",
+        // },
+        // {
+        //     id: 1721879935273,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12497",
+        //     description: "Berserker-Fate Zero Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Berserker-Fate-Zero.jpg",
+        // },
+        // {
+        //     id: 1721879935274,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12534",
+        //     description: "Spice and Wolf Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Spice-and-Wolf.jpg",
+        // },
+        // {
+        //     id: 1721879935275,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12538",
+        //     description: "Natsuki-Doki Doki Literature Club Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Natsuki-Doki-Doki-Literature-Club.jpg",
+        // },
+        // {
+        //     id: 1721880008221,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12542",
+        //     description: "My Neighbor Totoro Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-My-Neighbor-Totoro.jpg",
+        // },
+        // {
+        //     id: 1721880008223,
+        //     type: BackgroundType.Video,
+        //     url: "https://mylivewallpapers.com/?ddownload=12562",
+        //     description: "Ayame Ugasi Live Wallpaper",
+        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Ayame-Ugasi.jpg",
+        // },
+    ]);
     const [currentItemID, setCurrentID] = useState(
         parseInt(localStorage.getItem("currentItemID") || "0")
     );
@@ -54,8 +133,8 @@ function Root() {
     });
 
     const fetchData = async (fetchForward = true) => {
-        const myLiveWallpapersRef = collection(db, "MyLiveWallpapers");
-
+        if (fetchForward) return;
+        if (!fetchForward) return;
         const LOAD_COUNT = 10;
         const docsQuery = fetchForward
             ? query(
@@ -130,16 +209,8 @@ function Root() {
         setFirstLastIDs(newestItemID);
     };
 
-    function removeDuplicates(array: BackgroundItem[]) {
-        return array.filter(
-            (item, index) =>
-                array.findIndex(
-                    t => t[BackgroundKey.ID] === item[BackgroundKey.ID]
-                ) == index
-        );
-    }
     useEffect(() => {
-        handleSignIn(
+        performEmailPasswordSignIn(
             "apelu47@gmail.com",
             "kih209kjeu3409erklbgi892i0po3kwtr8h95i0mkbn34u0rkoefjbthu423k;l"
         );
@@ -213,7 +284,10 @@ function Root() {
     }
 
     return (
-        <main className="text-light">
+        <main
+            className="text-light"
+            // bg-dark"
+        >
             <Background
                 backgroundItems={backgroundItems}
                 setBackgroundItems={setBackgroundItems}
@@ -233,18 +307,27 @@ function Root() {
                 context={{
                     nextBackgroundItem,
                     previousBackgroundItem,
+                    animeData,
+                    setAnimeData,
+                    backgroundItems,
                 }}
             />
         </main>
     );
 }
+
 const router = createBrowserRouter([
     {
         path: "/",
         element: <Root />,
         children: [
             {
+                path: "/",
+                element: <FactorPage />,
+            },
+            {
                 path: Paths.Anime,
+
                 element: (
                     <>
                         <AnimePage />
@@ -256,7 +339,10 @@ const router = createBrowserRouter([
             { path: Paths.Controller, element: <ControllerPage /> },
             { path: Paths.Profile, element: <ProfilePage /> },
             { path: Paths.Features, element: <FeaturesPage /> },
-            { path: Paths.FirebaseTest, element: <FirebaseTest /> },
+            {
+                path: Paths.BackgroundLibrary,
+                element: <BackgroundLibrary />,
+            },
         ],
         errorElement: <ErrorPage />,
     },
