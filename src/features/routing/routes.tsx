@@ -8,7 +8,7 @@ import {
 import {
     myLiveWallpapersRef,
     performEmailPasswordSignIn,
-} from "@features/firebase/constants";
+} from "@features/api/firebase/constants";
 
 import NavBar from "@features/ui/NavBar";
 import AnimePage from "@pages/AnimePage";
@@ -29,7 +29,7 @@ import {
 import { ContextType, useEffect, useState } from "react";
 import { Outlet, createBrowserRouter } from "react-router-dom";
 import BackgroundLibrary from "./../../pages/BackgroundLibrary";
-import { Anime } from "@features/anilist/AniListAPI";
+import { Anime } from "@features/api/anilist/AniListAPI";
 import { FactorPage } from "../../pages/FactorPage";
 
 export enum Paths {

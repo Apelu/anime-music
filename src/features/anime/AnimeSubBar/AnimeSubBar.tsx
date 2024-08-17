@@ -179,7 +179,7 @@ function AnimeSubBar({
 
             {/* SubBar */}
             {displaySettings.isOpen && (
-                <Container fluid className="pt-2 pb-2 bg-dark text-light">
+                <Container fluid className="pt-2 pb-2 bg-dark text-light mt-1">
                     <div className=" d-flex align-items-end mb-2">
                         {/* Sort By */}
                         <div className="d-flex flex-column">

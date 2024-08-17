@@ -7,8 +7,8 @@
 import AniListAPI, {
     AniListQueries,
     Anime,
-} from "@features/anilist/AniListAPI";
-import { linkedSeriesRef } from "@features/firebase";
+} from "@features/api/anilist/AniListAPI";
+import { linkedSeriesRef } from "@features/api/firebase";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";

@@ -1,5 +1,5 @@
 import { getRandomNumber } from "@data/constants";
-import AniListAPI, { AniListQueries } from "@features/anilist/AniListAPI";
+import AniListAPI, { AniListQueries } from "@features/api/anilist/AniListAPI";
 import HrWithName from "@features/ui/HrWithName";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

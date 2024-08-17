@@ -1,4 +1,4 @@
-import { linkedSeriesRef } from "@features/firebase";
+import { linkedSeriesRef } from "@features/api/firebase";
 import { setDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Container, FloatingLabel, Form } from "react-bootstrap";

@@ -1,4 +1,4 @@
-import { topLevelAniListFeatures } from "@features/anilist";
+import { topLevelAniListFeatures } from "@features/api/anilist";
 import { topLevelAnimeFeature } from "@features/anime";
 import { topLevelBackgroundFeatures } from "@features/background";
 import { topLevelControllerFeatures } from "@features/controller";
