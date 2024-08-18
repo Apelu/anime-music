@@ -1,36 +1,37 @@
-import AnimeSubBar from "@features/anime/AnimeSubBar";
+import SubBar from "@features/anime/AnimeSubBar";
+import { Anime } from "@features/api/anilist/AniListAPI";
+import {
+    myLiveWallpapersRef,
+    performEmailPasswordSignIn,
+} from "@features/api/firebase";
 import Background from "@features/background/Background";
 import {
     BackgroundItem,
     BackgroundKey,
     BackgroundType,
 } from "@features/background/constants";
-import {
-    myLiveWallpapersRef,
-    performEmailPasswordSignIn,
-} from "@features/api/firebase/constants";
-
 import NavBar from "@features/ui/NavBar";
 import AnimePage from "@pages/AnimePage";
+import BackgroundLibrary from "@pages/BackgroundLibrary";
 import ControllerPage from "@pages/ControllerPage";
 import ErrorPage from "@pages/ErrorPage";
+import { FactorPage } from "@pages/FactorPage";
 import FeaturesPage from "@pages/FeaturesPage";
 import LoginPage from "@pages/LoginPage";
 import MusicPage from "@pages/MusicPage";
 import ProfilePage from "@pages/ProfilePage";
 import {
-    getDocs,
-    limit,
-    orderBy,
     query,
+    orderBy,
     startAt,
+    limit,
     where,
+    getDocs,
 } from "firebase/firestore";
-import { ContextType, useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, createBrowserRouter } from "react-router-dom";
-import BackgroundLibrary from "./../../pages/BackgroundLibrary";
-import { Anime } from "@features/api/anilist/AniListAPI";
-import { FactorPage } from "../../pages/FactorPage";
+import ProviderParent from "./ProviderParent";
+import "../../assets/App.css";
 
 export enum Paths {
     Anime = "/anime",
@@ -296,7 +297,7 @@ function Root() {
             />
             <NavBar />
             {/* <SubBar/> */}
-            <AnimeSubBar
+            <SubBar
                 {...{
                     currentItemIndex: currentItemID,
                     nextBackgroundItem,
@@ -319,7 +320,11 @@ function Root() {
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Root />,
+        element: (
+            <ProviderParent>
+                <Root />
+            </ProviderParent>
+        ),
         children: [
             {
                 path: "/",

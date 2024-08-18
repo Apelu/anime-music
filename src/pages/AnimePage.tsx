@@ -4,15 +4,16 @@
  * -Displays Anime Data in Grid or List View
  */
 
-import AniListAPI, {
-    AniListQueries,
-    Anime,
-} from "@features/api/anilist/AniListAPI";
+import { AniListSortOptions } from "@data/constants";
 import { linkedSeriesRef } from "@features/api/firebase";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    DisplaySettingsActionType,
+    DisplaySettingsContext,
+    DisplaySettingsDispatchContext,
+} from "@features/contexts/DisplaySettingsContext";
 import { getDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { Container, Dropdown, DropdownDivider } from "react-bootstrap";
+import { useState, useEffect, useContext } from "react";
+import { Container } from "react-bootstrap";
 
 interface SeriesLink {
     createdAt: number;
@@ -31,6 +32,8 @@ interface LinkedSeriesObj {
 }
 function AnimePage() {
     const [animeData, setAnimeData] = useState<SeriesLink[]>([]);
+    const displaySettings = useContext(DisplaySettingsContext);
+    const dispatchDisplaySettings = useContext(DisplaySettingsDispatchContext);
 
     useEffect(() => {
         // AniListAPI.performFetch(
@@ -61,7 +64,28 @@ function AnimePage() {
                 setAnimeData(items);
             }
         });
+
+        if (dispatchDisplaySettings) {
+            dispatchDisplaySettings({
+                type: DisplaySettingsActionType.SetSortByOptions,
+                payload: Object.keys(AniListSortOptions),
+            });
+        }
     }, []);
+
+    useEffect(() => {
+        console.log("Display Settings Changed");
+    }, [displaySettings]);
+    if (!displaySettings || !dispatchDisplaySettings) return null;
+    if (
+        !displaySettings.groupByOptions ||
+        displaySettings.groupByOptions.length === 0
+    ) {
+        // dispatchDisplaySettings({
+        //     type: DisplaySettingsActionType.,
+        //     payload: ["None", "Season", "Year"],
+        // });
+    }
 
     return (
         <Container className="pt-4 pb-3">

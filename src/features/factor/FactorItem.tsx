@@ -1,14 +1,22 @@
-import { Card } from "react-bootstrap";
+import { Button, Card } from "react-bootstrap";
 import { FactorMeal } from "./FactorMeal";
 import { Nutrition } from "./Nutrition";
 import { NutritionBadge } from "./NutritionBadge";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faX } from "@fortawesome/free-solid-svg-icons";
 
 const COL_1_WIDTH = 75;
 const COL_2_WIDTH = 100 - COL_1_WIDTH;
 const COL_2_1_WIDTH = 35;
 const COL_2_2_WIDTH = COL_2_1_WIDTH;
 const COL_2_3_WIDTH = 100 - COL_2_1_WIDTH * 2;
-export function FactorItem({ factorMeal }: { factorMeal: FactorMeal }) {
+export function FactorItem({
+    factorMeal,
+    updateMealSelection,
+}: {
+    factorMeal: FactorMeal;
+    updateMealSelection: (factorMeal: FactorMeal) => void;
+}) {
     const isFavorite = true;
 
     return (
@@ -20,7 +28,23 @@ export function FactorItem({ factorMeal }: { factorMeal: FactorMeal }) {
             className="m-1 bg-info"
         >
             <Card.Body>
-                <div className="d-flex flex-column align-items-center">
+                <div className="d-flex flex-column align-items-center hover-trigger">
+                    <Button
+                        className="hover-content"
+                        style={{
+                            position: "absolute",
+                            right: "0",
+                            top: "0",
+                        }}
+                    >
+                        <FontAwesomeIcon
+                            icon={factorMeal.selected ? faX : faPlus}
+                            size={"lg"}
+                            onClick={() => {
+                                updateMealSelection(factorMeal);
+                            }}
+                        />
+                    </Button>
                     <a href={factorMeal.websiteURL} target="_blank">
                         <img
                             loading="lazy"

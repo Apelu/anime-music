@@ -45,7 +45,7 @@ export function getSortIcon(
     return SortIcons[sortType][sortDirection];
 }
 
-export enum SortOptions {
+export enum AniListSortOptions {
     Title = "Title",
     Score = "Score",
     Progress = "Progress",
@@ -55,14 +55,14 @@ export enum SortOptions {
     "CompletedDate" = "Completed Date",
 }
 
-export const SortOptionsTypes = {
-    [SortOptions.Title]: SortType.Alphabetical,
-    [SortOptions.Score]: SortType.Numeric,
-    [SortOptions.Progress]: SortType.Numeric,
-    [SortOptions.LastUpdated]: SortType.Other,
-    [SortOptions.LastAdded]: SortType.Other,
-    [SortOptions.StartDate]: SortType.Other,
-    [SortOptions.CompletedDate]: SortType.Other,
+export const AniListSortOptionsTypes = {
+    [AniListSortOptions.Title]: SortType.Alphabetical,
+    [AniListSortOptions.Score]: SortType.Numeric,
+    [AniListSortOptions.Progress]: SortType.Numeric,
+    [AniListSortOptions.LastUpdated]: SortType.Other,
+    [AniListSortOptions.LastAdded]: SortType.Other,
+    [AniListSortOptions.StartDate]: SortType.Other,
+    [AniListSortOptions.CompletedDate]: SortType.Other,
 };
 
 export enum ViewType {
@@ -75,12 +75,12 @@ export const ViewTypeIcons = {
     [ViewType.List]: faTableList,
 };
 
-export enum GroupOptions {
+export enum AniListGroupOptions {
     None = "None",
     Status = "Status",
 }
 
-export enum StatusOptions {
+export enum AniListStatusOptions {
     CURRENT = "CURRENT",
     PLANNING = "PLANNING",
     COMPLETED = "COMPLETED",
@@ -89,22 +89,23 @@ export enum StatusOptions {
     REPEATING = "REPEATING",
 }
 
-export enum FilterOptions {
+export enum AniListFilterOptions {
     Status = "Status",
     Format = "Format",
     Tag = "Tag",
 }
 
-export const StatusOptionDescriptions = {
-    [StatusOptions.CURRENT]: "Currently watching/reading",
-    [StatusOptions.PLANNING]: "Planning to watch/read",
-    [StatusOptions.COMPLETED]: "Finished watching/reading",
-    [StatusOptions.DROPPED]: "Stopped watching/reading before completing",
-    [StatusOptions.PAUSED]: "Paused watching/reading",
-    [StatusOptions.REPEATING]: "Re-watching/reading",
+const StatusOptionDescriptions = {
+    [AniListStatusOptions.CURRENT]: "Currently watching/reading",
+    [AniListStatusOptions.PLANNING]: "Planning to watch/read",
+    [AniListStatusOptions.COMPLETED]: "Finished watching/reading",
+    [AniListStatusOptions.DROPPED]:
+        "Stopped watching/reading before completing",
+    [AniListStatusOptions.PAUSED]: "Paused watching/reading",
+    [AniListStatusOptions.REPEATING]: "Re-watching/reading",
 };
 
-export enum FormatOptions {
+export enum AniListFormatOptions {
     TV = "TV",
     TV_SHORT = "TV_SHORT",
     MOVIE = "MOVIE",
@@ -117,30 +118,31 @@ export enum FormatOptions {
     ONE_SHOT = "ONE_SHOT",
 }
 
-export const FormatOptionDescriptions = {
-    [FormatOptions.TV]: "Anime broadcast on television",
-    [FormatOptions.TV_SHORT]:
+const FormatOptionDescriptions = {
+    [AniListFormatOptions.TV]: "Anime broadcast on television",
+    [AniListFormatOptions.TV_SHORT]:
         "Anime which are under 15 minutes in length and broadcast on television",
-    [FormatOptions.MOVIE]: "Anime movies with a theatrical release",
-    [FormatOptions.SPECIAL]:
+    [AniListFormatOptions.MOVIE]: "Anime movies with a theatrical release",
+    [AniListFormatOptions.SPECIAL]:
         "Special episodes that have been included in DVD/Blu-ray releases, picture dramas, pilots, etc",
-    [FormatOptions.OVA]:
+    [AniListFormatOptions.OVA]:
         "(Original Video Animation) Anime that have been released directly on DVD/Blu-ray without originally going through a theatrical release or television broadcast",
-    [FormatOptions.ONA]:
+    [AniListFormatOptions.ONA]:
         "(Original Net Animation) Anime that have been originally released online or are only available through streaming services.",
-    [FormatOptions.MUSIC]: "Short anime released as a music video",
-    [FormatOptions.MANGA]:
+    [AniListFormatOptions.MUSIC]: "Short anime released as a music video",
+    [AniListFormatOptions.MANGA]:
         "Professionally published manga with more than one chapter",
-    [FormatOptions.NOVEL]: "Written books released as a series of light novels",
-    [FormatOptions.ONE_SHOT]: "Manga with just one chapter",
+    [AniListFormatOptions.NOVEL]:
+        "Written books released as a series of light novels",
+    [AniListFormatOptions.ONE_SHOT]: "Manga with just one chapter",
 };
 
-export const GroupOptionsTypes = {
-    [GroupOptions.None]: SortType.Other,
-    [GroupOptions.Status]: SortType.Alphabetical,
+export const AniListGroupOptionsTypes = {
+    [AniListGroupOptions.None]: SortType.Other,
+    [AniListGroupOptions.Status]: SortType.Alphabetical,
 };
 
-export enum TagOptions {
+export enum AniListTagOptions {
     Action = "Action",
     Adventure = "Adventure",
     Cars = "Cars",
@@ -186,33 +188,35 @@ export enum TagOptions {
     Josei = "Josei",
 }
 
-export const TagOptionDescriptions = {
-    [TagOptions.Action]: "Anime in which the protagonist fights against others",
-    [TagOptions.Adventure]:
+const TagOptionDescriptions = {
+    [AniListTagOptions.Action]:
+        "Anime in which the protagonist fights against others",
+    [AniListTagOptions.Adventure]:
         "Anime in which the protagonist travels to different places",
-    [TagOptions.Cars]: "Anime that involves cars",
-    [TagOptions.Comedy]: "Anime that aims to make the audience laugh",
-    [TagOptions.Dementia]: "Anime that is difficult to understand or interpret",
-    [TagOptions.Demons]: "Anime that involves demons",
-    [TagOptions.Mystery]: "Anime that involves solving a mystery",
-    [TagOptions.Drama]: "Anime that involves emotional scenes",
-    [TagOptions.Ecchi]: "Anime that involves sexual themes",
-    [TagOptions.Fantasy]: "Anime that involves magical elements",
-    [TagOptions.Game]: "Anime that involves games",
-    [TagOptions.Hentai]: "Anime that involves explicit sexual content",
-    [TagOptions.Historical]: "Anime that involves historical events",
-    [TagOptions.Horror]: "Anime that involves scary scenes",
-    [TagOptions.Kids]: "Anime that is targeted towards children",
-    [TagOptions.Magic]: "Anime that involves magic",
-    [TagOptions.MartialArts]: "Anime that involves martial arts",
-    [TagOptions.Mecha]: "Anime that involves robots",
-    [TagOptions.Music]: "Anime that involves music",
-    [TagOptions.Parody]: "Anime that parodies other anime",
-    [TagOptions.Samurai]: "Anime that involves samurais",
-    [TagOptions.Romance]: "Anime that involves romantic relationships",
-    [TagOptions.School]: "Anime that takes place in a school",
-    [TagOptions.SciFi]: "Anime that involves futuristic technology",
-    [TagOptions.Shoujo]: "Anime that is targeted towards young",
+    [AniListTagOptions.Cars]: "Anime that involves cars",
+    [AniListTagOptions.Comedy]: "Anime that aims to make the audience laugh",
+    [AniListTagOptions.Dementia]:
+        "Anime that is difficult to understand or interpret",
+    [AniListTagOptions.Demons]: "Anime that involves demons",
+    [AniListTagOptions.Mystery]: "Anime that involves solving a mystery",
+    [AniListTagOptions.Drama]: "Anime that involves emotional scenes",
+    [AniListTagOptions.Ecchi]: "Anime that involves sexual themes",
+    [AniListTagOptions.Fantasy]: "Anime that involves magical elements",
+    [AniListTagOptions.Game]: "Anime that involves games",
+    [AniListTagOptions.Hentai]: "Anime that involves explicit sexual content",
+    [AniListTagOptions.Historical]: "Anime that involves historical events",
+    [AniListTagOptions.Horror]: "Anime that involves scary scenes",
+    [AniListTagOptions.Kids]: "Anime that is targeted towards children",
+    [AniListTagOptions.Magic]: "Anime that involves magic",
+    [AniListTagOptions.MartialArts]: "Anime that involves martial arts",
+    [AniListTagOptions.Mecha]: "Anime that involves robots",
+    [AniListTagOptions.Music]: "Anime that involves music",
+    [AniListTagOptions.Parody]: "Anime that parodies other anime",
+    [AniListTagOptions.Samurai]: "Anime that involves samurais",
+    [AniListTagOptions.Romance]: "Anime that involves romantic relationships",
+    [AniListTagOptions.School]: "Anime that takes place in a school",
+    [AniListTagOptions.SciFi]: "Anime that involves futuristic technology",
+    [AniListTagOptions.Shoujo]: "Anime that is targeted towards young",
 };
 
 export function getRandomNumber(min: number, max: number) {

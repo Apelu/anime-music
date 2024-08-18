@@ -13,6 +13,7 @@ interface FactorMealType {
     ingredients: {
         name: string;
     }[];
+    selected: boolean;
 }
 
 export class FactorMeal implements FactorMealType {
@@ -28,6 +29,7 @@ export class FactorMeal implements FactorMealType {
     nutrition: {
         [nutrientName: string]: Nutrient;
     };
+    selected: boolean = false;
 
     constructor({
         id,
@@ -38,6 +40,7 @@ export class FactorMeal implements FactorMealType {
         websiteURL,
         ingredients,
         nutrition,
+        selected,
     }: FactorMealType) {
         this.id = id;
         this.productCode = productCode;
@@ -47,6 +50,7 @@ export class FactorMeal implements FactorMealType {
         this.websiteURL = websiteURL;
         this.ingredients = ingredients;
         this.nutrition = nutrition;
+        this.selected = selected;
     }
 
     getNutrient(nutrientName: string) {

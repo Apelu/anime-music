@@ -1,19 +1,18 @@
-import { topLevelAniListFeatures } from "@features/api/anilist";
 import { topLevelAnimeFeature } from "@features/anime";
+import { topLevelAniListFeatures } from "@features/api/anilist";
 import { topLevelBackgroundFeatures } from "@features/background";
 import { topLevelControllerFeatures } from "@features/controller";
 import {
-    colorLevels,
     Feature,
+    colorLevels,
     FeatureStatus,
     FeatureStatusColors,
 } from "@features/documentation/constants";
 import { topLevelMusicFeatures } from "@features/music";
-import { faSquareMinus } from "@fortawesome/free-regular-svg-icons";
-import { faSquarePlus } from "@fortawesome/free-solid-svg-icons";
+import { faSquareMinus, faSquarePlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import { Badge, Container, Table } from "react-bootstrap";
+import { Container, Table, Badge } from "react-bootstrap";
 
 const data: {
     title: string;

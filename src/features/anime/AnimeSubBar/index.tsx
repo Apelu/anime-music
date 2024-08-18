@@ -1,4 +1,4 @@
-import AnimeSubBar from "./AnimeSubBar";
-export * from "./AnimeSubBar";
+import SubBar from "../../subBars/SubBar";
+export * from "../../subBars/SubBar";
 
-export default AnimeSubBar;
+export default SubBar;

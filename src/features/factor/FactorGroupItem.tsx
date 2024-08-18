@@ -1,10 +1,18 @@
-import { Card, Popover, OverlayTrigger } from "react-bootstrap";
+import { Card, Popover, OverlayTrigger, Button } from "react-bootstrap";
 import { FactorGroup } from "./FactorGroup";
 import { FactorMeal } from "./FactorMeal";
 import { Nutrition } from "./Nutrition";
 import { NutritionBadge } from "./NutritionBadge";
+import { faX, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export function FactorGroupItem({ factorGroup }: { factorGroup: FactorGroup }) {
+export function FactorGroupItem({
+    factorGroup,
+    updateGroupSelection,
+}: {
+    factorGroup: FactorGroup;
+    updateGroupSelection: (factorGroup: FactorGroup) => void;
+}) {
     return (
         <Card
             style={{
@@ -15,13 +23,39 @@ export function FactorGroupItem({ factorGroup }: { factorGroup: FactorGroup }) {
         >
             <Card.Body>
                 <div>
-                    <div>
+                    <div className="hover-trigger">
+                        <Button
+                            className="hover-content"
+                            style={{
+                                position: "absolute",
+                                right: "0",
+                                top: "0",
+                            }}
+                        >
+                            <FontAwesomeIcon
+                                icon={factorGroup.selected ? faX : faPlus}
+                                size={"lg"}
+                                onClick={() => {
+                                    updateGroupSelection(factorGroup);
+                                }}
+                            />
+                        </Button>
                         {factorGroup.items.map((factorMeal: FactorMeal) => {
                             const popover = (
-                                <Popover id="popover-basic">
+                                <Popover
+                                    id="popover-basic"
+                                    style={{
+                                        maxWidth: "500px",
+                                    }}
+                                >
                                     <Popover.Header>
-                                        {factorMeal.name} ({factorMeal.headline}
-                                        )
+                                        <small>
+                                            {factorMeal.name}
+                                            <br />
+                                            <small>
+                                                ({factorMeal.headline})
+                                            </small>
+                                        </small>
                                     </Popover.Header>
                                     <Popover.Body>
                                         <div>
@@ -87,14 +121,11 @@ export function FactorGroupItem({ factorGroup }: { factorGroup: FactorGroup }) {
                                 </Popover>
                             );
                             return (
-                                <OverlayTrigger
-                                    placement="bottom"
-                                    trigger={["hover", "focus"]}
-                                    overlay={popover}
-                                >
-                                    <a
-                                        href={factorMeal.websiteURL}
-                                        target="_blank"
+                                <a href={factorMeal.websiteURL} target="_blank">
+                                    <OverlayTrigger
+                                        placement="bottom"
+                                        trigger={["hover", "focus"]}
+                                        overlay={popover}
                                     >
                                         <img
                                             loading="lazy"
@@ -106,8 +137,8 @@ export function FactorGroupItem({ factorGroup }: { factorGroup: FactorGroup }) {
                                             }}
                                             className="rounded"
                                         />
-                                    </a>
-                                </OverlayTrigger>
+                                    </OverlayTrigger>
+                                </a>
                             );
                         })}
                     </div>
@@ -171,7 +202,7 @@ export function FactorGroupItem({ factorGroup }: { factorGroup: FactorGroup }) {
                                 }}
                                 title={`${factorMeal.name}\n(${factorMeal.headline})`}
                             >
-                                {factorMeal.name}
+                                <small>{factorMeal.name}</small>
                             </span>
                         </>
                     ))}

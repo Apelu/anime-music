@@ -3,8 +3,8 @@ import AniListAPI, { AniListQueries } from "@features/api/anilist/AniListAPI";
 import HrWithName from "@features/ui/HrWithName";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
-import { Button, ButtonGroup, Container } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Container, Button, ButtonGroup } from "react-bootstrap";
 
 interface NewSeries {
     imageUrl: string;
