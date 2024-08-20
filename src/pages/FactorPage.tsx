@@ -15,6 +15,7 @@ import TheUltimateDropdown, {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FactorItem } from "@features/factor/FactorItem";
 import { FactorGroup } from "./../features/factor/FactorGroup";
+import factor from "@features/factor";
 
 enum MealTab {
     Meals = "Meals",
@@ -141,18 +142,21 @@ function MealsTab({
         SelectionTab.Selected
     );
     function updateMealSelection(factorMeal: FactorMeal) {
-        fetch("http://localhost:5555/api/factor/updateMealSelection", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                week: 34,
-                year: 2024,
-                id: factorMeal.id,
-                selected: !factorMeal.selected,
-            }),
-        }).then(response => {
+        fetch(
+            `http://localhost:5555/api/factor/updateMyFactorMealSelectionsFor`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    // week: 34,
+                    // year: 2024,
+                    id: factorMeal.id,
+                    isSelected: !factorMeal.selected,
+                }),
+            }
+        ).then(response => {
             console.log(response);
             setMealData(
                 mealData.map((meal: FactorMeal) => {
@@ -166,7 +170,7 @@ function MealsTab({
     }
 
     function pullDataFromServer() {
-        fetch("http://localhost:5555/api/factor/getWeekMenu")
+        fetch("http://localhost:5555/api/factor/buildMyFactorMealsFor")
             .then(response => {
                 return response.json();
             })
@@ -234,18 +238,19 @@ function DayMealsTab({
         SelectionTab.Selected
     );
     function updateGroupSelection(factorGroup: FactorGroup) {
-        fetch("http://localhost:5555/api/factor/updateGroupSelection", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                week: 34,
-                year: 2024,
-                id: factorGroup.id,
-                selected: !factorGroup.selected,
-            }),
-        }).then(response => {
+        fetch(
+            "http://localhost:5555/api/factor/updateMyFactorMealGroupSelectionsFor",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: factorGroup.id,
+                    isSelected: !factorGroup.selected,
+                }),
+            }
+        ).then(response => {
             console.log(response);
             setGroups(
                 groups.map((group: FactorGroup) => {
@@ -259,12 +264,15 @@ function DayMealsTab({
     }
 
     function pullGroupsFromServer() {
-        fetch("http://localhost:5555/api/factor/getWeekMenuGroups")
+        fetch("http://localhost:5555/api/factor/buildMyFactorMealGroupsFor")
             .then(response => {
                 console.log(response);
                 return response.json();
             })
             .then(data => {
+                console.log(
+                    data["66993869cd60da2de8b6775f-66993b71cd60da2de8b6777a"]
+                );
                 setGroups(
                     Object.keys(data).map(key => new FactorGroup(data[key]))
                 );

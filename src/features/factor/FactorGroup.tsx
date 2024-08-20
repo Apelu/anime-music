@@ -3,7 +3,7 @@ import { Nutrient, Nutrition } from "./Nutrition";
 
 interface FactorGroupType {
     id: string;
-    items: FactorMeal[];
+    factorMeals: FactorMeal[];
     nutrition: {
         [nutrientName: string]: Nutrient;
     };
@@ -15,7 +15,7 @@ interface FactorGroupType {
 export class FactorGroup implements FactorGroupType {
     id: string;
     name: string;
-    items: FactorMeal[];
+    factorMeals: FactorMeal[];
     nutrition: {
         [nutrientName: string]: Nutrient;
     };
@@ -25,28 +25,35 @@ export class FactorGroup implements FactorGroupType {
     selected: boolean = false;
 
     constructor(factorGroup: FactorGroupType) {
-        const { id, items, nutrition, ingredients } = factorGroup;
+        const {
+            id,
+            factorMeals: items,
+            nutrition,
+            ingredients,
+            selected,
+        } = factorGroup;
         this.id = id;
-        this.items = items.map(item => new FactorMeal(item));
+        this.factorMeals = items.map(item => new FactorMeal(item));
         this.nutrition = nutrition;
         this.ingredients = ingredients;
+        this.selected = selected;
 
         console.log(factorGroup);
 
-        this.name = this.items.map(item => item.name).join(", ");
+        this.name = this.factorMeals.map(item => item.name).join(", ");
     }
 
     toFactorMeal() {
         return new FactorMeal({
             id: this.name,
-            productCode: "",
             name: this.name,
             headline: "",
             image: "",
             websiteURL: "",
             ingredients: this.ingredients,
             nutrition: this.nutrition,
-            selected: false,
+            selected: this.selected,
+            type: "normal",
         });
     }
 

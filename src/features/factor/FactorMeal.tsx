@@ -2,55 +2,55 @@ import { Nutrient, Nutrition } from "./Nutrition";
 
 interface FactorMealType {
     id: string;
-    productCode: string;
     name: string;
     headline: string;
     image: string;
     websiteURL: string;
+    selected: boolean;
+    type: "normal" | "breakfast";
     nutrition: {
         [nutrientName: string]: Nutrient;
     };
     ingredients: {
         name: string;
     }[];
-    selected: boolean;
 }
 
 export class FactorMeal implements FactorMealType {
     id: string;
-    productCode: string;
     name: string;
     headline: string;
     image: string;
     websiteURL: string;
-    ingredients: {
-        name: string;
-    }[];
+    selected: boolean;
+    type: "normal" | "breakfast";
     nutrition: {
         [nutrientName: string]: Nutrient;
     };
-    selected: boolean = false;
+    ingredients: {
+        name: string;
+    }[];
 
     constructor({
         id,
-        productCode,
         name,
         headline,
         image,
         websiteURL,
-        ingredients,
-        nutrition,
         selected,
+        type,
+        nutrition,
+        ingredients,
     }: FactorMealType) {
         this.id = id;
-        this.productCode = productCode;
         this.name = name;
         this.headline = headline;
         this.image = image;
         this.websiteURL = websiteURL;
-        this.ingredients = ingredients;
-        this.nutrition = nutrition;
         this.selected = selected;
+        this.type = type;
+        this.nutrition = nutrition;
+        this.ingredients = ingredients;
     }
 
     getNutrient(nutrientName: string) {
