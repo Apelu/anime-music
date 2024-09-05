@@ -43,6 +43,32 @@ export class FactorGroup implements FactorGroupType {
         this.name = this.factorMeals.map(item => item.name).join(", ");
     }
 
+    getScore() {
+        // Calculate the score of the group based on close-ness to nutrition goals
+        let score = 0;
+        for (const nutrientName in this.nutrition) {
+            const dvPercent = this.getDVPercent(nutrientName);
+            const goalType = this.getGoalType(nutrientName);
+
+            if (goalType === Nutrition.GoalTypes.Meet) {
+                if (dvPercent >= 100) {
+                    const overBy = dvPercent - 100;
+                    if (overBy > 20) {
+                        score -= overBy;
+                    } else {
+                        score += 100 - dvPercent;
+                    }
+                } else {
+                    score += 100 - dvPercent;
+                }
+            } else {
+                score += 100 - dvPercent;
+            }
+        }
+
+        return score;
+    }
+
     toFactorMeal() {
         return new FactorMeal({
             id: this.name,

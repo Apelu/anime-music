@@ -32,6 +32,9 @@ import { useState, useEffect } from "react";
 import { Outlet, createBrowserRouter } from "react-router-dom";
 import ProviderParent from "./ProviderParent";
 import "../../assets/App.css";
+import VideoPage from "@pages/VideoPage";
+import { Card, Container } from "react-bootstrap";
+import { DndContext } from "@dnd-kit/core";
 
 export enum Paths {
     Anime = "/anime",
@@ -41,6 +44,7 @@ export enum Paths {
     Profile = "/profile",
     Features = "/features",
     BackgroundLibrary = "/background-library",
+    VideoPage = "/video",
 }
 
 function Root() {
@@ -328,7 +332,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "/",
-                element: <FactorPage />,
+                element: <MealCalendarPage />,
             },
             {
                 path: Paths.Anime,
@@ -341,6 +345,7 @@ const router = createBrowserRouter([
             },
             { path: Paths.Music, element: <MusicPage /> },
             { path: Paths.Login, element: <LoginPage /> },
+            { path: Paths.VideoPage, element: <VideoPage /> },
             { path: Paths.Controller, element: <ControllerPage /> },
             { path: Paths.Profile, element: <ProfilePage /> },
             { path: Paths.Features, element: <FeaturesPage /> },
@@ -352,5 +357,83 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
     },
 ]);
+
+function MealCalendarPage() {
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    return (
+        <Container fluid className="mt-3">
+            <DisplaySelectedDate selectedDate={selectedDate} />
+            <DisplaySelectedDateContent selectedDate={selectedDate} />
+        </Container>
+    );
+}
+
+function DisplaySelectedDateMeals({ selectedDate }: { selectedDate: Date }) {
+    const [meals, setMeals] = useState<string[]>([]);
+    return (
+        <div
+            style={{
+                width: "65%",
+            }}
+            className="bg-primary rounded p-2 me-2"
+        >
+            Meals
+            {meals.map((meal, index) => {
+                return (
+                    <Card key={index} className="mt-2">
+                        <Card.Body>{meal}</Card.Body>
+                    </Card>
+                );
+            })}
+        </div>
+    );
+}
+
+function DisplayMealPool() {
+    return (
+        <div
+            style={{
+                width: "35%",
+            }}
+            className="bg-primary rounded p-2"
+        >
+            Meal Pool
+            <input className="form-control form-control-sm" />
+            <MealPoolItem />
+        </div>
+    );
+}
+
+function MealPoolItem() {
+    return (
+        <div className="d-flex mt-2">
+            <img src="" width={96} height={96} />
+            <div>
+                <h6>Meal Name</h6>
+                <p>Meal Description</p>
+            </div>
+        </div>
+    );
+}
+
+function DisplaySelectedDateContent({ selectedDate }: { selectedDate: Date }) {
+    //https://docs.dndkit.com/introduction/getting-started
+    return (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                width: "100%",
+            }}
+        >
+            <DisplaySelectedDateMeals selectedDate={selectedDate} />
+            <DisplayMealPool />
+        </div>
+    );
+}
+
+function DisplaySelectedDate({ selectedDate }: { selectedDate: Date }) {
+    return <h1>{selectedDate.toDateString()}</h1>;
+}
 
 export default router;

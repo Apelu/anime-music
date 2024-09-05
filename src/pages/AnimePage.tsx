@@ -11,18 +11,24 @@ import {
     DisplaySettingsContext,
     DisplaySettingsDispatchContext,
 } from "@features/contexts/DisplaySettingsContext";
+import TheUltimateDropdown from "@features/ui/TheUltimateDropdown";
+import { faEllipsisH, faEllipsisV } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getDoc } from "firebase/firestore";
 import { useState, useEffect, useContext } from "react";
-import { Container } from "react-bootstrap";
+import { Badge, Container, Dropdown } from "react-bootstrap";
 
 interface SeriesLink {
     createdAt: number;
+    updatedAt: number;
     baseSiteUrl?: string;
     seriesTitle: string;
     seriesInfoPage: string;
     watchPage: string;
     episode: string;
     seriesCoverImage: string;
+    availableEpisodes: string;
+    latestAvailableEpisodeSubtitle: string;
 }
 
 interface LinkedSeriesObj {
@@ -58,7 +64,10 @@ function AnimePage() {
                 );
 
                 items.sort((a, b) => {
-                    return b.createdAt - a.createdAt;
+                    return (
+                        (b.updatedAt || b.createdAt) -
+                        (a.updatedAt || a.createdAt)
+                    );
                 });
 
                 setAnimeData(items);
@@ -93,7 +102,7 @@ function AnimePage() {
             <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
                 {animeData.map((anime, index) => (
                     <div className="col" key={index + ""}>
-                        <div className="card h-100">
+                        <div className="card h-100 border-0">
                             <a
                                 href={
                                     (anime.baseSiteUrl || "") + anime.watchPage
@@ -109,8 +118,8 @@ function AnimePage() {
                                     }}
                                 />
                             </a>
-                            <div className="card-body">
-                                <p
+                            <div className="card-body pt-1 pb-1 ps-2 pe-2">
+                                <div
                                     className="card-title p-0 m-0"
                                     // d-flex flex-column"
                                     style={
@@ -121,23 +130,112 @@ function AnimePage() {
                                     }
                                     title={anime.seriesTitle}
                                 >
-                                    <div>Episode {anime.episode}</div>
-                                    <hr></hr>
-                                    <a
-                                        href={
-                                            (anime.baseSiteUrl || "") +
-                                            anime.seriesInfoPage
+                                    <small
+                                        className="me-1"
+                                        title={
+                                            anime.latestAvailableEpisodeSubtitle
                                         }
-                                        target="_blank"
-                                        style={{
-                                            // flexGrow: 1,
-                                            color: "inherit",
-                                            textDecoration: "none",
-                                        }}
                                     >
-                                        {anime.seriesTitle}
-                                    </a>
-                                </p>
+                                        <small>Episode {anime.episode}</small>
+                                    </small>
+
+                                    {anime.availableEpisodes ? (
+                                        <small>
+                                            <small>
+                                                <Badge
+                                                    title={
+                                                        anime.latestAvailableEpisodeSubtitle
+                                                    }
+                                                >
+                                                    {anime.availableEpisodes}
+                                                </Badge>
+                                            </small>
+                                        </small>
+                                    ) : null}
+
+                                    <hr className="mt-1 mb-1"></hr>
+                                    <div className="d-flex align-items-center">
+                                        <a
+                                            href={
+                                                (anime.baseSiteUrl || "") +
+                                                anime.seriesInfoPage
+                                            }
+                                            target="_blank"
+                                            style={{
+                                                // flexGrow: 1,
+                                                color: "inherit",
+                                                textDecoration: "none",
+                                            }}
+                                        >
+                                            <small>
+                                                <small>
+                                                    {anime.seriesTitle}
+                                                </small>
+                                            </small>
+                                        </a>
+                                        <Dropdown className="ms-auto">
+                                            <Dropdown.Toggle bsPrefix="p-1 m-1"></Dropdown.Toggle>
+
+                                            <Dropdown.Menu>
+                                                <Dropdown.Item>
+                                                    Check for new Episodes
+                                                </Dropdown.Item>
+                                                <Dropdown.Item></Dropdown.Item>
+                                                <Dropdown.Divider />
+                                                <Dropdown.Item
+                                                    onClick={() => {
+                                                        console.log({
+                                                            seriesOrigin:
+                                                                anime.baseSiteUrl,
+                                                            seriesInfoPage:
+                                                                anime.seriesInfoPage,
+                                                        });
+                                                        const isOK =
+                                                            window.confirm(
+                                                                "Are you sure you want to delete this item?"
+                                                            );
+                                                        if (isOK) {
+                                                            fetch(
+                                                                "http://localhost:5555/api/animeTrack/deleteSeries",
+                                                                {
+                                                                    method: "POST",
+                                                                    headers: {
+                                                                        "Content-Type":
+                                                                            "application/json",
+                                                                    },
+                                                                    body: JSON.stringify(
+                                                                        {
+                                                                            seriesInfo:
+                                                                                {
+                                                                                    seriesOrigin:
+                                                                                        anime.baseSiteUrl,
+                                                                                    seriesInfoPage:
+                                                                                        anime.seriesInfoPage,
+                                                                                },
+                                                                        }
+                                                                    ),
+                                                                }
+                                                            )
+                                                                .then(
+                                                                    response =>
+                                                                        response.json()
+                                                                )
+                                                                .then(
+                                                                    async data => {
+                                                                        console.log(
+                                                                            data
+                                                                        );
+                                                                    }
+                                                                );
+                                                        }
+                                                    }}
+                                                >
+                                                    Delete
+                                                </Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -190,6 +288,10 @@ function AnimePage() {
         //     </div>
         // </Container>
     );
+}
+
+function CustomToggle() {
+    return <FontAwesomeIcon icon={faEllipsisH} size="sm" className="ms-2" />;
 }
 
 export default AnimePage;

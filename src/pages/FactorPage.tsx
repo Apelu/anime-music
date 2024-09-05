@@ -1,7 +1,12 @@
 import { SortDirection, ViewType, ViewTypeIcons } from "@data/constants";
 import { FactorGroupItem } from "@features/factor/FactorGroupItem";
 import { useContext, useEffect, useState } from "react";
-import { Container, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
+import {
+    Badge,
+    Container,
+    ToggleButton,
+    ToggleButtonGroup,
+} from "react-bootstrap";
 import { FactorMeal } from "../features/factor/FactorMeal";
 import { Nutrition } from "../features/factor/Nutrition";
 import {
@@ -72,12 +77,19 @@ export function FactorPage() {
     return (
         <>
             <Container fluid className="mt-3 d-flex flex-wrap">
+                <Schedule
+                    {...{
+                        groups,
+                        setGroups,
+                    }}
+                />
                 <div className="d-flex ">
                     <TheUltimateDropdown
                         title="Week"
                         titleType={TitleType.Both}
                         dropdownProps={{ className: "me-3" }}
                     />
+
                     <ToggleButtonGroup
                         type="radio"
                         name="mealToggle"
@@ -237,6 +249,7 @@ function DayMealsTab({
     const [selectedTab, setSelectedTab] = useState<SelectionTab>(
         SelectionTab.Selected
     );
+
     function updateGroupSelection(factorGroup: FactorGroup) {
         fetch(
             "http://localhost:5555/api/factor/updateMyFactorMealGroupSelectionsFor",
@@ -270,18 +283,35 @@ function DayMealsTab({
                 return response.json();
             })
             .then(data => {
-                console.log(
-                    data["66993869cd60da2de8b6775f-66993b71cd60da2de8b6777a"]
+                const newGroups = Object.keys(data).map(
+                    key => new FactorGroup(data[key])
                 );
-                setGroups(
-                    Object.keys(data).map(key => new FactorGroup(data[key]))
-                );
+
+                setGroups(newGroups);
             });
     }
 
     useEffect(() => {
         pullGroupsFromServer();
     }, []);
+
+    if (!groups) return null;
+
+    groups.sort((a: FactorGroup, b: FactorGroup) => {
+        return a.getScore() - b.getScore();
+    });
+
+    const mealInGroupCount: { [mealID: string]: number } = {};
+    for (const group of groups.filter(
+        (factorGroup: FactorGroup) => factorGroup.selected
+    )) {
+        for (const meal of group.factorMeals) {
+            if (mealInGroupCount[meal.id] === undefined) {
+                mealInGroupCount[meal.id] = 0;
+            }
+            mealInGroupCount[meal.id] += 1;
+        }
+    }
 
     return (
         <>
@@ -292,7 +322,7 @@ function DayMealsTab({
                 onChange={value => {
                     setSelectedTab(value);
                 }}
-                className="ms-3"
+                className="ms-3 mb-3"
             >
                 {Object.values(SelectionTab).map(tab => (
                     <ToggleButton
@@ -300,6 +330,7 @@ function DayMealsTab({
                         value={tab}
                         variant="outline-success"
                         key={tab}
+                        className="mb-3"
                     >
                         {tab}
                     </ToggleButton>
@@ -315,11 +346,89 @@ function DayMealsTab({
                         )
                         .map((factorGroup, index) => (
                             <FactorGroupItem
+                                mealInGroupCount={mealInGroupCount}
                                 key={index}
                                 factorGroup={factorGroup}
                                 updateGroupSelection={updateGroupSelection}
                             />
                         ))}
+            </Container>
+        </>
+    );
+}
+
+function Schedule({
+    groups,
+    setGroups,
+}: {
+    groups: FactorGroup[];
+    setGroups: (data: FactorGroup[]) => void;
+}) {
+    if (!groups) return null;
+
+    groups.sort((a: FactorGroup, b: FactorGroup) => {
+        return a.getScore() - b.getScore();
+    });
+
+    const mealInGroupCount: { [mealID: string]: number } = {};
+    for (const group of groups.filter(
+        (factorGroup: FactorGroup) => factorGroup.selected
+    )) {
+        for (const meal of group.factorMeals) {
+            if (mealInGroupCount[meal.id] === undefined) {
+                mealInGroupCount[meal.id] = 0;
+            }
+            mealInGroupCount[meal.id] += 1;
+        }
+    }
+
+    const selectedGroup = groups.filter(
+        (factorGroup: FactorGroup) => factorGroup.selected
+    );
+
+    const scheduleNutritionValues = selectedGroup.reduce(
+        (
+            scheduleNutritionValues: { [nutrientName: string]: number },
+            factorGroup: FactorGroup
+        ) => {
+            for (const nutrientName in factorGroup.nutrition) {
+                if (scheduleNutritionValues[nutrientName] === undefined) {
+                    scheduleNutritionValues[nutrientName] = 0;
+                }
+                scheduleNutritionValues[nutrientName] +=
+                    factorGroup.nutrition[nutrientName].amount;
+            }
+            return scheduleNutritionValues;
+        },
+        {}
+    );
+
+    return (
+        <>
+            <Container fluid className="mt-3 d-flex flex-wrap">
+                {/* Nutrition Values for Schedule */}
+
+                <div className="d-flex flex-wrap">
+                    {Object.entries(scheduleNutritionValues).map(
+                        ([nutrientName, amount]) => (
+                            <Badge className="me-3">
+                                <small>
+                                    {nutrientName}
+                                    {": "}
+                                </small>
+                                <small>
+                                    {Math.floor(
+                                        (100 * amount) /
+                                            (Nutrition.DailyValues[
+                                                nutrientName
+                                            ] *
+                                                7)
+                                    )}{" "}
+                                </small>
+                            </Badge>
+                        )
+                    )}
+                </div>
             </Container>
         </>
     );

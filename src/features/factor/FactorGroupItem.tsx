@@ -1,4 +1,4 @@
-import { Card, Popover, OverlayTrigger, Button } from "react-bootstrap";
+import { Card, Popover, OverlayTrigger, Button, Badge } from "react-bootstrap";
 import { FactorGroup } from "./FactorGroup";
 import { FactorMeal } from "./FactorMeal";
 import { Nutrition } from "./Nutrition";
@@ -9,7 +9,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export function FactorGroupItem({
     factorGroup,
     updateGroupSelection,
+    mealInGroupCount,
 }: {
+    mealInGroupCount: { [mealID: string]: number };
     factorGroup: FactorGroup;
     updateGroupSelection: (factorGroup: FactorGroup) => void;
 }) {
@@ -209,7 +211,15 @@ export function FactorGroupItem({
                                 }}
                                 title={`${factorMeal.name}\n(${factorMeal.headline})`}
                             >
-                                <small>{factorMeal.name}</small>
+                                <small>
+                                    {mealInGroupCount[factorMeal.id] > 1 ? (
+                                        <Badge>
+                                            {mealInGroupCount[factorMeal.id] -
+                                                1}
+                                        </Badge>
+                                    ) : null}{" "}
+                                    {factorMeal.name}
+                                </small>
                             </span>
                         </>
                     ))}
