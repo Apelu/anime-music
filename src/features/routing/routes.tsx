@@ -35,11 +35,16 @@ import "../../assets/App.css";
 import VideoPage from "@pages/VideoPage";
 import { Card, Container } from "react-bootstrap";
 import { DndContext } from "@dnd-kit/core";
+import AnimeDownloadPage from "@pages/AnimeDownloadPage";
+import OfflineAnime from "@pages/OfflineAnime";
 
 export enum Paths {
     Anime = "/anime",
+    AnimeInfo = "/anime/:seriesFolderName",
+    AnimeVideo = "/anime/:seriesFolderName/:episodeNumber",
     Music = "/music",
     Login = "/login",
+    AnimeDownload = "/anime-download",
     Controller = "/controller",
     Profile = "/profile",
     Features = "/features",
@@ -334,19 +339,27 @@ const router = createBrowserRouter([
                 path: "/",
                 element: <MealCalendarPage />,
             },
+
+            {
+                path: Paths.AnimeVideo,
+                element: <OfflineAnime />,
+            },
+
+            {
+                path: Paths.AnimeInfo,
+                element: <OfflineAnime />,
+            },
+
             {
                 path: Paths.Anime,
-
-                element: (
-                    <>
-                        <AnimePage />
-                    </>
-                ),
+                element: <OfflineAnime />,
             },
+
             { path: Paths.Music, element: <MusicPage /> },
             { path: Paths.Login, element: <LoginPage /> },
             { path: Paths.VideoPage, element: <VideoPage /> },
             { path: Paths.Controller, element: <ControllerPage /> },
+            { path: Paths.AnimeDownload, element: <AnimeDownloadPage /> },
             { path: Paths.Profile, element: <ProfilePage /> },
             { path: Paths.Features, element: <FeaturesPage /> },
             {
