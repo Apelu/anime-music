@@ -2,6 +2,19 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
+        <style>
+            /* Make font size 125% and make background transparent and edge uniform */
+            .video-js .vjs-text-track-cue {
+                font-size: 2.5rem !important;
+            }
+
+            div.vjs-text-track-display > div > div > div {
+                background-color: transparent !important;
+                text-shadow: rgb(34, 34, 34) 0px 0px 4px,
+                    rgb(34, 34, 34) 0px 0px 4px, rgb(34, 34, 34) 0px 0px 4px,
+                    rgb(34, 34, 34) 0px 0px 4px;
+            }
+        </style>
         <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />

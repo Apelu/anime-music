@@ -1,9 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { ServerCalls } from "./AnimeDownloadPage";
-import { useParams, useSearchParams } from "react-router-dom";
+import {
+    Navigate,
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from "react-router-dom";
 import { doc } from "firebase/firestore";
 import { Card, ProgressBar } from "react-bootstrap";
 import { parse } from "path";
+import { Player } from "video-react";
+import videojs from "video.js";
+import "video.js/dist/video-js.css";
+import "videojs-hotkeys";
+import TextTrackSettingsFont from "./../../node_modules/video.js/dist/types/tracks/text-track-settings-font.d";
 
 interface DisplayAnimeCardProps {
     imageSrc: string;
@@ -39,7 +49,7 @@ function DisplayAnimeCard(props: DisplayAnimeCardProps) {
                     border: "1px solid black",
                     marginTop: "10px",
                     marginRight: "10px",
-                    borderRadius: "5px 5px 0 0",
+                    borderRadius: bottomComponent ? "5px 5px 0 0" : "5px",
                 }}
             >
                 {imageSrc ? (
@@ -59,7 +69,9 @@ function DisplayAnimeCard(props: DisplayAnimeCardProps) {
                                     width: "100%",
                                     height: "100%",
                                     objectFit: "cover",
-                                    borderRadius: "5px 5px 0 0",
+                                    borderRadius: bottomComponent
+                                        ? "5px 5px 0 0"
+                                        : "5px",
                                 }}
                             />
                         </a>
@@ -158,6 +170,7 @@ interface VideoPlayerState {
 }
 
 function OfflineAnime(props: any) {
+    const navigate = useNavigate();
     const params = useParams();
     const serverCalls = new ServerCalls();
 
@@ -165,10 +178,15 @@ function OfflineAnime(props: any) {
         view: null, // null | "series" | "episodes" | "video"
         seriesData: [],
         selectedSeriesData: null, // null | Anime
+        progress: {},
     });
 
     // Path /anime/:seriesFolderName/:episodeNumber
-    useEffect(() => {
+    async function dataPulls() {
+        const response = await serverCalls.getProgress();
+
+        const progressData = await response.json();
+
         if (!params || !params.seriesFolderName) {
             serverCalls
                 .getSeries()
@@ -180,6 +198,7 @@ function OfflineAnime(props: any) {
                         ...data,
                         view: "series",
                         seriesData: Object.values(animeList),
+                        progress: progressData,
                     });
                 });
             return;
@@ -197,6 +216,7 @@ function OfflineAnime(props: any) {
                         ...data,
                         view: "episodes",
                         selectedSeriesData: Object.values(episodeInfo),
+                        progress: progressData,
                     });
                 });
             return;
@@ -214,12 +234,16 @@ function OfflineAnime(props: any) {
                         ...data,
                         view: "video",
                         selectedSeriesData: Object.values(episodeInfo),
+                        progress: progressData,
                     });
                 });
 
             // });
             return;
         }
+    }
+    useEffect(() => {
+        dataPulls();
     }, []); //[params.seriesFolderName, params.episodeNumber]);
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -236,9 +260,14 @@ function OfflineAnime(props: any) {
             selectedSeriesData[nextEpisodeIndex]?.episodeNumber;
 
         if (nextEpisodeNumber) {
-            window.location.href = `/anime/${
-                params.seriesFolderName
-            }/${encodeURIComponent(nextEpisodeNumber)}`;
+            navigate(
+                `/anime/${params.seriesFolderName}/${encodeURIComponent(
+                    nextEpisodeNumber
+                )}`
+            );
+            // window.location.href = `/anime/${
+            //     params.seriesFolderName
+            // }/${encodeURIComponent(nextEpisodeNumber)}`;
         } else {
             alert(`No ${goToNextEpisode ? "next" : "previous"} episode found`);
         }
@@ -246,9 +275,11 @@ function OfflineAnime(props: any) {
 
     switch (data.view) {
         case "series":
-            return <SeriesView data={data} />;
+            return null;
+        // return <SeriesView data={data} setData={setData} />;
         case "episodes":
-            return <EpisodesView data={data} />;
+            return null;
+        // return <EpisodesView data={data} />;
         case "video":
             if (!params.seriesFolderName || !params.episodeNumber) {
                 return <span>Invalid URL</span>;
@@ -276,14 +307,29 @@ function VideoPlayerView(props: {
     params: any;
     serverCalls: ServerCalls;
 }) {
+    const navigate = useNavigate();
     const [showingMenu, setShowingMenu] = useState(true);
     var lastUpdate = 0;
     const { data, videoRef, handleEnded, params, serverCalls } = props;
+    const [subtitle, setSubtitle] = useState<string | null>(null);
 
     useEffect(() => {
         setTimeout(() => {
             setShowingMenu(false);
         }, 1500);
+
+        fetch(
+            serverCalls.getSubtitleUrl(
+                params.seriesFolderName,
+                params.episodeNumber
+            )
+        )
+            .then(response => {
+                return response.text();
+            })
+            .then(text => {
+                setSubtitle(text);
+            });
     }, []);
     console.log({ data });
 
@@ -296,10 +342,14 @@ function VideoPlayerView(props: {
         const video = videoRef.current;
         if (video) {
             video.onloadedmetadata = () => {
-                const savedProgress = selected.progress;
+                const savedProgress = data.progress[selected.seriesFolderName]
+                    ? data.progress[selected.seriesFolderName][
+                          selected.episodeNumber
+                      ]
+                    : null;
 
                 if (savedProgress) {
-                    video.currentTime = savedProgress;
+                    video.currentTime = savedProgress.progress;
                 } else {
                     video.currentTime = 0;
                 }
@@ -337,10 +387,189 @@ function VideoPlayerView(props: {
         </div>
     );
 
+    const oldVideo = (
+        <video
+            id="video"
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "black",
+                zIndex: 99999999,
+            }}
+            ref={videoRef}
+            src={serverCalls.getVideoUrl(
+                params.seriesFolderName,
+                params.episodeNumber
+            )}
+            controls
+            autoPlay
+            onPlay={() => {
+                videoRef.current?.focus();
+            }}
+            onEnded={() => {
+                handleEnded();
+            }}
+            onTimeUpdate={() => {
+                const video = videoRef.current;
+                if (!video) return;
+
+                const currentTime = parseInt(video.currentTime);
+
+                if (currentTime % 15 === 0) {
+                    if (lastUpdate === currentTime) return;
+                    lastUpdate = currentTime;
+                    serverCalls.updateProgress(
+                        params.seriesFolderName,
+                        params.episodeNumber,
+                        video.currentTime,
+                        video.duration
+                    );
+                }
+            }}
+            onKeyDownCapture={e => {
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                    e.preventDefault();
+                }
+            }}
+            onKeyDown={e => {
+                if (e.key === "ArrowLeft") {
+                    videoRef.current!.currentTime -= 5;
+                }
+
+                if (e.key === "ArrowRight") {
+                    videoRef.current!.currentTime += 5;
+                }
+            }}
+            // muted
+            onKeyUp={e => {
+                console.log(e.key);
+                if (e.key === "Escape") {
+                    // document.location.href = `/anime/${params.seriesFolderName}`;
+                    navigate(`/anime/${params.seriesFolderName}`);
+                }
+
+                if (e.key === "u") {
+                    setShowingMenu(!showingMenu);
+                }
+
+                if (e.key == "MediaPlayPause") {
+                    // Skip 85 seconds
+                    videoRef.current!.currentTime += 85;
+                }
+
+                // Is digit key
+                if (
+                    e.key == "0" ||
+                    e.key == "1" ||
+                    e.key == "2" ||
+                    e.key == "3" ||
+                    e.key == "4" ||
+                    e.key == "5" ||
+                    e.key == "6" ||
+                    e.key == "7" ||
+                    e.key == "8" ||
+                    e.key == "9"
+                ) {
+                    // Skip to that percentage
+                    const percentage = parseInt(e.key) * 10;
+                    videoRef.current!.currentTime =
+                        videoRef.current!.duration * (percentage / 100);
+                }
+
+                if (e.key.toLowerCase() == "f") {
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    } else {
+                        videoRef.current?.requestFullscreen();
+                    }
+                }
+
+                if (e.key === "MediaTrackPrevious") {
+                    handleEnded(false);
+                }
+
+                if (e.key === "Delete" || e.key === "MediaTrackNext") {
+                    handleEnded();
+                }
+            }}
+        >
+            {subtitle && (
+                <track
+                    src={`/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`}
+                    kind="subtitles"
+                    srcLang="en"
+                    label="English"
+                    default
+                />
+            )}
+        </video>
+    );
+
+    useEffect(() => {
+        const videoElement = document.createElement(
+            "video-js"
+        ) as HTMLVideoElement;
+        videoElement.style.width = "100%";
+        videoElement.style.height = "100%";
+
+        videoElement.controls = true;
+        videoElement.autoplay = true;
+        videoElement.src = serverCalls.getVideoUrl(
+            params.seriesFolderName,
+            params.episodeNumber
+        );
+        videoElement.onplay = () => {
+            videoElement.focus();
+        };
+
+        videoElement.onended = () => {
+            handleEnded();
+        };
+
+        const videoContainer = document.getElementById("video-container");
+        if (videoContainer) {
+            videoContainer.appendChild(videoElement);
+        }
+
+        const player = videojs(videoElement, {
+            autoplay: true,
+            controls: true,
+            subtitles: {
+                default: "English",
+                en: [
+                    {
+                        src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                        srclang: "en",
+                        label: "English",
+                    },
+                ],
+            },
+            tracks: [
+                {
+                    kind: "subtitles",
+                    src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                    srclang: "en",
+                    label: "English",
+                    default: true,
+                },
+            ],
+        });
+
+        return () => {
+            if (player) {
+                player.dispose();
+            }
+        };
+    }, []);
+
     return (
         <div>
             {showingMenu && uiMenu}
-            <video
+            {/* <div
+                id="video-container"
                 style={{
                     position: "fixed",
                     top: 0,
@@ -350,147 +579,48 @@ function VideoPlayerView(props: {
                     backgroundColor: "black",
                     zIndex: 99999999,
                 }}
-                ref={videoRef}
-                src={serverCalls.getVideoUrl(
-                    params.seriesFolderName,
-                    params.episodeNumber
-                )}
-                controls
-                autoPlay
-                onPlay={() => {
-                    videoRef.current?.focus();
-                }}
-                onEnded={() => {
-                    handleEnded();
-                }}
-                onTimeUpdate={() => {
-                    const video = videoRef.current;
-                    if (!video) return;
-
-                    const currentTime = parseInt(video.currentTime);
-
-                    if (currentTime % 15 === 0) {
-                        if (lastUpdate === currentTime) return;
-                        lastUpdate = currentTime;
-                        serverCalls.updateProgress(
-                            params.seriesFolderName,
-                            params.episodeNumber,
-                            video.currentTime,
-                            video.duration
-                        );
-                    }
-                }}
-                onKeyDownCapture={e => {
-                    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-                        e.preventDefault();
-                    }
-                }}
-                onKeyDown={e => {
-                    if (e.key === "ArrowLeft") {
-                        videoRef.current!.currentTime -= 5;
-                    }
-
-                    if (e.key === "ArrowRight") {
-                        videoRef.current!.currentTime += 5;
-                    }
-                }}
-                onKeyUp={e => {
-                    console.log(e.key);
-                    if (e.key === "Escape") {
-                        document.location.href = `/anime/${params.seriesFolderName}`;
-                    }
-
-                    if (e.key === "u") {
-                        setShowingMenu(!showingMenu);
-                    }
-
-                    if (e.key == "MediaPlayPause") {
-                        // Skip 85 seconds
-                        videoRef.current!.currentTime += 85;
-                    }
-
-                    // Is digit key
-                    if (
-                        e.key == "0" ||
-                        e.key == "1" ||
-                        e.key == "2" ||
-                        e.key == "3" ||
-                        e.key == "4" ||
-                        e.key == "5" ||
-                        e.key == "6" ||
-                        e.key == "7" ||
-                        e.key == "8" ||
-                        e.key == "9"
-                    ) {
-                        // Skip to that percentage
-                        const percentage = parseInt(e.key) * 10;
-                        videoRef.current!.currentTime =
-                            videoRef.current!.duration * (percentage / 100);
-                    }
-
-                    if (e.key.toLowerCase() == "f") {
-                        if (document.fullscreenElement) {
-                            document.exitFullscreen();
-                        } else {
-                            videoRef.current?.requestFullscreen();
-                        }
-                    }
-
-                    if (e.key === "MediaTrackPrevious") {
-                        handleEnded(false);
-                    }
-
-                    if (e.key === "Delete" || e.key === "MediaTrackNext") {
-                        handleEnded();
-                    }
-                }}
-            ></video>
+            ></div> */}
+            {oldVideo}
         </div>
     );
 }
 
-function SeriesView(props: { data: any }) {
-    const { data } = props;
+function getLatestEpisodeProgress(
+    progress: {
+        [seriesFolderName: string]: {
+            [episodeNumber: string]: {
+                progress: number;
+                duration: number;
+                lastUpdated: number;
+            };
+        };
+    },
+    seriesFolderName: string
+) {
+    const progressData = progress[seriesFolderName];
 
-    const continueWatching = data.seriesData.filter(
-        (anime: Anime) =>
-            anime.episodes.filter((episode: AnimeEpisode) => episode.progress)
-                .length > 0
-    );
-    return (
-        <div>
-            {continueWatching.length > 0 && (
-                <div>
-                    <h1>Continue Watching</h1>
-                    <div
-                        style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            justifyContent: "center",
-                        }}
-                    >
-                        {continueWatching.map((anime: Anime) => (
-                            <AnimeCard key={anime.anilistID} anime={anime} />
-                        ))}
-                    </div>
-                </div>
-            )}
+    if (!progressData) return null;
 
-            <span>OfflineAnime ({data.seriesData.length})</span>
+    var latest: {
+        progress: number;
+        duration: number;
+        lastUpdated: number;
+    } | null = null;
 
-            <div
-                style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "center",
-                }}
-            >
-                {data.seriesData.map((anime: Anime) => (
-                    <AnimeCard key={anime.anilistID} anime={anime} />
-                ))}
-            </div>
-        </div>
-    );
+    for (const episodeNumber in progressData) {
+        if (latest === null) {
+            latest = progressData[episodeNumber];
+            continue;
+        }
+
+        if (progressData[episodeNumber].lastUpdated > latest.lastUpdated) {
+            latest = progressData[episodeNumber];
+        }
+    }
+
+    return latest;
+
+    // return latestProgress;
 }
 
 function convertSecondsToHMS(seconds: number) {
@@ -505,160 +635,6 @@ function convertSecondsToHMS(seconds: number) {
     const secString = sec > 0 ? sec + "" : "00";
 
     return hoursString + minutesString + secString;
-}
-
-function EpisodesView(props: { data: any }) {
-    const { data } = props;
-
-    const params = useParams();
-    const serverCalls = new ServerCalls();
-
-    return (
-        <div style={{ textAlign: "center" }}>
-            <div>
-                <button
-                    className="btn btn-info btn-sm mt-3 mb-3"
-                    onClick={() => {
-                        document.location.href = "/anime";
-                    }}
-                >
-                    Return to Series
-                </button>
-            </div>
-
-            {data.selectedSeriesData && data.selectedSeriesData.length > 0 && (
-                <div>
-                    <img
-                        src={
-                            data.selectedSeriesData[0].coverImageUrl ||
-                            "https://via.placeholder.com/150"
-                        }
-                        alt=""
-                        style={{ width: "150px" }}
-                    />
-
-                    <h1
-                        style={{
-                            backgroundColor: "rgba(0, 0, 0, 0.5)",
-                        }}
-                    >
-                        <span>{data.selectedSeriesData[0].seriesTitle}</span>
-                    </h1>
-                </div>
-            )}
-
-            <div
-                style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "center",
-                }}
-            >
-                {data.selectedSeriesData.map((episode: AnimeEpisode) => (
-                    <Card
-                        style={{
-                            width: "200px",
-                            margin: "10px",
-                            borderRadius: "5px",
-                            boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
-                            overflow: "hidden",
-                        }}
-                    >
-                        <a
-                            href={
-                                document.location.href +
-                                "/" +
-                                encodeURIComponent(episode.episodeNumber)
-                            }
-                            style={{
-                                textDecoration: "inherit",
-                                color: "inherit",
-                            }}
-                        >
-                            <Card.Body>
-                                {/* Progress Bar */}
-
-                                <Card.Title>
-                                    {episode.episodeVideoName.replace(
-                                        ".mp4",
-                                        ""
-                                    )}
-                                </Card.Title>
-                            </Card.Body>
-                        </a>
-
-                        {episode.progress && (
-                            <Card.Footer>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignContent: "center",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <ProgressBar
-                                        style={{ flex: 1 }}
-                                        now={100}
-                                        label={`${convertSecondsToHMS(
-                                            episode.progress
-                                        )} / ${convertSecondsToHMS(
-                                            episode.duration
-                                        )}`}
-                                    />
-
-                                    <button
-                                        className="btn btn-danger btn-sm"
-                                        style={{
-                                            padding: "0px 5px",
-                                            margin: "0",
-                                        }}
-                                        onClick={event => {
-                                            serverCalls.updateProgress(
-                                                params.seriesFolderName!,
-                                                episode.episodeNumber,
-                                                0,
-                                                0
-                                            );
-
-                                            // prevent bubble
-
-                                            event?.stopPropagation();
-                                        }}
-                                    >
-                                        X
-                                    </button>
-                                </div>
-                            </Card.Footer>
-                        )}
-                    </Card>
-                    // <div key={episode.episodeVideoName}>
-                    //     <a
-                    //         href={
-                    //             document.location.href +
-                    //             "/" +
-                    //             encodeURIComponent(episode.episodeNumber)
-                    //         }
-                    //     >
-                    //         <button className="btn btn-primary">
-                    //             Play {episode.episodeVideoName}
-                    //         </button>
-                    //     </a>
-                    // </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-function VideoView(props: { data: any }) {
-    const { data } = props;
-
-    return (
-        <div>
-            <span>VideoView</span>
-            {JSON.stringify(data)}
-        </div>
-    );
 }
 
 function AnimeCard(props: { anime: Anime }) {
@@ -692,20 +668,6 @@ function AnimeCard(props: { anime: Anime }) {
                 </span>
             }
             topRightComponent={<span>{props.anime.expectedEpisodeCount}</span>}
-            bottomComponent={
-                <div></div>
-                // <button
-                //     className="btn btn-primary"
-                //     onClick={() => {
-                //         props.setVideoPlayerState({
-                //             anime: props.anime,
-                //             isPlaying: true,
-                //         });
-                //     }}
-                // >
-                //     Play
-                // </button>
-            }
         />
     );
 }
@@ -759,19 +721,5 @@ export interface AnimeEpisode {
     progress: number;
     duration: number;
 }
-
-/*
-Anime
-
-AnimeEpisode
-*/
-
-/*
-
-Top - Level (Show all series)
-
-Next Level (Show all episodes of a series)
-
-*/
 
 export default OfflineAnime;

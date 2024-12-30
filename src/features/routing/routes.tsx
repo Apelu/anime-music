@@ -37,6 +37,7 @@ import { Card, Container } from "react-bootstrap";
 import { DndContext } from "@dnd-kit/core";
 import AnimeDownloadPage from "@pages/AnimeDownloadPage";
 import OfflineAnime from "@pages/OfflineAnime";
+import OfflineAnimeV2 from "@features/offline-anime/OfflineAnimeV2";
 
 export enum Paths {
     Anime = "/anime",
@@ -220,12 +221,11 @@ function Root() {
     };
 
     useEffect(() => {
-        performEmailPasswordSignIn(
-            "apelu47@gmail.com",
-            "kih209kjeu3409erklbgi892i0po3kwtr8h95i0mkbn34u0rkoefjbthu423k;l"
-        );
-
-        fetchData();
+        // performEmailPasswordSignIn(
+        //     "apelu47@gmail.com",
+        //     "kih209kjeu3409erklbgi892i0po3kwtr8h95i0mkbn34u0rkoefjbthu423k;l"
+        // );
+        // fetchData();
     }, []);
 
     useEffect(() => {}, []);
@@ -342,17 +342,33 @@ const router = createBrowserRouter([
 
             {
                 path: Paths.AnimeVideo,
-                element: <OfflineAnime />,
+
+                element: (
+                    <>
+                        {/* <OfflineAnimeV2 /> */}
+                        <OfflineAnime />
+                    </>
+                ),
             },
 
             {
                 path: Paths.AnimeInfo,
-                element: <OfflineAnime />,
+                element: (
+                    <>
+                        <OfflineAnimeV2 />
+                        {/* <OfflineAnime /> */}
+                    </>
+                ),
             },
 
             {
                 path: Paths.Anime,
-                element: <OfflineAnime />,
+                element: (
+                    <>
+                        <OfflineAnimeV2 />
+                        {/* <OfflineAnime /> */}
+                    </>
+                ),
             },
 
             { path: Paths.Music, element: <MusicPage /> },

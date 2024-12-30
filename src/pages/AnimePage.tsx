@@ -67,35 +67,35 @@ function AnimePage() {
         //     .then(jsonData => {
         //         setAnimeData(jsonData.data.Page.media);
         //     });
-        getDoc(linkedSeriesRef).then(doc => {
-            if (doc.exists()) {
-                var data = doc.data() as LinkedSeriesObj;
-                var items: SeriesLink[] = Object.keys(data).reduce(
-                    (arr: SeriesLink[], key: string) => {
-                        var seriesLinks: SeriesLink[] = data[key].seriesLinks;
-                        return arr.concat(seriesLinks);
-                    },
-                    []
-                );
+        // getDoc(linkedSeriesRef).then(doc => {
+        //     if (doc.exists()) {
+        //         var data = doc.data() as LinkedSeriesObj;
+        //         var items: SeriesLink[] = Object.keys(data).reduce(
+        //             (arr: SeriesLink[], key: string) => {
+        //                 var seriesLinks: SeriesLink[] = data[key].seriesLinks;
+        //                 return arr.concat(seriesLinks);
+        //             },
+        //             []
+        //         );
 
-                items.sort((a, b) => {
-                    const hasEpisodesA = a.availableEpisodes;
-                    const hasEpisodesB = b.availableEpisodes;
+        //         items.sort((a, b) => {
+        //             const hasEpisodesA = a.availableEpisodes;
+        //             const hasEpisodesB = b.availableEpisodes;
 
-                    if (hasEpisodesA && !hasEpisodesB) {
-                        return -1;
-                    } else if (!hasEpisodesA && hasEpisodesB) {
-                        return 1;
-                    }
-                    return (
-                        (b.updatedAt || b.createdAt) -
-                        (a.updatedAt || a.createdAt)
-                    );
-                });
+        //             if (hasEpisodesA && !hasEpisodesB) {
+        //                 return -1;
+        //             } else if (!hasEpisodesA && hasEpisodesB) {
+        //                 return 1;
+        //             }
+        //             return (
+        //                 (b.updatedAt || b.createdAt) -
+        //                 (a.updatedAt || a.createdAt)
+        //             );
+        //         });
 
-                setAnimeData(items);
-            }
-        });
+        //         setAnimeData(items);
+        //     }
+        // });
 
         if (dispatchDisplaySettings) {
             dispatchDisplaySettings({

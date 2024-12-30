@@ -62,6 +62,22 @@ export class ServerCalls {
         this.baseURL = "http://192.168.1.228:5555/api/animeDownload/";
     }
 
+    getAnimeData(params: {
+        seriesFolderName?: string;
+        episodeNumber?: string;
+    }) {
+        return fetch(
+            this.baseURL +
+                `/getAnimeData?seriesFolderName=${
+                    params.seriesFolderName || ""
+                }&episodeNumber=${params.episodeNumber || ""}`
+        );
+    }
+
+    getProgress() {
+        return fetch(this.baseURL + "/getProgress");
+    }
+
     getSeries() {
         return fetch(this.baseURL + "/video");
     }
@@ -96,6 +112,16 @@ export class ServerCalls {
         return (
             this.baseURL +
             "/video?seriesFolderName=" +
+            seriesFolderName +
+            "&episodeNumber=" +
+            episodeNumber
+        );
+    }
+
+    getSubtitleUrl(seriesFolderName: string, episodeNumber: string) {
+        return (
+            this.baseURL +
+            "/subtitle?seriesFolderName=" +
             seriesFolderName +
             "&episodeNumber=" +
             episodeNumber

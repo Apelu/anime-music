@@ -27,13 +27,37 @@
     width: 100%;
 } */
 
+/* styles.css */
+video::cue {
+    color: red !important;
+    background-color: rgba(0, 0, 0, 0.7);
+    font-size: 1.2em;
+    text-shadow: 1px 1px 1px black;
+}
+
 /* Hide the hover content initially */
 .hover-content {
     display: none;
 }
 
+@media screen and (min-width: 768px) {
+    .episode-card {
+        width: 20%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .episode-card {
+        width: 40%;
+    }
+}
+
 /* Display the hover content when hovering over the trigger */
 .hover-trigger:hover > .hover-content {
+    display: block;
+}
+
+.card.hover-trigger:hover .hover-content {
     display: block;
 }
 
