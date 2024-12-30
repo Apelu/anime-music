@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ServerCalls } from "./AnimeDownloadPage";
-import {
-    Navigate,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { doc } from "firebase/firestore";
 import { Card, ProgressBar } from "react-bootstrap";
 import { parse } from "path";
@@ -170,7 +165,6 @@ interface VideoPlayerState {
 }
 
 function OfflineAnime(props: any) {
-    const navigate = useNavigate();
     const params = useParams();
     const serverCalls = new ServerCalls();
 
@@ -260,14 +254,9 @@ function OfflineAnime(props: any) {
             selectedSeriesData[nextEpisodeIndex]?.episodeNumber;
 
         if (nextEpisodeNumber) {
-            navigate(
-                `/anime/${params.seriesFolderName}/${encodeURIComponent(
-                    nextEpisodeNumber
-                )}`
-            );
-            // window.location.href = `/anime/${
-            //     params.seriesFolderName
-            // }/${encodeURIComponent(nextEpisodeNumber)}`;
+            window.location.href = `/anime/${
+                params.seriesFolderName
+            }/${encodeURIComponent(nextEpisodeNumber)}`;
         } else {
             alert(`No ${goToNextEpisode ? "next" : "previous"} episode found`);
         }
@@ -275,11 +264,9 @@ function OfflineAnime(props: any) {
 
     switch (data.view) {
         case "series":
-            return null;
-        // return <SeriesView data={data} setData={setData} />;
+            return <SeriesView data={data} setData={setData} />;
         case "episodes":
-            return null;
-        // return <EpisodesView data={data} />;
+            return <EpisodesView data={data} />;
         case "video":
             if (!params.seriesFolderName || !params.episodeNumber) {
                 return <span>Invalid URL</span>;
@@ -307,7 +294,6 @@ function VideoPlayerView(props: {
     params: any;
     serverCalls: ServerCalls;
 }) {
-    const navigate = useNavigate();
     const [showingMenu, setShowingMenu] = useState(true);
     var lastUpdate = 0;
     const { data, videoRef, handleEnded, params, serverCalls } = props;
@@ -447,8 +433,7 @@ function VideoPlayerView(props: {
             onKeyUp={e => {
                 console.log(e.key);
                 if (e.key === "Escape") {
-                    // document.location.href = `/anime/${params.seriesFolderName}`;
-                    navigate(`/anime/${params.seriesFolderName}`);
+                    document.location.href = `/anime/${params.seriesFolderName}`;
                 }
 
                 if (e.key === "u") {
@@ -623,6 +608,118 @@ function getLatestEpisodeProgress(
     // return latestProgress;
 }
 
+function SeriesView(props: { data: any; setData: any }) {
+    const { data, setData } = props;
+    const [searchText, setSearchText] = useState("");
+
+    console.log({ data });
+    const continueWatching = data.seriesData
+        .filter((anime: Anime) =>
+            getLatestEpisodeProgress(data.progress, anime.seriesFolderName)
+        )
+        .sort((a: Anime, b: Anime) => {
+            const aProgress = getLatestEpisodeProgress(
+                data.progress,
+                a.seriesFolderName
+            );
+
+            const bProgress = getLatestEpisodeProgress(
+                data.progress,
+                b.seriesFolderName
+            );
+
+            if (!aProgress || !bProgress) return 0;
+
+            return aProgress.lastUpdated < bProgress.lastUpdated ? 1 : -1;
+        });
+
+    return (
+        <div>
+            {continueWatching.length > 0 && (
+                <div>
+                    <h1 className="mt-3 p-3 bg-primary text-white text-center">
+                        Continue Watching
+                    </h1>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            justifyContent: "center",
+                        }}
+                    >
+                        {continueWatching.map((anime: Anime) => (
+                            <>
+                                <AnimeCard
+                                    key={anime.seriesFolderName}
+                                    anime={anime}
+                                />
+                            </>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <h1 className="mt-3 p-3 bg-primary text-white text-center">
+                OfflineAnime (
+                {
+                    data.seriesData.filter(
+                        (anime: Anime) =>
+                            !searchText ||
+                            anime.seriesTitle
+                                .toLowerCase()
+                                .includes(searchText.toLowerCase()) ||
+                            anime.seriesFolderName
+                                .toLowerCase()
+                                .includes(searchText.toLowerCase())
+                    ).length
+                }
+                )
+                <button
+                    className="btn btn-info btn-sm ms-3"
+                    onClick={() => {
+                        data.seriesData.sort(() => Math.random() - 0.5);
+                        setData({ ...data });
+                    }}
+                >
+                    Randomize
+                </button>
+                <input
+                    type="text"
+                    className="form-control mt-3 text-center"
+                    value={searchText}
+                    onChange={e => setSearchText(e.target.value)}
+                    placeholder="Search Anime"
+                />
+            </h1>
+
+            {/* Search Bar */}
+
+            <div
+                style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                }}
+            >
+                {data.seriesData
+                    .filter(
+                        (anime: Anime) =>
+                            !searchText ||
+                            anime.seriesTitle
+                                .toLowerCase()
+                                .includes(searchText.toLowerCase()) ||
+                            anime.seriesFolderName
+                                .toLowerCase()
+                                .includes(searchText.toLowerCase())
+                    )
+                    .map((anime: Anime) => (
+                        <AnimeCard key={anime.seriesFolderName} anime={anime} />
+                    ))}
+            </div>
+        </div>
+    );
+}
+
 function convertSecondsToHMS(seconds: number) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -635,6 +732,160 @@ function convertSecondsToHMS(seconds: number) {
     const secString = sec > 0 ? sec + "" : "00";
 
     return hoursString + minutesString + secString;
+}
+
+function EpisodesView(props: { data: any }) {
+    const { data } = props;
+
+    const params = useParams();
+    const serverCalls = new ServerCalls();
+
+    return (
+        <div style={{ textAlign: "center" }}>
+            <div>
+                <button
+                    className="btn btn-info btn-sm mt-3 mb-3"
+                    onClick={() => {
+                        document.location.href = "/anime";
+                    }}
+                >
+                    Return to Series
+                </button>
+            </div>
+
+            {data.selectedSeriesData && data.selectedSeriesData.length > 0 && (
+                <div>
+                    {/* <img
+                        src={
+                            data.selectedSeriesData[0].coverImageUrl ||
+                            "https://via.placeholder.com/150"
+                        }
+                        alt=""
+                        style={{ width: "150px" }}
+                    /> */}
+
+                    <AnimeCard anime={data.selectedSeriesData[0]} />
+
+                    {/* <h1
+                        style={{
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        }}
+                    >
+                        <span>{data.selectedSeriesData[0].seriesTitle}</span>
+                    </h1> */}
+                </div>
+            )}
+
+            <div
+                style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                }}
+            >
+                {data.selectedSeriesData.map((episode: AnimeEpisode) => (
+                    <Card
+                        style={{
+                            width: "200px",
+                            margin: "10px",
+                            borderRadius: "5px",
+                            boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
+                            overflow: "hidden",
+                        }}
+                    >
+                        <a
+                            href={
+                                document.location.href +
+                                "/" +
+                                encodeURIComponent(episode.episodeNumber)
+                            }
+                            style={{
+                                textDecoration: "inherit",
+                                color: "inherit",
+                            }}
+                        >
+                            <Card.Body>
+                                {/* Progress Bar */}
+
+                                <Card.Title>
+                                    {episode.episodeVideoName.replace(
+                                        ".mp4",
+                                        ""
+                                    )}
+                                </Card.Title>
+                            </Card.Body>
+                        </a>
+
+                        {data.progress[episode.seriesFolderName] &&
+                            data.progress[episode.seriesFolderName][
+                                episode.episodeNumber
+                            ] && (
+                                <Card.Footer>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <ProgressBar
+                                            style={{ flex: 1 }}
+                                            now={100}
+                                            label={`${convertSecondsToHMS(
+                                                data.progress[
+                                                    episode.seriesFolderName
+                                                ][episode.episodeNumber]
+                                                    .progress
+                                            )} / ${convertSecondsToHMS(
+                                                data.progress[
+                                                    episode.seriesFolderName
+                                                ][episode.episodeNumber]
+                                                    .duration
+                                            )}`}
+                                        />
+
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            style={{
+                                                padding: "0px 5px",
+                                                margin: "0",
+                                            }}
+                                            onClick={event => {
+                                                serverCalls.updateProgress(
+                                                    params.seriesFolderName!,
+                                                    episode.episodeNumber,
+                                                    0,
+                                                    0
+                                                );
+
+                                                // prevent bubble
+
+                                                event?.stopPropagation();
+                                            }}
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+                                </Card.Footer>
+                            )}
+                    </Card>
+                    // <div key={episode.episodeVideoName}>
+                    //     <a
+                    //         href={
+                    //             document.location.href +
+                    //             "/" +
+                    //             encodeURIComponent(episode.episodeNumber)
+                    //         }
+                    //     >
+                    //         <button className="btn btn-primary">
+                    //             Play {episode.episodeVideoName}
+                    //         </button>
+                    //     </a>
+                    // </div>
+                ))}
+            </div>
+        </div>
+    );
 }
 
 function AnimeCard(props: { anime: Anime }) {
