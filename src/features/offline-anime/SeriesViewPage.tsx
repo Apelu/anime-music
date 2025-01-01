@@ -44,7 +44,11 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
     };
 
     return (
-        <div>
+        <div
+            style={{
+                padding: "10px",
+            }}
+        >
             {Object.keys(groups).map(groupName => {
                 const data = groups[groupName];
                 return (

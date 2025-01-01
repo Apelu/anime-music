@@ -144,6 +144,7 @@ export interface AnimeData {
     seriesTitle: string;
     seriesFolderName: string;
     anilistID: string;
+    gogoSeriesPageUrl: string;
     anilistData?: {
         anilistID: string;
         id: number;

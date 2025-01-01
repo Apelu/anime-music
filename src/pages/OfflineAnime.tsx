@@ -407,12 +407,31 @@ function VideoPlayerView(props: {
                 if (currentTime % 15 === 0) {
                     if (lastUpdate === currentTime) return;
                     lastUpdate = currentTime;
-                    serverCalls.updateProgress(
-                        params.seriesFolderName,
-                        params.episodeNumber,
-                        video.currentTime,
-                        video.duration
-                    );
+                    serverCalls
+                        .updateProgress(
+                            params.seriesFolderName,
+                            params.episodeNumber,
+                            video.currentTime,
+                            video.duration
+                        )
+                        .then(response => response.json())
+                        .then(
+                            (data: {
+                                success: boolean;
+                                needsMoreSteps: {
+                                    needMoreSteps: boolean;
+                                    message: string;
+                                    messageType: string;
+                                };
+                            }) => {
+                                if (data.needsMoreSteps.needMoreSteps) {
+                                    video.pause();
+                                    alert(data.needsMoreSteps.message);
+                                }
+
+                                console.log(data.needsMoreSteps);
+                            }
+                        );
                 }
             }}
             onKeyDownCapture={e => {

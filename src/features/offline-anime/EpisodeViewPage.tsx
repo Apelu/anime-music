@@ -42,7 +42,7 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                 onImageClickLink={`${seriesInfoLink}${
                     latestWatchedEpisode ? `/${latestWatchedEpisode}` : ""
                 }`}
-                onTitleClickLink={seriesInfoLink}
+                onTitleClickLink={anime.gogoSeriesPageUrl}
                 topLeftComponent={
                     anime.anilistID ? (
                         <span>
