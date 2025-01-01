@@ -112,7 +112,10 @@ function animeReducer(data: AnimeData[], action: AnimeAction) {
 
                 if (index === -1) {
                     newData.push(newAnimeData);
-                } else {
+                } else if (
+                    !newData[index].anilistData &&
+                    newAnimeData.anilistData
+                ) {
                     newData[index] = newAnimeData;
                 }
             });

@@ -7,7 +7,7 @@ import {
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import { on } from "events";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { SeriesViewPage } from "./SeriesViewPage";
 import { Badge, Button, ButtonGroup, Card, ProgressBar } from "react-bootstrap";
 import { removeWords } from "./AnimeGroup";
@@ -129,7 +129,9 @@ export function AnimeCard(props: AnimeCardProps) {
             >
                 {imageSrc ? (
                     <>
-                        <a href={onImageClickLink} target="_blank">
+                        {/* Link */}
+                        <Link to={onImageClickLink || ""}>
+                            {/* <a href={onImageClickLink} > */}
                             <img
                                 onClick={
                                     onImageClickFunction
@@ -147,7 +149,8 @@ export function AnimeCard(props: AnimeCardProps) {
                                         : "5px",
                                 }}
                             />
-                        </a>
+                        </Link>
+                        {/* </a> */}
                         <div
                             style={{
                                 position: "absolute",
@@ -164,6 +167,14 @@ export function AnimeCard(props: AnimeCardProps) {
                                 fontSize: "12px",
                             }}
                         >
+                            <Link
+                                to={onTitleClickLink || ""}
+                                style={{
+                                    color: "inherit",
+                                    textDecoration: "inherit",
+                                }}
+                            >
+                                {/* <a
                             <a
                                 href={onTitleClickLink}
                                 target="_blank"
@@ -171,9 +182,10 @@ export function AnimeCard(props: AnimeCardProps) {
                                     color: "inherit",
                                     textDecoration: "inherit",
                                 }}
-                            >
+                            >*/}
                                 {title}
-                            </a>
+                            </Link>
+                            {/* </a> */}
                         </div>
                     </>
                 ) : (
@@ -190,7 +202,6 @@ export function AnimeCard(props: AnimeCardProps) {
                             textAlign: "center",
                         }}
                     >
-                        {}
                         {title}
                     </div>
                 )}

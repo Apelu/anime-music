@@ -3,6 +3,8 @@ import { Button, Card, ProgressBar } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { removeWords } from "./AnimeGroup";
 import { getLatestWatchedEpisode, AnimeCard } from "./OfflineAnimeV2";
+import { ServerCalls } from "@pages/AnimeDownloadPage";
+import ts from "typescript";
 
 export function EpisodeViewPage(props: EpisodeViewPageProps) {
     const navigate = useNavigate();
@@ -78,7 +80,7 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                     </div>
                 }
             />
-
+            {/*  */}
             <div
                 style={{
                     display: "flex",
@@ -106,6 +108,16 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
 
 function RelationDisplayer(anime: AnimeData) {
     const navigate = useNavigate();
+
+    const relationsLength = anime.anilistData?.relations?.edges.length;
+
+    if (!relationsLength) {
+        return (
+            <h1 className="mt-3 p-3 bg-primary text-white text-center w-100 mb-3">
+                Relations ({anime.anilistData?.relations?.edges.length})
+            </h1>
+        );
+    }
     return (
         <>
             <AnimeCard
@@ -143,7 +155,7 @@ function RelationDisplayer(anime: AnimeData) {
                 }
             />
             <h1 className="mt-3 p-3 bg-primary text-white text-center w-100">
-                Relations
+                Relations ({anime.anilistData?.relations?.edges.length})
             </h1>
             <div
                 style={{
@@ -200,6 +212,15 @@ function RelationDisplayer(anime: AnimeData) {
                                     <a
                                         href={`https://anilist.co/anime/${relation.node.id}`}
                                         target="_blank"
+                                        className={
+                                            !matches || matches.length === 0
+                                                ? "bg-danger"
+                                                : ""
+                                        }
+                                        style={{
+                                            borderRadius: "50%",
+                                            padding: "0.25rem",
+                                        }}
                                     >
                                         <img
                                             src={
@@ -214,9 +235,11 @@ function RelationDisplayer(anime: AnimeData) {
                                 </span>
                             }
                             topRightComponent={
-                                <div>
-                                    {relation.relationType} (
-                                    {relation.node.seasonYear})
+                                <div title={relation.node.status}>
+                                    {relation.relationType}
+                                    {relation.node.seasonYear
+                                        ? `(${relation.node.seasonYear})`
+                                        : " (20XX)"}
                                 </div>
                             }
                         />
@@ -285,7 +308,7 @@ export function EpisodeCard(props: EpisodeCardProps) {
             }}
         >
             <Card.Body>
-                <Card.Title>Episode {episodeNumber} </Card.Title>
+                <Card.Title>Episode {episodeNumber}</Card.Title>
                 <Card.Subtitle className="mb-2 text-muted">
                     {anime.seriesTitle}
                 </Card.Subtitle>
@@ -331,6 +354,13 @@ export function EpisodeCard(props: EpisodeCardProps) {
                                 : "ms-2 d-none"
                         }
                         onClick={e => {
+                            const serverCalls = new ServerCalls();
+                            serverCalls.updateProgress(
+                                anime.seriesFolderName,
+                                episodeNumber,
+                                0,
+                                0
+                            );
                             e.stopPropagation();
                             console.log("Delete");
                         }}

@@ -40,17 +40,19 @@ video::cue {
     display: none;
 }
 
-@media screen and (min-width: 768px) {
+/* @media screen and (min-width: 768px) {
     .episode-card {
-        width: 20%;
+        min-width: 20%;
+        max-width: 25%;
     }
 }
 
 @media screen and (max-width: 768px) {
     .episode-card {
-        width: 40%;
+        min-width: 35%;
+        max-width: 40%;
     }
-}
+} */
 
 /* Display the hover content when hovering over the trigger */
 .hover-trigger:hover > .hover-content {
