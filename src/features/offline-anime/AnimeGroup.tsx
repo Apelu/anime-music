@@ -1,9 +1,13 @@
-import { AnimeData } from "@features/contexts/TemplateContext";
+import { AnimeData } from "@features/contexts/AnimeContext";
 import { useState, useEffect } from "react";
 import { getLatestWatchedEpisode, AnimeCard } from "./OfflineAnimeV2";
-import { Collapse } from "react-bootstrap";
+import { Button, Collapse } from "react-bootstrap";
 
-export function AnimeGroup(props: { groupName: string; data: AnimeData[] }) {
+export function AnimeGroup(props: {
+    groupName: string;
+    data: AnimeData[];
+    anilistOrder: number[];
+}) {
     const { groupName, data } = props;
 
     const [search, setSearch] = useState({
@@ -12,8 +16,16 @@ export function AnimeGroup(props: { groupName: string; data: AnimeData[] }) {
     });
 
     const [isCollapsed, setIsCollapsed] = useState(
-        groupName != "Continue Watching" ? true : false
+        // false
+        groupName == "Completed" ? true : false
     );
+
+    const [isRandomized, setIsRandomized] = useState(false);
+    const [specialOrderBy, setSpecialOrderBy] = useState<String>("anilist");
+
+    useEffect(() => {
+        setSpecialOrderBy(isRandomized ? "random" : "");
+    }, [isRandomized]);
 
     useEffect(() => {
         if (search.isSearching && data.length < 10) {
@@ -31,11 +43,32 @@ export function AnimeGroup(props: { groupName: string; data: AnimeData[] }) {
 
     const filteredData = data.filter(
         anime =>
-            !search.searchText ||
-            anime.seriesTitle
-                .toLowerCase()
-                .includes(search.searchText.toLowerCase())
+            (!search.searchText ||
+                anime.seriesTitle
+                    .toLowerCase()
+                    .includes(search.searchText.toLowerCase())) &&
+            (specialOrderBy != "anilist" ||
+                props.anilistOrder.indexOf(parseInt(anime.anilistID)) != -1)
     );
+
+    if (isRandomized) {
+        filteredData.sort(() => Math.random() - 0.5);
+    } else if (specialOrderBy == "anilist") {
+        filteredData.sort((a, b) => {
+            const aIndex = props.anilistOrder.indexOf(parseInt(a.anilistID));
+            const bIndex = props.anilistOrder.indexOf(parseInt(b.anilistID));
+
+            if (aIndex == -1) {
+                return 1;
+            }
+
+            if (bIndex == -1) {
+                return -1;
+            }
+
+            return aIndex - bIndex;
+        });
+    }
     return (
         <>
             <h1
@@ -44,6 +77,40 @@ export function AnimeGroup(props: { groupName: string; data: AnimeData[] }) {
             >
                 {groupName}{" "}
                 <span className="badge bg-info p-1">{filteredData.length}</span>
+                <div>
+                    {groupName == "All" ? (
+                        <>
+                            <Button
+                                className="ms-2"
+                                variant="info"
+                                onClick={e => {
+                                    setIsRandomized(!isRandomized);
+                                    e.stopPropagation();
+                                }}
+                            >
+                                {isRandomized
+                                    ? "Return to Original Order"
+                                    : "Randomize"}
+                            </Button>
+                            <Button
+                                className="ms-2"
+                                variant="info"
+                                onClick={e => {
+                                    setSpecialOrderBy(
+                                        specialOrderBy != "anilist"
+                                            ? "anilist"
+                                            : ""
+                                    );
+                                    e.stopPropagation();
+                                }}
+                            >
+                                {specialOrderBy == "anilist"
+                                    ? "Change to Original Order"
+                                    : "AniList Order"}
+                            </Button>
+                        </>
+                    ) : null}
+                </div>
                 {search.isSearching ? (
                     <div
                         style={{
@@ -109,6 +176,7 @@ export function AnimeGroup(props: { groupName: string; data: AnimeData[] }) {
                         return (
                             <AnimeCard
                                 key={index}
+                                anime={anime}
                                 imageSrc={anime.coverImageUrl}
                                 title={anime.seriesTitle}
                                 onImageClickLink={`${seriesInfoLink}${

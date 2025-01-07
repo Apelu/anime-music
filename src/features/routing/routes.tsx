@@ -33,11 +33,15 @@ import { Outlet, createBrowserRouter } from "react-router-dom";
 import ProviderParent from "./ProviderParent";
 import "../../assets/App.css";
 import VideoPage from "@pages/VideoPage";
-import { Card, Container } from "react-bootstrap";
+import { Button, Card, Container } from "react-bootstrap";
 import { DndContext } from "@dnd-kit/core";
 import AnimeDownloadPage from "@pages/AnimeDownloadPage";
 import OfflineAnime from "@pages/OfflineAnime";
-import OfflineAnimeV2 from "@features/offline-anime/OfflineAnimeV2";
+import OfflineAnimeV2, {
+    AniListRedirectPage,
+    StorageKeys,
+} from "@features/offline-anime/OfflineAnimeV2";
+import { GlobalToastContainer } from "./GlobalToastContainer";
 
 export enum Paths {
     Anime = "/anime",
@@ -51,6 +55,7 @@ export enum Paths {
     Features = "/features",
     BackgroundLibrary = "/background-library",
     VideoPage = "/video",
+    AnilistLoginRedirect = "/login-redirect",
 }
 
 function Root() {
@@ -294,35 +299,38 @@ function Root() {
     }
 
     return (
-        <main
-            className="text-light"
-            // bg-dark"
-        >
-            <Background
-                backgroundItems={backgroundItems}
-                setBackgroundItems={setBackgroundItems}
-                currentItemID={currentItemID}
-                setCurrentID={setCurrentID}
-            />
-            <NavBar />
-            {/* <SubBar/> */}
-            <SubBar
-                {...{
-                    currentItemIndex: currentItemID,
-                    nextBackgroundItem,
-                    previousBackgroundItem,
-                }}
-            />
-            <Outlet
-                context={{
-                    nextBackgroundItem,
-                    previousBackgroundItem,
-                    animeData,
-                    setAnimeData,
-                    backgroundItems,
-                }}
-            />
-        </main>
+        <>
+            <main
+                className="text-light"
+                // bg-dark"
+            >
+                {/* <GlobalToastContainer /> */}
+                <Background
+                    backgroundItems={backgroundItems}
+                    setBackgroundItems={setBackgroundItems}
+                    currentItemID={currentItemID}
+                    setCurrentID={setCurrentID}
+                />
+                <NavBar />
+                {/* <SubBar/> */}
+                <SubBar
+                    {...{
+                        currentItemIndex: currentItemID,
+                        nextBackgroundItem,
+                        previousBackgroundItem,
+                    }}
+                />
+                <Outlet
+                    context={{
+                        nextBackgroundItem,
+                        previousBackgroundItem,
+                        animeData,
+                        setAnimeData,
+                        backgroundItems,
+                    }}
+                />
+            </main>
+        </>
     );
 }
 
@@ -338,6 +346,11 @@ const router = createBrowserRouter([
             {
                 path: "/",
                 element: <MealCalendarPage />,
+            },
+
+            {
+                path: Paths.AnilistLoginRedirect,
+                element: <AniListRedirectPage />,
             },
 
             {

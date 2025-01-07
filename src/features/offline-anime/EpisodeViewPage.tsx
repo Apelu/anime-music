@@ -1,10 +1,11 @@
-import { AnimeData } from "@features/contexts/TemplateContext";
+import { AnimeData } from "@features/contexts/AnimeContext";
 import { Button, Card, ProgressBar } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { removeWords } from "./AnimeGroup";
 import { getLatestWatchedEpisode, AnimeCard } from "./OfflineAnimeV2";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import ts from "typescript";
+import { Key } from "react";
 
 export function EpisodeViewPage(props: EpisodeViewPageProps) {
     const navigate = useNavigate();
@@ -22,6 +23,17 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
 
     const seriesInfoLink = `/anime/${anime.seriesFolderName}`;
     const latestWatchedEpisode = getLatestWatchedEpisode(anime);
+    function convertToDurationString(seconds: number) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+
+        const hourStr = hours.toString().padStart(2, "0");
+        const minStr = minutes.toString().padStart(2, "0");
+        const secStr = Math.floor(remainingSeconds).toString().padStart(2, "0");
+
+        return `${hours > 0 ? hourStr + ":" : ""}${minStr}:${secStr}`;
+    }
     return (
         <div
             className="container"
@@ -36,6 +48,13 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
             <Button variant="info" size="sm" onClick={() => navigate(`/anime`)}>
                 Return to Series
             </Button>
+            {JSON.stringify(anime.issuesData)}
+            Total:{" "}
+            {convertToDurationString(
+                Object.keys(anime.videoData || {}).reduce((acc, key) => {
+                    return acc + anime.videoData[key].duration;
+                }, 0)
+            )}
             <AnimeCard
                 imageSrc={anime.coverImageUrl}
                 title={anime.seriesTitle}
@@ -100,8 +119,127 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                     );
                 })}
             </div>
-
             <RelationDisplayer {...anime} />
+            <TimelineDisplayer {...anime} />
+        </div>
+    );
+}
+
+function TimelineDisplayer(anime: AnimeData) {
+    const timelineData = anime.timelineData;
+
+    if (!timelineData || Object.keys(timelineData).length === 0) {
+        return <div></div>;
+    }
+
+    return (
+        <div>
+            <h1 className="mt-3 p-3 bg-primary text-white text-center w-100">
+                Timeline ({Object.keys(timelineData).length})
+            </h1>
+            <div
+                style={{
+                    display: "flex",
+                    width: "80vw",
+                    overflowX: "scroll",
+                    marginBottom: "200px",
+                    padding: "10px",
+                    // center
+
+                    alignItems: "center",
+                }}
+            >
+                {Object.keys(timelineData)
+                    .sort((a: string, b: string) => {
+                        const startA = timelineData[a].startDate || {
+                            year: timelineData[a].seasonYear || 0,
+                            month: 0,
+                            day: 0,
+                        };
+                        const startB = timelineData[b].startDate || {
+                            year: timelineData[b].seasonYear || 0,
+                            month: 0,
+                            day: 0,
+                        };
+
+                        if (!startA.year || !startB.year) {
+                            return 1;
+                        }
+
+                        if (startA.year !== startB.year) {
+                            return startA.year - startB.year;
+                        }
+
+                        if (startA.month !== startB.month) {
+                            return startA.month - startB.month;
+                        }
+
+                        return startA.day - startB.day;
+                    })
+                    .map(anilistID => {
+                        const item = timelineData[anilistID];
+
+                        const startDate = item.startDate || {
+                            year: item.seasonYear || 0,
+                            month: 0,
+                            day: 0,
+                        };
+
+                        const startDateStr = startDate.year
+                            ? new Intl.DateTimeFormat("en-US", {
+                                  month: "long",
+                                  day: "2-digit",
+                                  year: "numeric",
+                              }).format(
+                                  new Date(
+                                      startDate.year,
+                                      startDate.month,
+                                      startDate.day
+                                  )
+                              )
+                            : "Unknown";
+
+                        return (
+                            <AnimeCard
+                                key={anilistID}
+                                imageSrc={item.coverImage.extraLarge}
+                                title={item.title.romaji || item.title.english}
+                                topLeftComponent={
+                                    <span>
+                                        <a
+                                            href={`https://anilist.co/anime/${item.id}`}
+                                            target="_blank"
+                                        >
+                                            <img
+                                                src={
+                                                    "https://anilist.co/img/logo_al.png"
+                                                }
+                                                alt="?"
+                                                style={{
+                                                    width: "20px",
+                                                }}
+                                            />
+                                        </a>
+                                    </span>
+                                }
+                                topRightComponent={
+                                    <div>
+                                        {item.episodes} ({item.format})
+                                    </div>
+                                }
+                                bottomComponent={
+                                    <div
+                                        style={{
+                                            backgroundColor: "rgba(0,0,0,0.5)",
+                                        }}
+                                    >
+                                        {startDateStr}
+                                    </div>
+                                }
+                            />
+                        );
+                    })}
+            </div>
         </div>
     );
 }
@@ -308,14 +446,22 @@ export function EpisodeCard(props: EpisodeCardProps) {
             }}
         >
             <Card.Body>
-                <Card.Title>Episode {episodeNumber}</Card.Title>
-                <Card.Subtitle className="mb-2 text-muted">
-                    {anime.seriesTitle}
-                </Card.Subtitle>
+                <a
+                    href={`/anime/${anime.seriesFolderName}/${episodeNumber}`}
+                    style={{
+                        textDecoration: "inherit",
+                        color: "inherit",
+                    }}
+                >
+                    <Card.Title>Episode {episodeNumber}</Card.Title>
+                    <Card.Subtitle className="mb-2 text-muted">
+                        {anime.seriesTitle}
+                    </Card.Subtitle>
+                </a>
 
                 <div
                     style={
-                        progressPercent
+                        progressPercent || anime.watchProgress[episodeNumber]
                             ? {
                                   display: "flex",
                                   alignItems: "center",
@@ -349,7 +495,8 @@ export function EpisodeCard(props: EpisodeCardProps) {
                         variant="danger"
                         size="sm"
                         className={
-                            progressPercent
+                            progressPercent ||
+                            anime.watchProgress[episodeNumber]
                                 ? "ms-2 hover-content"
                                 : "ms-2 d-none"
                         }

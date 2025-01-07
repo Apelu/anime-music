@@ -65,13 +65,19 @@ export class ServerCalls {
     getAnimeData(params: {
         seriesFolderName?: string;
         episodeNumber?: string;
+        includeTimelineData?: boolean;
     }) {
         return fetch(
             this.baseURL +
                 `/getAnimeData?seriesFolderName=${
                     params.seriesFolderName || ""
-                }&episodeNumber=${params.episodeNumber || ""}`
+                }&episodeNumber=${params.episodeNumber || ""}
+                &includeTimelineData=${params.includeTimelineData || false}`
         );
+    }
+
+    getUpdatesUrl() {
+        return this.baseURL + "/getUpdates";
     }
 
     getProgress() {
@@ -86,6 +92,10 @@ export class ServerCalls {
         return fetch(
             this.baseURL + "/video?seriesFolderName=" + seriesFolderName
         );
+    }
+
+    confirmAlertUrl() {
+        return this.baseURL + "/confirmAlert";
     }
 
     updateProgress(

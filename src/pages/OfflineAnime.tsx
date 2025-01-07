@@ -2,13 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { ServerCalls } from "./AnimeDownloadPage";
 import { useParams, useSearchParams } from "react-router-dom";
 import { doc } from "firebase/firestore";
-import { Card, ProgressBar } from "react-bootstrap";
+import { Badge, Card, ProgressBar } from "react-bootstrap";
 import { parse } from "path";
 import { Player } from "video-react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import "videojs-hotkeys";
 import TextTrackSettingsFont from "./../../node_modules/video.js/dist/types/tracks/text-track-settings-font.d";
+import { steps } from "framer-motion";
+import { GlobalToastContainer } from "@features/routing/GlobalToastContainer";
+import {
+    addToastDispatchParam,
+    useToastDispatch,
+} from "@features/contexts/TemplateContext";
 
 interface DisplayAnimeCardProps {
     imageSrc: string;
@@ -195,6 +201,9 @@ function OfflineAnime(props: any) {
                         progress: progressData,
                     });
                 });
+            // .catch(e => {
+            //     // console.error(e);
+            // });
             return;
         }
 
@@ -205,7 +214,6 @@ function OfflineAnime(props: any) {
                     return response.json();
                 })
                 .then(episodeInfo => {
-                    console.log({ episodeInfo });
                     setData({
                         ...data,
                         view: "episodes",
@@ -213,6 +221,9 @@ function OfflineAnime(props: any) {
                         progress: progressData,
                     });
                 });
+            // .catch(e => {
+            //     // console.error(e);
+            // });
             return;
         }
 
@@ -223,7 +234,6 @@ function OfflineAnime(props: any) {
                     return response.json();
                 })
                 .then(episodeInfo => {
-                    console.log({ episodeInfo });
                     setData({
                         ...data,
                         view: "video",
@@ -294,10 +304,50 @@ function VideoPlayerView(props: {
     params: any;
     serverCalls: ServerCalls;
 }) {
+    const toastDispatch = useToastDispatch();
     const [showingMenu, setShowingMenu] = useState(true);
-    var lastUpdate = 0;
+    var lastUpdate = -1;
     const { data, videoRef, handleEnded, params, serverCalls } = props;
     const [subtitle, setSubtitle] = useState<string | null>(null);
+    /*
+ const additionalData = {
+        alertsPaused,
+        endOfAlertPause,
+
+        currentStepCount: todayStepData.steps,
+        stepsGoal,
+        stepsNeeded,
+
+        stepsTakenInPast2Hours,
+    };
+
+    if (currentHour >= 0 && currentHour < 6) {
+        return {
+            showAlert: false,
+            alertMessage: "It's past midnight, you should get some rest",
+            alertType: "Warning",
+            ...additionalData,
+        };
+    }
+    */
+
+    interface StepsAlertType {
+        showAlert: boolean;
+        alertMessage: string;
+        alertType: string;
+
+        alertsPaused: boolean;
+        endOfAlertPause: string;
+
+        currentStepCount: number;
+        stepsGoal: number;
+        stepsNeeded: number;
+
+        stepsTakenInPast2Hours: string;
+    }
+    const [stepsAlertData, setStepsAlertData] = useState<StepsAlertType | null>(
+        null
+    );
 
     useEffect(() => {
         setTimeout(() => {
@@ -314,10 +364,15 @@ function VideoPlayerView(props: {
                 return response.text();
             })
             .then(text => {
-                setSubtitle(text);
+                console.log({ text });
+                if (text) {
+                    setSubtitle(text);
+                }
             });
+        // .catch(e => {
+        //     // console.error(e);
+        // });
     }, []);
-    console.log({ data });
 
     const selected = data.selectedSeriesData.find(
         (episode: AnimeEpisode) =>
@@ -343,6 +398,9 @@ function VideoPlayerView(props: {
         }
     }, [videoRef]);
 
+    const badgeMessage =
+        stepsAlertData?.alertMessage ||
+        `Steps In Past 2 Hours: ${stepsAlertData?.stepsTakenInPast2Hours} | Steps Needed: ${stepsAlertData?.stepsNeeded}`;
     const uiMenu = (
         <div
             style={{
@@ -353,23 +411,129 @@ function VideoPlayerView(props: {
                 backgroundColor: "rgba(0, 0, 0, 0.5)",
                 padding: "10px",
                 display: "flex",
+                // flexDirection: "column",
+                alignItems: "center",
                 justifyContent: "space-between",
-                zIndex: 999999999,
+                zIndex: 999999999999999999,
             }}
         >
-            {/* Series Title and Episode Number */}
+            {/* New UI:
+            Title                               | 1234 / 5500 (remaining: 4266 or 77.56%)
+            Episode Number / Total Episodes     | 290 (4pm: 140, 5pm: 150)
+                                            
 
-            <span
+             */}
+
+            <div
                 style={{
-                    color: "white",
-                    fontSize: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    width: "100%",
                 }}
             >
                 <h1>{selected.seriesTitle}</h1>
+
                 <h3>
                     {selected.episodeNumber} / {data.selectedSeriesData.length}
                 </h3>
-            </span>
+            </div>
+
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                }}
+            >
+                {stepsAlertData && (
+                    <span
+                        style={{
+                            fontSize: "20px",
+                        }}
+                    >
+                        <Badge>{stepsAlertData?.alertMessage}</Badge>
+
+                        <Badge>
+                            {stepsAlertData?.currentStepCount} /{" "}
+                            {stepsAlertData?.stepsGoal}
+                        </Badge>
+
+                        <Badge className="ms-2">
+                            {stepsAlertData?.stepsNeeded >= 0
+                                ? `remaining: ${stepsAlertData?.stepsNeeded}`
+                                : `${(
+                                      (stepsAlertData?.currentStepCount /
+                                          stepsAlertData?.stepsGoal) *
+                                      100
+                                  ).toFixed(0)}%`}
+                        </Badge>
+
+                        <Badge className="ms-2">
+                            {stepsAlertData?.stepsTakenInPast2Hours
+                                .replace("(1:", "(1am:")
+                                .replace("(2:", "(2am:")
+                                .replace("(3:", "(3am:")
+                                .replace("(4:", "(4am:")
+                                .replace("(5:", "(5am:")
+                                .replace("(6:", "(6am:")
+                                .replace("(7:", "(7am:")
+                                .replace("(8:", "(8am:")
+                                .replace("(9:", "(9am:")
+                                .replace("(10:", "(10am:")
+                                .replace("(11:", "(11am:")
+                                .replace("(12:", "(12pm:")
+                                .replace("(13:", "(1pm:")
+                                .replace("(14:", "(2pm:")
+                                .replace("(15:", "(3pm:")
+                                .replace("(16:", "(4pm:")
+                                .replace("(17:", "(5pm:")
+                                .replace("(18:", "(6pm:")
+                                .replace("(19:", "(7pm:")
+                                .replace("(20:", "(8pm:")
+                                .replace("(21:", "(9pm:")
+                                .replace("(22:", "(10pm:")
+                                .replace("(23:", "(11pm:")
+                                .replace("(24:", "(12am:")
+                                .replace(", 1:", ", 1am:")
+                                .replace(", 2:", ", 2am:")
+                                .replace(", 3:", ", 3am:")
+                                .replace(", 4:", ", 4am:")
+                                .replace(", 5:", ", 5am:")
+                                .replace(", 6:", ", 6am:")
+                                .replace(", 7:", ", 7am:")
+                                .replace(", 8:", ", 8am:")
+                                .replace(", 9:", ", 9am:")
+                                .replace(", 10:", ", 10am:")
+                                .replace(", 11:", ", 11am:")
+                                .replace(", 12:", ", 12pm:")
+                                .replace(", 13:", ", 1pm:")
+                                .replace(", 14:", ", 2pm:")
+                                .replace(", 15:", ", 3pm:")
+                                .replace(", 16:", ", 4pm:")
+                                .replace(", 17:", ", 5pm:")
+                                .replace(", 18:", ", 6pm:")
+                                .replace(", 19:", ", 7pm:")
+                                .replace(", 20:", ", 8pm:")
+                                .replace(", 21:", ", 9pm:")
+                                .replace(", 22:", ", 10pm:")
+                                .replace(", 23:", ", 11pm:")
+                                .replace(", 24:", ", 12am:")
+                                .replace(", ", " + ")}
+                        </Badge>
+                    </span>
+                )}
+            </div>
+
+            {/* <div>
+                <span
+                    style={{
+                        color: "white",
+                        fontSize: "20px",
+                    }}
+                >
+                    <Badge bg="primary">{badgeMessage}</Badge>
+                </span>
+            </div> */}
         </div>
     );
 
@@ -383,7 +547,7 @@ function VideoPlayerView(props: {
                 width: "100%",
                 height: "100%",
                 backgroundColor: "black",
-                zIndex: 99999999,
+                zIndex: 1300,
             }}
             ref={videoRef}
             src={serverCalls.getVideoUrl(
@@ -398,40 +562,75 @@ function VideoPlayerView(props: {
             onEnded={() => {
                 handleEnded();
             }}
-            onTimeUpdate={() => {
+            onTimeUpdate={async () => {
                 const video = videoRef.current;
                 if (!video) return;
 
                 const currentTime = parseInt(video.currentTime);
 
+                const decimal = video.currentTime - currentTime;
+
+                if (decimal > 0.25) {
+                    return; // Skip if not close to whole number (so that it only runs once per second)
+                }
+
+                if (lastUpdate == currentTime) return;
+
+                lastUpdate = currentTime;
+
                 if (currentTime % 15 === 0) {
-                    if (lastUpdate === currentTime) return;
-                    lastUpdate = currentTime;
-                    serverCalls
-                        .updateProgress(
+                    try {
+                        console.log("Updating progress for ", currentTime);
+
+                        const response = await serverCalls.updateProgress(
                             params.seriesFolderName,
                             params.episodeNumber,
                             video.currentTime,
                             video.duration
-                        )
-                        .then(response => response.json())
-                        .then(
-                            (data: {
-                                success: boolean;
-                                needsMoreSteps: {
-                                    needMoreSteps: boolean;
-                                    message: string;
-                                    messageType: string;
-                                };
-                            }) => {
-                                if (data.needsMoreSteps.needMoreSteps) {
-                                    video.pause();
-                                    alert(data.needsMoreSteps.message);
-                                }
-
-                                console.log(data.needsMoreSteps);
-                            }
                         );
+
+                        const data: StepsAlertType = await response.json();
+                        setStepsAlertData(data);
+                        if (data.showAlert) {
+                            video.pause();
+                            try {
+                                const result = window.confirm(
+                                    data.alertMessage
+                                );
+                                if (result) {
+                                    video.play();
+                                    try {
+                                        fetch(serverCalls.confirmAlertUrl());
+                                        // .catch(e => {
+                                        //     // console.error(e);
+                                        // });
+                                    } catch (e) {
+                                        // console.error(e);
+                                    }
+                                }
+                            } catch (e) {
+                                video.play();
+                            }
+                        } else if (data.alertType == "Success") {
+                            // toastDispatch(
+                            //     addToastDispatchParam({
+                            //         id: Date.now() + "",
+                            //         title:
+                            //             "Step Count: " +
+                            //             data.currentStepCount,
+                            //         body: data.alertMessage + "",
+                            //         hideAfterTimestamp: Date.now() + 3000,
+                            //     })
+                            // );
+                        }
+                        // console.log(data);
+
+                        // .catch(e => {
+                        //     // console.error(e);
+                        // });
+                    } catch (e) {
+                        // console.error(e);
+                    }
                 }
             }}
             onKeyDownCapture={e => {
@@ -450,7 +649,6 @@ function VideoPlayerView(props: {
             }}
             // muted
             onKeyUp={e => {
-                console.log(e.key);
                 if (e.key === "Escape") {
                     document.location.href = `/anime/${params.seriesFolderName}`;
                 }
@@ -500,7 +698,7 @@ function VideoPlayerView(props: {
                 }
             }}
         >
-            {subtitle && (
+            {/* {subtitle && (
                 <track
                     src={`/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`}
                     kind="subtitles"
@@ -508,11 +706,17 @@ function VideoPlayerView(props: {
                     label="English"
                     default
                 />
-            )}
+            )} */}
         </video>
     );
 
     useEffect(() => {
+        const currentHour = new Date().getHours();
+
+        if (currentHour >= 1 && currentHour <= 5) {
+            alert("It's past midnight, you should get some rest");
+            document.location.href = "/anime";
+        }
         const videoElement = document.createElement(
             "video-js"
         ) as HTMLVideoElement;
@@ -541,26 +745,46 @@ function VideoPlayerView(props: {
         const player = videojs(videoElement, {
             autoplay: true,
             controls: true,
-            subtitles: {
-                default: "English",
-                en: [
-                    {
-                        src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
-                        srclang: "en",
-                        label: "English",
-                    },
-                ],
-            },
-            tracks: [
-                {
-                    kind: "subtitles",
-                    src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
-                    srclang: "en",
-                    label: "English",
-                    default: true,
-                },
-            ],
+            subtitles: subtitle
+                ? {
+                      default: "English",
+                      en: [
+                          {
+                              src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                              srclang: "en",
+                              label: "English",
+                          },
+                      ],
+                  }
+                : undefined,
+            tracks: subtitle
+                ? [
+                      {
+                          kind: "subtitles",
+                          src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                          srclang: "en",
+                          label: "English",
+                          default: true,
+                      },
+                  ]
+                : undefined,
         });
+
+        const eventSource = new EventSource(serverCalls.getUpdatesUrl());
+
+        eventSource.onmessage = event => {
+            const eventData = JSON.parse(event.data);
+            console.log("Received update:", eventData);
+
+            const MyEvents = {
+                StepsUpdated: "StepsUpdated",
+            };
+
+            if (eventData.eventName == MyEvents.StepsUpdated) {
+                const stepEventData = eventData.eventPayload;
+                setStepsAlertData(stepEventData);
+            }
+        };
 
         return () => {
             if (player) {
@@ -631,7 +855,6 @@ function SeriesView(props: { data: any; setData: any }) {
     const { data, setData } = props;
     const [searchText, setSearchText] = useState("");
 
-    console.log({ data });
     const continueWatching = data.seriesData
         .filter((anime: Anime) =>
             getLatestEpisodeProgress(data.progress, anime.seriesFolderName)
@@ -696,7 +919,12 @@ function SeriesView(props: { data: any; setData: any }) {
                 <button
                     className="btn btn-info btn-sm ms-3"
                     onClick={() => {
-                        data.seriesData.sort(() => Math.random() - 0.5);
+                        data.seriesData.sort(() => {
+                            const aScore = Math.random();
+                            const bScore = Math.random();
+
+                            return aScore > bScore ? 1 : -1;
+                        });
                         setData({ ...data });
                     }}
                 >

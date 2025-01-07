@@ -11,6 +11,8 @@
 # production
 /build
 
+/public/subtitles
+
 # misc
 .DS_Store
 .env.local

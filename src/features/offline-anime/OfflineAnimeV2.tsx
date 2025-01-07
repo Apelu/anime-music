@@ -3,16 +3,17 @@ import {
     AnimeData,
     useAnimeData,
     useAnimeDispatch,
-} from "@features/contexts/TemplateContext";
+} from "@features/contexts/AnimeContext";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import { on } from "events";
-import { useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { SeriesViewPage } from "./SeriesViewPage";
 import { Badge, Button, ButtonGroup, Card, ProgressBar } from "react-bootstrap";
 import { removeWords } from "./AnimeGroup";
 import { useNavigate } from "react-router-dom";
 import { EpisodeViewPage } from "./EpisodeViewPage";
+import { Anime } from "@pages/OfflineAnime";
 
 interface ExpectedParams {
     seriesFolderName: string;
@@ -22,6 +23,7 @@ interface ExpectedParams {
 async function getAnimeData(params: {
     seriesFolderName?: string;
     episodeNumber?: string;
+    includeTimelineData?: boolean;
 }) {
     const serverCalls = new ServerCalls();
 
@@ -56,6 +58,145 @@ export function getLatestWatchedEpisode(anime: AnimeData) {
     return lastWatchedEpisode;
 }
 
+export const StorageKeys = {
+    accessToken: "accessToken",
+};
+
+export function getHashObj(hash: string) {
+    var obj: any = {};
+    hash.substring(1)
+        .split("&")
+        .forEach(function (pair) {
+            var keyValue = pair.split("=");
+            obj[keyValue[0]] = keyValue[1];
+        });
+    return obj;
+}
+
+export function AniListAPI(
+    query = "",
+    variables = {},
+    accessToken = "",
+    handleData = (data: any) => {},
+    handleError = (e: any) => {
+        console.error(e);
+    }
+) {
+    const API_URL = "https://graphql.anilist.co";
+    const options = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            ...(accessToken && {
+                Authorization: "Bearer " + accessToken,
+            }),
+        },
+        body: JSON.stringify({
+            query: query,
+            variables: variables,
+        }),
+    };
+
+    fetch(API_URL, options)
+        .then(handleResponse)
+        .then(handleData)
+        .catch(handleError);
+
+    function handleResponse(response: { json: () => Promise<any>; ok: any }) {
+        return response.json().then(function (json) {
+            return response.ok ? json : Promise.reject(json);
+        });
+    }
+}
+
+async function asyncAnilistAPI(
+    query = "",
+    variables = {},
+    accessToken = "",
+    handleData = (data: any) => {},
+    handleError = (e: any) => {
+        console.error(e);
+    }
+) {
+    return new Promise((resolve, reject) => {
+        AniListAPI(
+            query,
+            variables,
+            accessToken,
+            function (data) {
+                resolve(data);
+            },
+            function (e) {
+                reject(e);
+            }
+        );
+    });
+}
+
+export async function hasAnilistAccessTokenExpired() {
+    const accessToken = localStorage.getItem(StorageKeys.accessToken);
+    if (!accessToken) {
+        return true;
+    }
+
+    // Anilist Fetch to de
+
+    try {
+        const data = await asyncAnilistAPI(
+            `
+            query {
+                Viewer {
+                  id
+                }
+              }
+            `,
+            {},
+            accessToken
+        );
+        console.log(data);
+
+        if ((data as any).errors) {
+            console.error(data);
+            return true;
+        }
+
+        return false;
+    } catch (e) {}
+
+    return true;
+}
+export function AniListRedirectPage() {
+    const { hash } = useLocation();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const isOnline = window.navigator.onLine;
+
+        // if (isOnline) {
+        //     const accessToken = getHashObj(hash).access_token;
+
+        //     if (accessToken) {
+        //         localStorage.setItem(StorageKeys.accessToken, accessToken);
+        //         navigate("/anime");
+        //     } else if (!localStorage.getItem(StorageKeys.accessToken)) {
+        //         // Redirect to AniList
+        //         const result = window.confirm(
+        //             "You are not logged in to AniList. Do you want to login now? [" +
+        //                 localStorage.getItem(StorageKeys.accessToken)
+        //         );
+        //         if (!result) {
+        //             return;
+        //         }
+        //         window.location.href = `https://anilist.co/api/v2/oauth/authorize?client_id=15485&response_type=token`;
+        //         return;
+        //     }
+        // }
+    }, []);
+
+    return <h1>Storing Access Token</h1>;
+}
+
 function OfflineAnimeV2() {
     const params = useParams();
     const { seriesFolderName, episodeNumber } =
@@ -64,11 +205,35 @@ function OfflineAnimeV2() {
     const animeData = useAnimeData();
     const dispatch = useAnimeDispatch();
 
+    useEffect(() => {}, []);
+
     useEffect(() => {
         getAnimeData(params).then(data => {
             dispatch({ type: AnimeActionType.updateAnime, payload: data });
         });
     }, [params]);
+
+    useEffect(() => {
+        if (
+            animeData.length == 1 &&
+            params.seriesFolderName &&
+            !params.episodeNumber
+        ) {
+            // Navigated to series page after pull seriesInfo pull all other data
+            getAnimeData({}).then(data => {
+                dispatch({ type: AnimeActionType.updateAnime, payload: data });
+            });
+
+            // getAnimeData({ ...params, includeTimelineData: true }).then(
+            //     data => {
+            //         dispatch({
+            //             type: AnimeActionType.updateAnime,
+            //             payload: data,
+            //         });
+            //     }
+            // );
+        }
+    }, [animeData]);
 
     if (!seriesFolderName) {
         return <SeriesViewPage animeData={animeData} />;
@@ -87,6 +252,7 @@ function OfflineAnimeV2() {
 }
 
 interface AnimeCardProps {
+    anime?: AnimeData;
     imageSrc?: string;
     onImageClickLink?: string;
     onImageClickFunction?: (event: any) => void;
@@ -101,6 +267,7 @@ interface AnimeCardProps {
 
 export function AnimeCard(props: AnimeCardProps) {
     const {
+        anime,
         imageSrc,
         imageHeight,
         imageWidth,
@@ -112,6 +279,9 @@ export function AnimeCard(props: AnimeCardProps) {
         topRightComponent,
         bottomComponent,
     } = props;
+
+    const imageRef = useRef<HTMLImageElement>(null);
+    const offlineImage = `http://localhost:5555/api/animeDownload/image?seriesFolderName=${anime?.seriesFolderName}`;
 
     return (
         <div>
@@ -133,12 +303,27 @@ export function AnimeCard(props: AnimeCardProps) {
                         <Link to={onImageClickLink || ""}>
                             {/* <a href={onImageClickLink} > */}
                             <img
+                                ref={imageRef}
                                 onClick={
                                     onImageClickFunction
                                         ? onImageClickFunction
                                         : undefined
                                 }
-                                src={imageSrc}
+                                src={
+                                    window.navigator.onLine
+                                        ? imageSrc
+                                        : offlineImage
+                                }
+                                onError={() => {
+                                    if (
+                                        window.navigator.onLine &&
+                                        anime?.seriesFolderName &&
+                                        imageRef.current &&
+                                        imageRef.current.src !== offlineImage
+                                    ) {
+                                        imageRef.current!.src = offlineImage;
+                                    }
+                                }}
                                 alt={typeof title == "string" ? title : ""}
                                 style={{
                                     width: "100%",
