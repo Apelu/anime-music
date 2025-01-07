@@ -84,10 +84,6 @@ export class ServerCalls {
         return fetch(this.baseURL + "/getProgress");
     }
 
-    getSeries() {
-        return fetch(this.baseURL + "/video");
-    }
-
     getEpisodes(seriesFolderName: string) {
         return fetch(
             this.baseURL + "/video?seriesFolderName=" + seriesFolderName

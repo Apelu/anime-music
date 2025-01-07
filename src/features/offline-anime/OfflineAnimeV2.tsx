@@ -5,15 +5,11 @@ import {
     useAnimeDispatch,
 } from "@features/contexts/AnimeContext";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
-import { on } from "events";
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
-import { SeriesViewPage } from "./SeriesViewPage";
-import { Badge, Button, ButtonGroup, Card, ProgressBar } from "react-bootstrap";
-import { removeWords } from "./AnimeGroup";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { EpisodeViewPage } from "./EpisodeViewPage";
-import { Anime } from "@pages/OfflineAnime";
+import { SeriesViewPage } from "./SeriesViewPage";
+import VideoPlayerView from "./VideoViewPage";
 
 interface ExpectedParams {
     seriesFolderName: string;
@@ -248,6 +244,16 @@ function OfflineAnimeV2() {
         );
     }
 
+    // if(seriesFolderName && episodeNumber) {
+    //     return (
+    //         <VideoPlayerView
+    //                 data={data}
+    //                 handleEnded={handleEnded}
+    //                 params={params}
+    //                 serverCalls={serverCalls}
+    //             />
+    //     )
+    // }
     return null;
 }
 

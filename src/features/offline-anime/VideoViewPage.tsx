@@ -1,0 +1,533 @@
+import { useToastDispatch } from "@features/contexts/TemplateContext";
+import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { AnimeEpisode } from "@pages/OfflineAnime";
+import { useState, useEffect, useRef } from "react";
+import { Badge } from "react-bootstrap";
+import { useParams } from "react-router-dom";
+import videojs from "video.js";
+
+function VideoPlayerView(props: {
+    data: any;
+    handleEnded: any;
+    serverCalls: ServerCalls;
+}) {
+    const params: {
+        seriesFolderName: string;
+        episodeNumber: string;
+    } = useParams() as {
+        seriesFolderName: string;
+        episodeNumber: string;
+    };
+
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    const toastDispatch = useToastDispatch();
+    const [showingMenu, setShowingMenu] = useState(true);
+    var lastUpdate = -1;
+    const { data, handleEnded, serverCalls } = props;
+    const [subtitle, setSubtitle] = useState<string | null>(null);
+    /*
+ const additionalData = {
+        alertsPaused,
+        endOfAlertPause,
+
+        currentStepCount: todayStepData.steps,
+        stepsGoal,
+        stepsNeeded,
+
+        stepsTakenInPast2Hours,
+    };
+
+    if (currentHour >= 0 && currentHour < 6) {
+        return {
+            showAlert: false,
+            alertMessage: "It's past midnight, you should get some rest",
+            alertType: "Warning",
+            ...additionalData,
+        };
+    }
+    */
+
+    interface StepsAlertType {
+        showAlert: boolean;
+        alertMessage: string;
+        alertType: string;
+
+        alertsPaused: boolean;
+        endOfAlertPause: string;
+
+        currentStepCount: number;
+        stepsGoal: number;
+        stepsNeeded: number;
+
+        stepsTakenInPast2Hours: string;
+    }
+    const [stepsAlertData, setStepsAlertData] = useState<StepsAlertType | null>(
+        null
+    );
+
+    useEffect(() => {
+        setTimeout(() => {
+            setShowingMenu(false);
+        }, 1500);
+
+        fetch(
+            serverCalls.getSubtitleUrl(
+                params.seriesFolderName,
+                params.episodeNumber
+            )
+        )
+            .then(response => {
+                return response.text();
+            })
+            .then(text => {
+                console.log({ text });
+                if (text) {
+                    setSubtitle(text);
+                }
+            });
+        // .catch(e => {
+        //     // console.error(e);
+        // });
+    }, []);
+
+    const selected = data.selectedSeriesData.find(
+        (episode: AnimeEpisode) =>
+            episode.episodeNumber === params.episodeNumber
+    );
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video) {
+            video.onloadedmetadata = () => {
+                const savedProgress = data.progress[selected.seriesFolderName]
+                    ? data.progress[selected.seriesFolderName][
+                          selected.episodeNumber
+                      ]
+                    : null;
+
+                if (savedProgress) {
+                    video.currentTime = savedProgress.progress;
+                } else {
+                    video.currentTime = 0;
+                }
+            };
+        }
+    }, [videoRef]);
+
+    const badgeMessage =
+        stepsAlertData?.alertMessage ||
+        `Steps In Past 2 Hours: ${stepsAlertData?.stepsTakenInPast2Hours} | Steps Needed: ${stepsAlertData?.stepsNeeded}`;
+    const uiMenu = (
+        <div
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                padding: "10px",
+                display: "flex",
+                // flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "space-between",
+                zIndex: 999999999999999999,
+            }}
+        >
+            {/* New UI:
+            Title                               | 1234 / 5500 (remaining: 4266 or 77.56%)
+            Episode Number / Total Episodes     | 290 (4pm: 140, 5pm: 150)
+                                            
+
+             */}
+
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    width: "100%",
+                }}
+            >
+                <h1>{selected.seriesTitle}</h1>
+
+                <h3>
+                    {selected.episodeNumber} / {data.selectedSeriesData.length}
+                </h3>
+            </div>
+
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                }}
+            >
+                {stepsAlertData && (
+                    <span
+                        style={{
+                            fontSize: "20px",
+                        }}
+                    >
+                        <Badge>{stepsAlertData?.alertMessage}</Badge>
+
+                        <Badge>
+                            {stepsAlertData?.currentStepCount} /{" "}
+                            {stepsAlertData?.stepsGoal}
+                        </Badge>
+
+                        <Badge className="ms-2">
+                            {stepsAlertData?.stepsNeeded >= 0
+                                ? `remaining: ${stepsAlertData?.stepsNeeded}`
+                                : `${(
+                                      (stepsAlertData?.currentStepCount /
+                                          stepsAlertData?.stepsGoal) *
+                                      100
+                                  ).toFixed(0)}%`}
+                        </Badge>
+
+                        <Badge className="ms-2">
+                            {stepsAlertData?.stepsTakenInPast2Hours
+                                .replace("(1:", "(1am:")
+                                .replace("(2:", "(2am:")
+                                .replace("(3:", "(3am:")
+                                .replace("(4:", "(4am:")
+                                .replace("(5:", "(5am:")
+                                .replace("(6:", "(6am:")
+                                .replace("(7:", "(7am:")
+                                .replace("(8:", "(8am:")
+                                .replace("(9:", "(9am:")
+                                .replace("(10:", "(10am:")
+                                .replace("(11:", "(11am:")
+                                .replace("(12:", "(12pm:")
+                                .replace("(13:", "(1pm:")
+                                .replace("(14:", "(2pm:")
+                                .replace("(15:", "(3pm:")
+                                .replace("(16:", "(4pm:")
+                                .replace("(17:", "(5pm:")
+                                .replace("(18:", "(6pm:")
+                                .replace("(19:", "(7pm:")
+                                .replace("(20:", "(8pm:")
+                                .replace("(21:", "(9pm:")
+                                .replace("(22:", "(10pm:")
+                                .replace("(23:", "(11pm:")
+                                .replace("(24:", "(12am:")
+                                .replace(", 1:", ", 1am:")
+                                .replace(", 2:", ", 2am:")
+                                .replace(", 3:", ", 3am:")
+                                .replace(", 4:", ", 4am:")
+                                .replace(", 5:", ", 5am:")
+                                .replace(", 6:", ", 6am:")
+                                .replace(", 7:", ", 7am:")
+                                .replace(", 8:", ", 8am:")
+                                .replace(", 9:", ", 9am:")
+                                .replace(", 10:", ", 10am:")
+                                .replace(", 11:", ", 11am:")
+                                .replace(", 12:", ", 12pm:")
+                                .replace(", 13:", ", 1pm:")
+                                .replace(", 14:", ", 2pm:")
+                                .replace(", 15:", ", 3pm:")
+                                .replace(", 16:", ", 4pm:")
+                                .replace(", 17:", ", 5pm:")
+                                .replace(", 18:", ", 6pm:")
+                                .replace(", 19:", ", 7pm:")
+                                .replace(", 20:", ", 8pm:")
+                                .replace(", 21:", ", 9pm:")
+                                .replace(", 22:", ", 10pm:")
+                                .replace(", 23:", ", 11pm:")
+                                .replace(", 24:", ", 12am:")
+                                .replace(", ", " + ")}
+                        </Badge>
+                    </span>
+                )}
+            </div>
+
+            {/* <div>
+                <span
+                    style={{
+                        color: "white",
+                        fontSize: "20px",
+                    }}
+                >
+                    <Badge bg="primary">{badgeMessage}</Badge>
+                </span>
+            </div> */}
+        </div>
+    );
+
+    const oldVideo = (
+        <video
+            id="video"
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "black",
+                zIndex: 1300,
+            }}
+            ref={videoRef}
+            src={serverCalls.getVideoUrl(
+                params.seriesFolderName,
+                params.episodeNumber
+            )}
+            controls
+            autoPlay
+            onPlay={() => {
+                videoRef.current?.focus();
+            }}
+            onEnded={() => {
+                handleEnded();
+            }}
+            onTimeUpdate={async () => {
+                const video = videoRef.current;
+                if (!video) return;
+
+                const currentTime = parseInt(video.currentTime.toString());
+
+                const decimal = video.currentTime - currentTime;
+
+                if (decimal > 0.25) {
+                    return; // Skip if not close to whole number (so that it only runs once per second)
+                }
+
+                if (lastUpdate == currentTime) return;
+
+                lastUpdate = currentTime;
+
+                if (currentTime % 15 === 0) {
+                    try {
+                        console.log("Updating progress for ", currentTime);
+
+                        const response = await serverCalls.updateProgress(
+                            params.seriesFolderName,
+                            params.episodeNumber,
+                            video.currentTime,
+                            video.duration
+                        );
+
+                        const data: StepsAlertType = await response.json();
+                        setStepsAlertData(data);
+                        if (data.showAlert) {
+                            video.pause();
+                            try {
+                                const result = window.confirm(
+                                    data.alertMessage
+                                );
+                                if (result) {
+                                    video.play();
+                                    try {
+                                        fetch(serverCalls.confirmAlertUrl());
+                                        // .catch(e => {
+                                        //     // console.error(e);
+                                        // });
+                                    } catch (e) {
+                                        // console.error(e);
+                                    }
+                                }
+                            } catch (e) {
+                                video.play();
+                            }
+                        } else if (data.alertType == "Success") {
+                            // toastDispatch(
+                            //     addToastDispatchParam({
+                            //         id: Date.now() + "",
+                            //         title:
+                            //             "Step Count: " +
+                            //             data.currentStepCount,
+                            //         body: data.alertMessage + "",
+                            //         hideAfterTimestamp: Date.now() + 3000,
+                            //     })
+                            // );
+                        }
+                        // console.log(data);
+
+                        // .catch(e => {
+                        //     // console.error(e);
+                        // });
+                    } catch (e) {
+                        // console.error(e);
+                    }
+                }
+            }}
+            onKeyDownCapture={e => {
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                    e.preventDefault();
+                }
+            }}
+            onKeyDown={e => {
+                if (e.key === "ArrowLeft") {
+                    videoRef.current!.currentTime -= 5;
+                }
+
+                if (e.key === "ArrowRight") {
+                    videoRef.current!.currentTime += 5;
+                }
+            }}
+            // muted
+            onKeyUp={e => {
+                if (e.key === "Escape") {
+                    document.location.href = `/anime/${params.seriesFolderName}`;
+                }
+
+                if (e.key === "u") {
+                    setShowingMenu(!showingMenu);
+                }
+
+                if (e.key == "MediaPlayPause") {
+                    // Skip 85 seconds
+                    videoRef.current!.currentTime += 85;
+                }
+
+                // Is digit key
+                if (
+                    e.key == "0" ||
+                    e.key == "1" ||
+                    e.key == "2" ||
+                    e.key == "3" ||
+                    e.key == "4" ||
+                    e.key == "5" ||
+                    e.key == "6" ||
+                    e.key == "7" ||
+                    e.key == "8" ||
+                    e.key == "9"
+                ) {
+                    // Skip to that percentage
+                    const percentage = parseInt(e.key) * 10;
+                    videoRef.current!.currentTime =
+                        videoRef.current!.duration * (percentage / 100);
+                }
+
+                if (e.key.toLowerCase() == "f") {
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    } else {
+                        videoRef.current?.requestFullscreen();
+                    }
+                }
+
+                if (e.key === "MediaTrackPrevious") {
+                    handleEnded(false);
+                }
+
+                if (e.key === "Delete" || e.key === "MediaTrackNext") {
+                    handleEnded();
+                }
+            }}
+        >
+            {/* {subtitle && (
+                <track
+                    src={`/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`}
+                    kind="subtitles"
+                    srcLang="en"
+                    label="English"
+                    default
+                />
+            )} */}
+        </video>
+    );
+
+    useEffect(() => {
+        const currentHour = new Date().getHours();
+
+        if (currentHour >= 1 && currentHour <= 5) {
+            alert("It's past midnight, you should get some rest");
+            document.location.href = "/anime";
+        }
+        const videoElement = document.createElement(
+            "video-js"
+        ) as HTMLVideoElement;
+        videoElement.style.width = "100%";
+        videoElement.style.height = "100%";
+
+        videoElement.controls = true;
+        videoElement.autoplay = true;
+        videoElement.src = serverCalls.getVideoUrl(
+            params.seriesFolderName,
+            params.episodeNumber
+        );
+        videoElement.onplay = () => {
+            videoElement.focus();
+        };
+
+        videoElement.onended = () => {
+            handleEnded();
+        };
+
+        const videoContainer = document.getElementById("video-container");
+        if (videoContainer) {
+            videoContainer.appendChild(videoElement);
+        }
+
+        const player = videojs(videoElement, {
+            autoplay: true,
+            controls: true,
+            subtitles: subtitle
+                ? {
+                      default: "English",
+                      en: [
+                          {
+                              src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                              srclang: "en",
+                              label: "English",
+                          },
+                      ],
+                  }
+                : undefined,
+            tracks: subtitle
+                ? [
+                      {
+                          kind: "subtitles",
+                          src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                          srclang: "en",
+                          label: "English",
+                          default: true,
+                      },
+                  ]
+                : undefined,
+        });
+
+        const eventSource = new EventSource(serverCalls.getUpdatesUrl());
+
+        eventSource.onmessage = event => {
+            const eventData = JSON.parse(event.data);
+            console.log("Received update:", eventData);
+
+            const MyEvents = {
+                StepsUpdated: "StepsUpdated",
+            };
+
+            if (eventData.eventName == MyEvents.StepsUpdated) {
+                const stepEventData = eventData.eventPayload;
+                setStepsAlertData(stepEventData);
+            }
+        };
+
+        return () => {
+            if (player) {
+                player.dispose();
+            }
+        };
+    }, []);
+
+    return (
+        <div>
+            {showingMenu && uiMenu}
+            {/* <div
+                id="video-container"
+                style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "black",
+                    zIndex: 99999999,
+                }}
+            ></div> */}
+            {oldVideo}
+        </div>
+    );
+}
+
+export default VideoPlayerView;

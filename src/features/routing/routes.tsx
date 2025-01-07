@@ -1,9 +1,6 @@
 import SubBar from "@features/anime/AnimeSubBar";
 import { Anime } from "@features/api/anilist/AniListAPI";
-import {
-    myLiveWallpapersRef,
-    performEmailPasswordSignIn,
-} from "@features/api/firebase";
+import { myLiveWallpapersRef } from "@features/api/firebase";
 import Background from "@features/background/Background";
 import {
     BackgroundItem,
@@ -11,37 +8,32 @@ import {
     BackgroundType,
 } from "@features/background/constants";
 import NavBar from "@features/ui/NavBar";
-import AnimePage from "@pages/AnimePage";
+import AnimeDownloadPage from "@pages/AnimeDownloadPage";
 import BackgroundLibrary from "@pages/BackgroundLibrary";
 import ControllerPage from "@pages/ControllerPage";
 import ErrorPage from "@pages/ErrorPage";
-import { FactorPage } from "@pages/FactorPage";
 import FeaturesPage from "@pages/FeaturesPage";
 import LoginPage from "@pages/LoginPage";
 import MusicPage from "@pages/MusicPage";
-import ProfilePage from "@pages/ProfilePage";
-import {
-    query,
-    orderBy,
-    startAt,
-    limit,
-    where,
-    getDocs,
-} from "firebase/firestore";
-import { useState, useEffect } from "react";
-import { Outlet, createBrowserRouter } from "react-router-dom";
-import ProviderParent from "./ProviderParent";
-import "../../assets/App.css";
-import VideoPage from "@pages/VideoPage";
-import { Button, Card, Container } from "react-bootstrap";
-import { DndContext } from "@dnd-kit/core";
-import AnimeDownloadPage from "@pages/AnimeDownloadPage";
 import OfflineAnime from "@pages/OfflineAnime";
+import ProfilePage from "@pages/ProfilePage";
+import VideoPage from "@pages/VideoPage";
+import {
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    startAt,
+    where,
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { Card, Container } from "react-bootstrap";
+import { Outlet, createBrowserRouter } from "react-router-dom";
+import "../../assets/App.css";
+import ProviderParent from "./ProviderParent";
 import OfflineAnimeV2, {
     AniListRedirectPage,
-    StorageKeys,
 } from "@features/offline-anime/OfflineAnimeV2";
-import { GlobalToastContainer } from "./GlobalToastContainer";
 
 export enum Paths {
     Anime = "/anime",
