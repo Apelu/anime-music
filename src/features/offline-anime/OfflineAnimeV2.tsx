@@ -11,7 +11,7 @@ import { EpisodeViewPage } from "./EpisodeViewPage";
 import { SeriesViewPage } from "./SeriesViewPage";
 import VideoPlayerView from "./VideoViewPage";
 
-interface ExpectedParams {
+export interface ExpectedParams {
     seriesFolderName: string;
     episodeNumber: string;
 }

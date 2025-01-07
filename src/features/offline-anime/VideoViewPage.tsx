@@ -5,66 +5,39 @@ import { useState, useEffect, useRef } from "react";
 import { Badge } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import videojs from "video.js";
+import { ExpectedParams } from "./OfflineAnimeV2";
 
-function VideoPlayerView(props: {
-    data: any;
-    handleEnded: any;
-    serverCalls: ServerCalls;
-}) {
-    const params: {
-        seriesFolderName: string;
-        episodeNumber: string;
-    } = useParams() as {
-        seriesFolderName: string;
-        episodeNumber: string;
-    };
+export interface StepsAlertType {
+    showAlert: boolean;
+    alertMessage: string;
+    alertType: string;
 
-    const videoRef = useRef<HTMLVideoElement>(null);
+    alertsPaused: boolean;
+    endOfAlertPause: string;
 
-    const toastDispatch = useToastDispatch();
-    const [showingMenu, setShowingMenu] = useState(true);
+    currentStepCount: number;
+    stepsGoal: number;
+    stepsNeeded: number;
+
+    stepsTakenInPast2Hours: string;
+}
+
+function VideoPlayerView(props: { data: any }) {
+    const { data } = props;
+
     var lastUpdate = -1;
-    const { data, handleEnded, serverCalls } = props;
+
+    const serverCalls = new ServerCalls();
+    const params: ExpectedParams = useParams() as any;
+
+    const [showingMenu, setShowingMenu] = useState(true);
     const [subtitle, setSubtitle] = useState<string | null>(null);
-    /*
- const additionalData = {
-        alertsPaused,
-        endOfAlertPause,
-
-        currentStepCount: todayStepData.steps,
-        stepsGoal,
-        stepsNeeded,
-
-        stepsTakenInPast2Hours,
-    };
-
-    if (currentHour >= 0 && currentHour < 6) {
-        return {
-            showAlert: false,
-            alertMessage: "It's past midnight, you should get some rest",
-            alertType: "Warning",
-            ...additionalData,
-        };
-    }
-    */
-
-    interface StepsAlertType {
-        showAlert: boolean;
-        alertMessage: string;
-        alertType: string;
-
-        alertsPaused: boolean;
-        endOfAlertPause: string;
-
-        currentStepCount: number;
-        stepsGoal: number;
-        stepsNeeded: number;
-
-        stepsTakenInPast2Hours: string;
-    }
     const [stepsAlertData, setStepsAlertData] = useState<StepsAlertType | null>(
         null
     );
+    const toastDispatch = useToastDispatch();
+
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         setTimeout(() => {
@@ -86,9 +59,6 @@ function VideoPlayerView(props: {
                     setSubtitle(text);
                 }
             });
-        // .catch(e => {
-        //     // console.error(e);
-        // });
     }, []);
 
     const selected = data.selectedSeriesData.find(
@@ -115,146 +85,200 @@ function VideoPlayerView(props: {
         }
     }, [videoRef]);
 
-    const badgeMessage =
-        stepsAlertData?.alertMessage ||
-        `Steps In Past 2 Hours: ${stepsAlertData?.stepsTakenInPast2Hours} | Steps Needed: ${stepsAlertData?.stepsNeeded}`;
-    const uiMenu = (
+    function handleEnded(goToNextEpisode = true) {
+        // replace episodeNumber param with next episode number
+        const selectedSeriesData = data.selectedSeriesData;
+        const episodeIndex = selectedSeriesData.findIndex(
+            (episode: AnimeEpisode) =>
+                episode.episodeNumber === params.episodeNumber
+        );
+        const nextEpisodeIndex = episodeIndex + (goToNextEpisode ? 1 : -1);
+        const nextEpisodeNumber =
+            selectedSeriesData[nextEpisodeIndex]?.episodeNumber;
+
+        if (nextEpisodeNumber) {
+            window.location.href = `/anime/${
+                params.seriesFolderName
+            }/${encodeURIComponent(nextEpisodeNumber)}`;
+        } else {
+            alert(`No ${goToNextEpisode ? "next" : "previous"} episode found`);
+        }
+    }
+
+    useEffect(() => {
+        const currentHour = new Date().getHours();
+
+        if (currentHour >= 1 && currentHour <= 5) {
+            alert("It's past midnight, you should get some rest");
+            document.location.href = "/anime";
+        }
+
+        /**
+         * Steps Alerts
+         */
+
+        const eventSource = new EventSource(serverCalls.getUpdatesUrl());
+
+        eventSource.onmessage = event => {
+            const eventData = JSON.parse(event.data);
+            console.log("Received update:", eventData);
+
+            const MyEvents = {
+                StepsUpdated: "StepsUpdated",
+            };
+
+            if (eventData.eventName == MyEvents.StepsUpdated) {
+                const stepEventData = eventData.eventPayload;
+                setStepsAlertData(stepEventData);
+            }
+        };
+    }, []);
+
+    if (!data.selectedSeriesData) {
+        return <span>Loading...</span>;
+    }
+
+    return (
+        <div>
+            {showingMenu && (
+                <VideoUIMenu
+                    selected={selected}
+                    data={data}
+                    stepsAlertData={stepsAlertData}
+                />
+            )}
+
+            {/* <NewVideo
+                params={params}
+                serverCalls={serverCalls}
+                handleEnded={handleEnded}
+                subtitle={subtitle}
+            /> */}
+
+            <OldVideo
+                videoRef={videoRef}
+                params={params}
+                serverCalls={serverCalls}
+                setStepsAlertData={setStepsAlertData}
+                showingMenu={showingMenu}
+                setShowingMenu={setShowingMenu}
+                handleEnded={handleEnded}
+                lastUpdate={lastUpdate}
+            />
+        </div>
+    );
+}
+
+function NewVideo({
+    params,
+    serverCalls,
+    handleEnded,
+    subtitle,
+}: {
+    params: ExpectedParams;
+    serverCalls: ServerCalls;
+    handleEnded: () => void;
+    subtitle: string | null;
+}) {
+    useEffect(() => {
+        const videoElement = document.createElement(
+            "video-js"
+        ) as HTMLVideoElement;
+        videoElement.style.width = "100%";
+        videoElement.style.height = "100%";
+
+        videoElement.controls = true;
+        videoElement.autoplay = true;
+        videoElement.src = serverCalls.getVideoUrl(
+            params.seriesFolderName,
+            params.episodeNumber
+        );
+        videoElement.onplay = () => {
+            videoElement.focus();
+        };
+
+        videoElement.onended = () => {
+            handleEnded();
+        };
+
+        const videoContainer = document.getElementById("video-container");
+        if (videoContainer) {
+            videoContainer.appendChild(videoElement);
+        }
+
+        const player = videojs(videoElement, {
+            autoplay: true,
+            controls: true,
+            subtitles: subtitle
+                ? {
+                      default: "English",
+                      en: [
+                          {
+                              src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                              srclang: "en",
+                              label: "English",
+                          },
+                      ],
+                  }
+                : undefined,
+            tracks: subtitle
+                ? [
+                      {
+                          kind: "subtitles",
+                          src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
+                          srclang: "en",
+                          label: "English",
+                          default: true,
+                      },
+                  ]
+                : undefined,
+        });
+
+        return () => {
+            if (player) {
+                player.dispose();
+            }
+        };
+    }, []);
+
+    return (
         <div
+            id="video-container"
             style={{
                 position: "fixed",
                 top: 0,
                 left: 0,
                 width: "100%",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                padding: "10px",
-                display: "flex",
-                // flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "space-between",
-                zIndex: 999999999999999999,
+                height: "100%",
+                backgroundColor: "black",
+                zIndex: 99999999,
             }}
-        >
-            {/* New UI:
-            Title                               | 1234 / 5500 (remaining: 4266 or 77.56%)
-            Episode Number / Total Episodes     | 290 (4pm: 140, 5pm: 150)
-                                            
-
-             */}
-
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    width: "100%",
-                }}
-            >
-                <h1>{selected.seriesTitle}</h1>
-
-                <h3>
-                    {selected.episodeNumber} / {data.selectedSeriesData.length}
-                </h3>
-            </div>
-
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                }}
-            >
-                {stepsAlertData && (
-                    <span
-                        style={{
-                            fontSize: "20px",
-                        }}
-                    >
-                        <Badge>{stepsAlertData?.alertMessage}</Badge>
-
-                        <Badge>
-                            {stepsAlertData?.currentStepCount} /{" "}
-                            {stepsAlertData?.stepsGoal}
-                        </Badge>
-
-                        <Badge className="ms-2">
-                            {stepsAlertData?.stepsNeeded >= 0
-                                ? `remaining: ${stepsAlertData?.stepsNeeded}`
-                                : `${(
-                                      (stepsAlertData?.currentStepCount /
-                                          stepsAlertData?.stepsGoal) *
-                                      100
-                                  ).toFixed(0)}%`}
-                        </Badge>
-
-                        <Badge className="ms-2">
-                            {stepsAlertData?.stepsTakenInPast2Hours
-                                .replace("(1:", "(1am:")
-                                .replace("(2:", "(2am:")
-                                .replace("(3:", "(3am:")
-                                .replace("(4:", "(4am:")
-                                .replace("(5:", "(5am:")
-                                .replace("(6:", "(6am:")
-                                .replace("(7:", "(7am:")
-                                .replace("(8:", "(8am:")
-                                .replace("(9:", "(9am:")
-                                .replace("(10:", "(10am:")
-                                .replace("(11:", "(11am:")
-                                .replace("(12:", "(12pm:")
-                                .replace("(13:", "(1pm:")
-                                .replace("(14:", "(2pm:")
-                                .replace("(15:", "(3pm:")
-                                .replace("(16:", "(4pm:")
-                                .replace("(17:", "(5pm:")
-                                .replace("(18:", "(6pm:")
-                                .replace("(19:", "(7pm:")
-                                .replace("(20:", "(8pm:")
-                                .replace("(21:", "(9pm:")
-                                .replace("(22:", "(10pm:")
-                                .replace("(23:", "(11pm:")
-                                .replace("(24:", "(12am:")
-                                .replace(", 1:", ", 1am:")
-                                .replace(", 2:", ", 2am:")
-                                .replace(", 3:", ", 3am:")
-                                .replace(", 4:", ", 4am:")
-                                .replace(", 5:", ", 5am:")
-                                .replace(", 6:", ", 6am:")
-                                .replace(", 7:", ", 7am:")
-                                .replace(", 8:", ", 8am:")
-                                .replace(", 9:", ", 9am:")
-                                .replace(", 10:", ", 10am:")
-                                .replace(", 11:", ", 11am:")
-                                .replace(", 12:", ", 12pm:")
-                                .replace(", 13:", ", 1pm:")
-                                .replace(", 14:", ", 2pm:")
-                                .replace(", 15:", ", 3pm:")
-                                .replace(", 16:", ", 4pm:")
-                                .replace(", 17:", ", 5pm:")
-                                .replace(", 18:", ", 6pm:")
-                                .replace(", 19:", ", 7pm:")
-                                .replace(", 20:", ", 8pm:")
-                                .replace(", 21:", ", 9pm:")
-                                .replace(", 22:", ", 10pm:")
-                                .replace(", 23:", ", 11pm:")
-                                .replace(", 24:", ", 12am:")
-                                .replace(", ", " + ")}
-                        </Badge>
-                    </span>
-                )}
-            </div>
-
-            {/* <div>
-                <span
-                    style={{
-                        color: "white",
-                        fontSize: "20px",
-                    }}
-                >
-                    <Badge bg="primary">{badgeMessage}</Badge>
-                </span>
-            </div> */}
-        </div>
+        ></div>
     );
+}
 
-    const oldVideo = (
+function OldVideo({
+    videoRef,
+    params,
+    serverCalls,
+    setStepsAlertData,
+    showingMenu,
+    setShowingMenu,
+    handleEnded,
+    lastUpdate,
+}: {
+    videoRef: React.RefObject<HTMLVideoElement>;
+    params: ExpectedParams;
+    serverCalls: ServerCalls;
+    setStepsAlertData: React.Dispatch<
+        React.SetStateAction<StepsAlertType | null>
+    >;
+    showingMenu: boolean;
+    setShowingMenu: React.Dispatch<React.SetStateAction<boolean>>;
+    handleEnded: (goToNextEpisode?: boolean) => void;
+    lastUpdate: number;
+}) {
+    return (
         <video
             id="video"
             style={{
@@ -426,106 +450,139 @@ function VideoPlayerView(props: {
             )} */}
         </video>
     );
+}
 
-    useEffect(() => {
-        const currentHour = new Date().getHours();
-
-        if (currentHour >= 1 && currentHour <= 5) {
-            alert("It's past midnight, you should get some rest");
-            document.location.href = "/anime";
-        }
-        const videoElement = document.createElement(
-            "video-js"
-        ) as HTMLVideoElement;
-        videoElement.style.width = "100%";
-        videoElement.style.height = "100%";
-
-        videoElement.controls = true;
-        videoElement.autoplay = true;
-        videoElement.src = serverCalls.getVideoUrl(
-            params.seriesFolderName,
-            params.episodeNumber
-        );
-        videoElement.onplay = () => {
-            videoElement.focus();
-        };
-
-        videoElement.onended = () => {
-            handleEnded();
-        };
-
-        const videoContainer = document.getElementById("video-container");
-        if (videoContainer) {
-            videoContainer.appendChild(videoElement);
-        }
-
-        const player = videojs(videoElement, {
-            autoplay: true,
-            controls: true,
-            subtitles: subtitle
-                ? {
-                      default: "English",
-                      en: [
-                          {
-                              src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
-                              srclang: "en",
-                              label: "English",
-                          },
-                      ],
-                  }
-                : undefined,
-            tracks: subtitle
-                ? [
-                      {
-                          kind: "subtitles",
-                          src: `/subtitles/${params.seriesFolderName}/${params.seriesFolderName} Episode ${params.episodeNumber}.vtt`,
-                          srclang: "en",
-                          label: "English",
-                          default: true,
-                      },
-                  ]
-                : undefined,
-        });
-
-        const eventSource = new EventSource(serverCalls.getUpdatesUrl());
-
-        eventSource.onmessage = event => {
-            const eventData = JSON.parse(event.data);
-            console.log("Received update:", eventData);
-
-            const MyEvents = {
-                StepsUpdated: "StepsUpdated",
-            };
-
-            if (eventData.eventName == MyEvents.StepsUpdated) {
-                const stepEventData = eventData.eventPayload;
-                setStepsAlertData(stepEventData);
-            }
-        };
-
-        return () => {
-            if (player) {
-                player.dispose();
-            }
-        };
-    }, []);
-
+function VideoUIMenu({
+    selected,
+    data,
+    stepsAlertData,
+}: {
+    selected: AnimeEpisode;
+    data: any;
+    stepsAlertData: StepsAlertType | null;
+}) {
     return (
-        <div>
-            {showingMenu && uiMenu}
-            {/* <div
-                id="video-container"
+        <div
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                padding: "10px",
+                display: "flex",
+                // flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "space-between",
+                zIndex: 999999999999999999,
+            }}
+        >
+            {/* New UI:
+            Title                               | 1234 / 5500 (remaining: 4266 or 77.56%)
+            Episode Number / Total Episodes     | 290 (4pm: 140, 5pm: 150)
+                                            
+
+             */}
+
+            <div
                 style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                     width: "100%",
-                    height: "100%",
-                    backgroundColor: "black",
-                    zIndex: 99999999,
                 }}
-            ></div> */}
-            {oldVideo}
+            >
+                <h1>{selected.seriesTitle}</h1>
+
+                <h3>
+                    {selected.episodeNumber} / {data.selectedSeriesData.length}
+                </h3>
+            </div>
+
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                }}
+            >
+                {stepsAlertData && (
+                    <span
+                        style={{
+                            fontSize: "20px",
+                        }}
+                    >
+                        <Badge>{stepsAlertData?.alertMessage}</Badge>
+
+                        <Badge>
+                            {stepsAlertData?.currentStepCount} /{" "}
+                            {stepsAlertData?.stepsGoal}
+                        </Badge>
+
+                        <Badge className="ms-2">
+                            {stepsAlertData?.stepsNeeded >= 0
+                                ? `remaining: ${stepsAlertData?.stepsNeeded}`
+                                : `${(
+                                      (stepsAlertData?.currentStepCount /
+                                          stepsAlertData?.stepsGoal) *
+                                      100
+                                  ).toFixed(0)}%`}
+                        </Badge>
+
+                        <Badge className="ms-2">
+                            {stepsAlertData?.stepsTakenInPast2Hours
+                                .replace("(1:", "(1am:")
+                                .replace("(2:", "(2am:")
+                                .replace("(3:", "(3am:")
+                                .replace("(4:", "(4am:")
+                                .replace("(5:", "(5am:")
+                                .replace("(6:", "(6am:")
+                                .replace("(7:", "(7am:")
+                                .replace("(8:", "(8am:")
+                                .replace("(9:", "(9am:")
+                                .replace("(10:", "(10am:")
+                                .replace("(11:", "(11am:")
+                                .replace("(12:", "(12pm:")
+                                .replace("(13:", "(1pm:")
+                                .replace("(14:", "(2pm:")
+                                .replace("(15:", "(3pm:")
+                                .replace("(16:", "(4pm:")
+                                .replace("(17:", "(5pm:")
+                                .replace("(18:", "(6pm:")
+                                .replace("(19:", "(7pm:")
+                                .replace("(20:", "(8pm:")
+                                .replace("(21:", "(9pm:")
+                                .replace("(22:", "(10pm:")
+                                .replace("(23:", "(11pm:")
+                                .replace("(24:", "(12am:")
+                                .replace(", 1:", ", 1am:")
+                                .replace(", 2:", ", 2am:")
+                                .replace(", 3:", ", 3am:")
+                                .replace(", 4:", ", 4am:")
+                                .replace(", 5:", ", 5am:")
+                                .replace(", 6:", ", 6am:")
+                                .replace(", 7:", ", 7am:")
+                                .replace(", 8:", ", 8am:")
+                                .replace(", 9:", ", 9am:")
+                                .replace(", 10:", ", 10am:")
+                                .replace(", 11:", ", 11am:")
+                                .replace(", 12:", ", 12pm:")
+                                .replace(", 13:", ", 1pm:")
+                                .replace(", 14:", ", 2pm:")
+                                .replace(", 15:", ", 3pm:")
+                                .replace(", 16:", ", 4pm:")
+                                .replace(", 17:", ", 5pm:")
+                                .replace(", 18:", ", 6pm:")
+                                .replace(", 19:", ", 7pm:")
+                                .replace(", 20:", ", 8pm:")
+                                .replace(", 21:", ", 9pm:")
+                                .replace(", 22:", ", 10pm:")
+                                .replace(", 23:", ", 11pm:")
+                                .replace(", 24:", ", 12am:")
+                                .replace(", ", " + ")}
+                        </Badge>
+                    </span>
+                )}
+            </div>
         </div>
     );
 }

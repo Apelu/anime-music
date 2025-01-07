@@ -45,39 +45,13 @@ function OfflineAnime(props: any) {
         dataPulls();
     }, []); //[params.seriesFolderName, params.episodeNumber]);
 
-    function handleEnded(goToNextEpisode = true) {
-        // replace episodeNumber param with next episode number
-        const selectedSeriesData = data.selectedSeriesData;
-        const episodeIndex = selectedSeriesData.findIndex(
-            (episode: AnimeEpisode) =>
-                episode.episodeNumber === params.episodeNumber
-        );
-        const nextEpisodeIndex = episodeIndex + (goToNextEpisode ? 1 : -1);
-        const nextEpisodeNumber =
-            selectedSeriesData[nextEpisodeIndex]?.episodeNumber;
-
-        if (nextEpisodeNumber) {
-            window.location.href = `/anime/${
-                params.seriesFolderName
-            }/${encodeURIComponent(nextEpisodeNumber)}`;
-        } else {
-            alert(`No ${goToNextEpisode ? "next" : "previous"} episode found`);
-        }
-    }
-
     switch (data.view) {
         case "video":
             if (!params.seriesFolderName || !params.episodeNumber) {
                 return <span>Invalid URL</span>;
             }
 
-            return (
-                <VideoPlayerView
-                    data={data}
-                    handleEnded={handleEnded}
-                    serverCalls={serverCalls}
-                />
-            );
+            return <VideoPlayerView data={data} />;
 
         default:
             return <span>Loading... {JSON.stringify(data)}</span>;
