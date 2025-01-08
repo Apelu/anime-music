@@ -2,6 +2,11 @@ import { AnimeData } from "@features/contexts/AnimeContext";
 import { useState, useEffect } from "react";
 import { getLatestWatchedEpisode, AnimeCard } from "./OfflineAnimeV2";
 import { Button, Collapse } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faMagnifyingGlass,
+    faMagnifyingGlassMinus,
+} from "@fortawesome/free-solid-svg-icons";
 
 export function AnimeGroup(props: {
     groupName: string;
@@ -16,9 +21,9 @@ export function AnimeGroup(props: {
     });
 
     const [isCollapsed, setIsCollapsed] = useState(
-        true
+        // true
         // false
-        // groupName == "Completed" ? true : false
+        groupName == "Completed" ? true : false
     );
 
     const [isRandomized, setIsRandomized] = useState(false);
@@ -34,7 +39,7 @@ export function AnimeGroup(props: {
                 isSearching: false,
                 searchText: "",
             });
-        } else if (!search.isSearching && data.length > 10) {
+        } else if (!search.isSearching && data.length > 25) {
             setSearch({
                 isSearching: true,
                 searchText: "",
@@ -74,10 +79,36 @@ export function AnimeGroup(props: {
         <>
             <h1
                 className="mt-3 p-3 bg-primary text-white text-center"
+                style={{
+                    borderRadius: "0.25rem",
+                }}
                 onClick={() => setIsCollapsed(!isCollapsed)}
             >
                 {groupName}{" "}
                 <span className="badge bg-info p-1">{filteredData.length}</span>
+                {data.length > 10 ? (
+                    <Button
+                        variant="secondary"
+                        className="ms-2"
+                        size="sm"
+                        onClick={e => {
+                            setSearch({
+                                ...search,
+                                isSearching: !search.isSearching,
+                                searchText: "",
+                            });
+                            e.stopPropagation();
+                        }}
+                    >
+                        <FontAwesomeIcon
+                            icon={
+                                search.isSearching
+                                    ? faMagnifyingGlassMinus
+                                    : faMagnifyingGlass
+                            }
+                        />
+                    </Button>
+                ) : null}
                 <div>
                     {groupName == "All" ? (
                         <>

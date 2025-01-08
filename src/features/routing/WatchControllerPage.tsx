@@ -11,6 +11,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { app } from "./../api/firebase/firebaseConfig";
+import { useEffect, useState } from "react";
 
 export function WatchControllerPage() {
     // Page for round smartwatch controller
@@ -18,6 +20,8 @@ export function WatchControllerPage() {
         icon: any[] | any;
         size?: "lg" | "sm";
         onClick: () => void;
+        onDoubleClick?: () => void;
+        appendText?: string;
     }
     function CircleButton(props: CircleButtonProps) {
         const size =
@@ -26,6 +30,7 @@ export function WatchControllerPage() {
                 : props.size === "sm"
                 ? "22vw"
                 : "28vw";
+
         return (
             <button
                 className="btn btn-primary"
@@ -36,12 +41,14 @@ export function WatchControllerPage() {
                     fontSize: "5vw",
                 }}
                 onClick={props.onClick}
+                onDoubleClick={props.onDoubleClick}
             >
                 {(Array.isArray(props.icon) ? props.icon : [props.icon]).map(
                     (icon, index) => {
                         return <FontAwesomeIcon key={index} icon={icon} />;
                     }
                 )}
+                {props.appendText}
             </button>
         );
     }
@@ -82,31 +89,202 @@ export function WatchControllerPage() {
             Y_Top: 65,
         },
     };
+
+    const defaultBubbles = {
+        Top: (
+            <CircleButton
+                icon={faForward}
+                onClick={() => {
+                    sendCommand("skip");
+                }}
+                appendText=" 85"
+            />
+        ),
+        TopRight: (
+            <CircleButton
+                icon={faForward}
+                onClick={() => {
+                    sendCommand("forward5");
+                }}
+                size={"sm"}
+                appendText=" 5"
+            />
+        ),
+        Right: (
+            <CircleButton
+                icon={faForwardStep}
+                onClick={() => {
+                    sendCommand("next");
+                }}
+            />
+        ),
+        BottomRight: (
+            <CircleButton
+                icon={faBackward}
+                onClick={() => {
+                    sendCommand("undo-skip");
+                }}
+                size={"sm"}
+                appendText=" 85"
+            />
+        ),
+        Bottom: (
+            <CircleButton
+                icon={faBars}
+                onClick={() => {
+                    sendCommand("menu");
+                }}
+            />
+        ),
+        BottomLeft: (
+            <CircleButton
+                icon={faBackward}
+                onClick={() => {
+                    sendCommand("rewind5");
+                }}
+                size={"sm"}
+                appendText=" 5"
+            />
+        ),
+        Left: (
+            <CircleButton
+                icon={faBackwardStep}
+                onClick={() => {
+                    sendCommand("previous");
+                }}
+            />
+        ),
+        TopLeft: (
+            <CircleButton
+                icon={fa0}
+                onClick={() => {
+                    sendCommand("restart");
+                }}
+                onDoubleClick={() => {
+                    switchToNumberBubbles();
+                }}
+                size={"sm"}
+            />
+        ),
+        Center: (
+            <CircleButton
+                size="lg"
+                icon={[faPlay, faPause]}
+                onClick={() => {
+                    sendCommand("playpause");
+                }}
+            />
+        ),
+    };
+
+    const [bubbles, setBubbles] = useState(defaultBubbles);
+    function switchToNumberBubbles() {
+        setBubbles({
+            Top: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("1");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 1"
+                />
+            ),
+            TopRight: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("2");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 2"
+                    size="sm"
+                />
+            ),
+            Right: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("3");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 3"
+                />
+            ),
+            BottomRight: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("4");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 4"
+                    size="sm"
+                />
+            ),
+            Bottom: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("5");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 5"
+                />
+            ),
+            BottomLeft: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("6");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 6"
+                    size="sm"
+                />
+            ),
+            Left: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("7");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 7"
+                />
+            ),
+            TopLeft: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("8");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 8"
+                    size="sm"
+                />
+            ),
+            Center: (
+                <CircleButton
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("9");
+                        setBubbles(defaultBubbles);
+                    }}
+                    appendText=" 9"
+                />
+            ),
+        });
+    }
+
+    useEffect(() => {
+        console.log("Bubbles", bubbles);
+    }, [bubbles]);
     return (
-        <div
-            style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "black",
-            }}
-        >
+        <div className="watch-controller-page">
             {/* Round container for watch stuff */}
 
-            <div
-                style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: "100vh",
-                    height: "100vh",
-                    backgroundColor: "white",
-                    borderRadius: "50%",
-                }}
-            >
+            <div className="watch-controller-page-circle">
                 {/* Media Controls Play pause circle in center Left (previous) Right (next) Top (Skip) Bottom () */}
 
                 {/* Top Container */}
@@ -118,12 +296,7 @@ export function WatchControllerPage() {
                         transform: "translate(-50%, -50%)",
                     }}
                 >
-                    <CircleButton
-                        icon={faForward}
-                        onClick={() => {
-                            sendCommand("skip");
-                        }}
-                    />
+                    {bubbles.Top}
                 </div>
                 {/* Left Container */}
                 <div
@@ -134,12 +307,7 @@ export function WatchControllerPage() {
                         transform: "translate(-50%, -50%)",
                     }}
                 >
-                    <CircleButton
-                        icon={faBackwardStep}
-                        onClick={() => {
-                            sendCommand("previous");
-                        }}
-                    />
+                    {bubbles.Left}
                 </div>
                 {/* Center Container */}
                 <div
@@ -150,13 +318,7 @@ export function WatchControllerPage() {
                         transform: "translate(-50%, -50%)",
                     }}
                 >
-                    <CircleButton
-                        size="lg"
-                        icon={[faPlay, faPause]}
-                        onClick={() => {
-                            sendCommand("playpause");
-                        }}
-                    />
+                    {bubbles.Center}
                 </div>
                 {/* Right Container */}
                 <div
@@ -167,12 +329,7 @@ export function WatchControllerPage() {
                         transform: "translate(-50%, -50%)",
                     }}
                 >
-                    <CircleButton
-                        icon={faForwardStep}
-                        onClick={() => {
-                            sendCommand("next");
-                        }}
-                    />
+                    {bubbles.Right}
                 </div>
                 {/* Bottom Container */}
                 <div
@@ -183,12 +340,7 @@ export function WatchControllerPage() {
                         transform: "translate(-50%, -50%)",
                     }}
                 >
-                    <CircleButton
-                        icon={faBackward}
-                        onClick={() => {
-                            sendCommand("rewind");
-                        }}
-                    />
+                    {bubbles.Bottom}
                 </div>
 
                 {/* Bottom right corner container */}
@@ -199,13 +351,7 @@ export function WatchControllerPage() {
                         left: `${positions.BottomRight.X_Center}%`,
                     }}
                 >
-                    <CircleButton
-                        icon={faBars}
-                        onClick={() => {
-                            sendCommand("menu");
-                        }}
-                        size={"sm"}
-                    />
+                    {bubbles.BottomRight}
                 </div>
 
                 {/* Top left corner container */}
@@ -216,13 +362,29 @@ export function WatchControllerPage() {
                         left: `${positions.TopLeft.X_Center}%`,
                     }}
                 >
-                    <CircleButton
-                        icon={fa0}
-                        onClick={() => {
-                            sendCommand("restart");
-                        }}
-                        size={"sm"}
-                    />
+                    {bubbles.TopLeft}
+                </div>
+
+                {/* Top Right corner container*/}
+                <div
+                    style={{
+                        position: "absolute",
+                        top: `${positions.TopLeft.Y_Top}%`,
+                        left: `${positions.BottomRight.X_Center}%`,
+                    }}
+                >
+                    {bubbles.TopRight}
+                </div>
+
+                {/* Bottom Left corner container */}
+                <div
+                    style={{
+                        position: "absolute",
+                        top: `${positions.BottomRight.Y_Top}%`,
+                        left: `${positions.TopLeft.X_Center}%`,
+                    }}
+                >
+                    {bubbles.BottomLeft}
                 </div>
             </div>
         </div>

@@ -101,6 +101,7 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
         <div
             style={{
                 padding: "10px",
+                minHeight: "10000vh",
             }}
         >
             {Object.keys(groups).map(groupName => {

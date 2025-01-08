@@ -114,10 +114,10 @@ function VideoPlayerView(props: { data: any }) {
     useEffect(() => {
         const currentHour = new Date().getHours();
 
-        if (currentHour <= 5) {
-            alert("It's past midnight, you should get some rest");
-            document.location.href = "/anime";
-        }
+        // if (currentHour <= 5) {
+        //     alert("It's past midnight, you should get some rest");
+        //     document.location.href = "/anime";
+        // }
 
         /**
          * Steps Alerts
@@ -156,6 +156,11 @@ function VideoPlayerView(props: { data: any }) {
                     if (video) {
                         video.currentTime += 85;
                     }
+                } else if (command == "undo-skip") {
+                    const video = videoRef.current;
+                    if (video) {
+                        video.currentTime -= 85;
+                    }
                 } else if (command == "next") {
                     handleEnded();
                 } else if (command == "previous") {
@@ -172,6 +177,26 @@ function VideoPlayerView(props: { data: any }) {
                     const video = videoRef.current;
                     if (video) {
                         video.currentTime = 0;
+                    }
+                } else if (
+                    ["1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(
+                        command
+                    )
+                ) {
+                    const video = videoRef.current;
+                    if (video) {
+                        const percentage = parseInt(command) * 10;
+                        video.currentTime = video.duration * (percentage / 100);
+                    }
+                } else if (command == "forward5") {
+                    const video = videoRef.current;
+                    if (video) {
+                        video.currentTime += 5;
+                    }
+                } else if (command == "rewind5") {
+                    const video = videoRef.current;
+                    if (video) {
+                        video.currentTime -= 5;
                     }
                 }
             }
@@ -513,6 +538,30 @@ function VideoUIMenu({
     data: any;
     stepsAlertData: StepsAlertType | null;
 }) {
+    const [time, setTime] = useState(getCurrentTime());
+    useEffect(() => {
+        // refreshTime every second
+
+        const interval = setInterval(() => {
+            setTime(getCurrentTime());
+        }, 1000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
+    function getCurrentTime() {
+        const date = new Date();
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+
+        const ampm = hours >= 12 ? "PM" : "AM";
+        const formattedHours = hours % 12 || 12;
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+        return `${formattedHours}:${formattedMinutes} ${ampm}`;
+    }
+
     return (
         <div
             style={{
@@ -549,6 +598,10 @@ function VideoUIMenu({
                 <h3>
                     {selected.episodeNumber} / {data.selectedSeriesData.length}
                 </h3>
+
+                <h4>
+                    <small>{time}</small>
+                </h4>
             </div>
 
             <div

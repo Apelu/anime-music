@@ -29,8 +29,42 @@
 
 :root {
     touch-action: pan-x pan-y;
-    height: 100%;
 }
+
+.watch-controller-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: black;
+}
+
+/* @media (max-width: 600px) {
+    .watch-controller-page-circle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100vh;
+        height: 100vh;
+        background-color: white;
+        border-radius: 50%;
+    }
+}
+
+@media (min-width: 601px) { */
+.watch-controller-page-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(100vw, 100vh);
+    height: min(100vw, 100vh);
+    background-color: white;
+    border-radius: 50%;
+}
+/* } */
 
 /* styles.css */
 video::cue {
