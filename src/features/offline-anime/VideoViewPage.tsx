@@ -180,11 +180,11 @@ function VideoPlayerView(props: { data: any }) {
         return () => {
             eventSource.close();
         };
-    }, []);
+    }, [showingMenuRef]);
 
-    useEffect(() => {
-        console.log(showingMenu);
-    }, [showingMenu]);
+    // useEffect(() => {
+    //     console.log(showingMenu);
+    // }, [showingMenu]);
 
     if (!data.selectedSeriesData) {
         return <span>Loading...</span>;

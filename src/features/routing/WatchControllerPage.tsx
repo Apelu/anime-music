@@ -22,10 +22,10 @@ export function WatchControllerPage() {
     function CircleButton(props: CircleButtonProps) {
         const size =
             props.size === "lg"
-                ? "30vw"
+                ? "33vw"
                 : props.size === "sm"
-                ? "15vw"
-                : "25vw";
+                ? "22vw"
+                : "28vw";
         return (
             <button
                 className="btn btn-primary"
