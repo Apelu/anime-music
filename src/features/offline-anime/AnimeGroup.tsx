@@ -16,8 +16,9 @@ export function AnimeGroup(props: {
     });
 
     const [isCollapsed, setIsCollapsed] = useState(
+        true
         // false
-        groupName == "Completed" ? true : false
+        // groupName == "Completed" ? true : false
     );
 
     const [isRandomized, setIsRandomized] = useState(false);

@@ -6,6 +6,7 @@ import { Badge } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import videojs from "video.js";
 import { ExpectedParams } from "./OfflineAnimeV2";
+import { use } from "video.js/dist/types/tech/middleware";
 
 export interface StepsAlertType {
     showAlert: boolean;
@@ -105,10 +106,15 @@ function VideoPlayerView(props: { data: any }) {
         }
     }
 
+    const showingMenuRef = useRef(showingMenu);
+    useEffect(() => {
+        showingMenuRef.current = showingMenu;
+    }, [showingMenu]);
+
     useEffect(() => {
         const currentHour = new Date().getHours();
 
-        if (currentHour >= 1 && currentHour <= 5) {
+        if (currentHour <= 5) {
             alert("It's past midnight, you should get some rest");
             document.location.href = "/anime";
         }
@@ -125,14 +131,60 @@ function VideoPlayerView(props: { data: any }) {
 
             const MyEvents = {
                 StepsUpdated: "StepsUpdated",
+                WatchController: "WatchController",
             };
 
             if (eventData.eventName == MyEvents.StepsUpdated) {
                 const stepEventData = eventData.eventPayload;
                 setStepsAlertData(stepEventData);
+            } else if (eventData.eventName == MyEvents.WatchController) {
+                const watchEventData = eventData.eventPayload;
+                const command = watchEventData.command;
+
+                if (command == "playpause") {
+                    const video = videoRef.current;
+                    if (video) {
+                        if (video.paused) {
+                            video.play();
+                        } else {
+                            video.pause();
+                        }
+                    }
+                } else if (command == "skip") {
+                    // Skip 85 seconds
+                    const video = videoRef.current;
+                    if (video) {
+                        video.currentTime += 85;
+                    }
+                } else if (command == "next") {
+                    handleEnded();
+                } else if (command == "previous") {
+                    handleEnded(false);
+                } else if (command == "rewind") {
+                    // rewind 15 seoncds
+                    const video = videoRef.current;
+                    if (video) {
+                        video.currentTime -= 15;
+                    }
+                } else if (command == "menu") {
+                    setShowingMenu(!showingMenuRef.current);
+                } else if (command == "restart") {
+                    const video = videoRef.current;
+                    if (video) {
+                        video.currentTime = 0;
+                    }
+                }
             }
         };
+
+        return () => {
+            eventSource.close();
+        };
     }, []);
+
+    useEffect(() => {
+        console.log(showingMenu);
+    }, [showingMenu]);
 
     if (!data.selectedSeriesData) {
         return <span>Loading...</span>;
@@ -511,8 +563,6 @@ function VideoUIMenu({
                             fontSize: "20px",
                         }}
                     >
-                        <Badge>{stepsAlertData?.alertMessage}</Badge>
-
                         <Badge>
                             {stepsAlertData?.currentStepCount} /{" "}
                             {stepsAlertData?.stepsGoal}
@@ -580,6 +630,7 @@ function VideoUIMenu({
                                 .replace(", 24:", ", 12am:")
                                 .replace(", ", " + ")}
                         </Badge>
+                        <Badge>{stepsAlertData?.alertMessage}</Badge>
                     </span>
                 )}
             </div>

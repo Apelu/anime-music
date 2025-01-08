@@ -6,6 +6,7 @@ import {
     StorageKeys,
 } from "./OfflineAnimeV2";
 import { useEffect, useState } from "react";
+import { doc } from "firebase/firestore";
 
 export function SeriesViewPage(props: SeriesViewPageProps) {
     const [anilistOrder, setAnilistOrder] = useState<number[]>([]);

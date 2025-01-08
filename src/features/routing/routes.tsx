@@ -34,6 +34,7 @@ import ProviderParent from "./ProviderParent";
 import OfflineAnimeV2, {
     AniListRedirectPage,
 } from "@features/offline-anime/OfflineAnimeV2";
+import { WatchControllerPage } from "./WatchControllerPage";
 
 export enum Paths {
     Anime = "/anime",
@@ -48,6 +49,7 @@ export enum Paths {
     BackgroundLibrary = "/background-library",
     VideoPage = "/video",
     AnilistLoginRedirect = "/login-redirect",
+    WatchController = "/watch-controller",
 }
 
 function Root() {
@@ -327,6 +329,10 @@ function Root() {
 }
 
 const router = createBrowserRouter([
+    {
+        path: Paths.WatchController,
+        element: <WatchControllerPage />,
+    },
     {
         path: "/",
         element: (

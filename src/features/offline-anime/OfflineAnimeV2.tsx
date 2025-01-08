@@ -5,7 +5,7 @@ import {
     useAnimeDispatch,
 } from "@features/contexts/AnimeContext";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { EpisodeViewPage } from "./EpisodeViewPage";
 import { SeriesViewPage } from "./SeriesViewPage";
@@ -192,6 +192,50 @@ export function AniListRedirectPage() {
 
     return <h1>Storing Access Token</h1>;
 }
+
+// function OfflineAnimeV2() {
+//     interface Client {
+//         id: number;
+//         name: string;
+//     }
+//     const [clients, setClients] = useState<{
+//         clients: Client[];
+//     }>({ clients: [] });
+//     useEffect(() => {
+//         const serverCalls = new ServerCalls();
+
+//         const eventSource = new EventSource(serverCalls.getClients());
+
+//         eventSource.onmessage = (event: { data: string }) => {
+//             const eventData: {
+//                 clients: Client[];
+//             } = JSON.parse(event.data);
+//             console.log("Received update:", eventData);
+
+//             setClients({ clients: eventData.clients });
+//         };
+//     }, []);
+//     return (
+//         <div>
+//             {/* Dropdown to select controller [Off, Controller1, ...] */}
+//             <select>
+//                 <option value="off">Off</option>
+//                 {clients.clients.map(client => {
+//                     return (
+//                         <option key={client.id} value={client.id}>
+//                             {client.name}
+//                         </option>
+//                     );
+//                 })}
+//             </select>
+
+//             <OfflineAnimeV2Inner />
+//         </div>
+//     );
+// }
+
+// TODO ADD CONTROLLER FUNCTIONALITY
+// REFACTOR SERVER CODE
 
 function OfflineAnimeV2() {
     const params = useParams();

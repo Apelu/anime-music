@@ -60,6 +60,15 @@ export class ServerCalls {
 
     constructor() {
         this.baseURL = "http://192.168.1.228:5555/api/animeDownload/";
+        // this.baseURL = "http://localhost:5555/api/animeDownload/";
+    }
+
+    sendCommand(command: string) {
+        return fetch(this.baseURL + "/sendCommand?command=" + command);
+    }
+
+    getClients() {
+        return this.baseURL + "/getClients";
     }
 
     getAnimeData(params: {

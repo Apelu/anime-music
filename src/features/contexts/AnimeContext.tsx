@@ -85,6 +85,7 @@ interface AnimeAction {
 }
 
 export interface AnimeData {
+    sessionID: string;
     seriesTitle: string;
     seriesFolderName: string;
     anilistID: string;

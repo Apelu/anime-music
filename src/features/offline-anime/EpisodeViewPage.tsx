@@ -56,6 +56,7 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                 }, 0)
             )}
             <AnimeCard
+                anime={anime}
                 imageSrc={anime.coverImageUrl}
                 title={anime.seriesTitle}
                 onImageClickLink={`${seriesInfoLink}${
@@ -259,6 +260,7 @@ function RelationDisplayer(anime: AnimeData) {
     return (
         <>
             <AnimeCard
+                anime={anime}
                 imageSrc={anime.coverImageUrl}
                 title={anime.seriesTitle}
                 topLeftComponent={
