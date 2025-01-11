@@ -85,8 +85,21 @@ export class ServerCalls {
         );
     }
 
-    getUpdatesUrl() {
-        return this.baseURL + "/getUpdates";
+    /**
+     * 
+     * @params.seriesFolderName,
+            params.episodeNumber
+     */
+    getUpdatesUrl(params: {
+        seriesFolderName?: string;
+        episodeNumber?: string;
+    }) {
+        return (
+            this.baseURL +
+            `/getUpdates?seriesFolderName=${
+                params.seriesFolderName || ""
+            }&episodeNumber=${params.episodeNumber || ""}`
+        );
     }
 
     getProgress() {

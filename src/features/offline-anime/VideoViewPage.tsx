@@ -36,6 +36,9 @@ function VideoPlayerView(props: { data: any }) {
     const [stepsAlertData, setStepsAlertData] = useState<StepsAlertType | null>(
         null
     );
+    const [seriesSecondsLeft, setSeriesSecondsLeft] = useState<number | null>(
+        null
+    );
     const toastDispatch = useToastDispatch();
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -55,7 +58,6 @@ function VideoPlayerView(props: { data: any }) {
                 return response.text();
             })
             .then(text => {
-                console.log({ text });
                 if (text) {
                     setSubtitle(text);
                 }
@@ -123,7 +125,7 @@ function VideoPlayerView(props: { data: any }) {
          * Steps Alerts
          */
 
-        const eventSource = new EventSource(serverCalls.getUpdatesUrl());
+        const eventSource = new EventSource(serverCalls.getUpdatesUrl(params));
 
         eventSource.onmessage = event => {
             const eventData = JSON.parse(event.data);
@@ -132,11 +134,18 @@ function VideoPlayerView(props: { data: any }) {
             const MyEvents = {
                 StepsUpdated: "StepsUpdated",
                 WatchController: "WatchController",
+                SeriesSecondsLeft: "SeriesSecondsLeft",
             };
 
             if (eventData.eventName == MyEvents.StepsUpdated) {
                 const stepEventData = eventData.eventPayload;
                 setStepsAlertData(stepEventData);
+            } else if (eventData.eventName == MyEvents.SeriesSecondsLeft) {
+                const seriesSecondsEventData = eventData.eventPayload;
+                const seriesSeconds =
+                    seriesSecondsEventData.remainingEpisodesExcludingCurrentSecondsLeft;
+
+                setSeriesSecondsLeft(seriesSeconds);
             } else if (eventData.eventName == MyEvents.WatchController) {
                 const watchEventData = eventData.eventPayload;
                 const command = watchEventData.command;
@@ -219,9 +228,11 @@ function VideoPlayerView(props: { data: any }) {
         <div>
             {showingMenu && (
                 <VideoUIMenu
+                    videoRef={videoRef}
                     selected={selected}
                     data={data}
                     stepsAlertData={stepsAlertData}
+                    seriesSecondsLeft={seriesSecondsLeft}
                 />
             )}
 
@@ -398,8 +409,6 @@ function OldVideo({
 
                 if (currentTime % 15 === 0) {
                     try {
-                        console.log("Updating progress for ", currentTime);
-
                         const response = await serverCalls.updateProgress(
                             params.seriesFolderName,
                             params.episodeNumber,
@@ -530,13 +539,17 @@ function OldVideo({
 }
 
 function VideoUIMenu({
+    videoRef,
     selected,
     data,
     stepsAlertData,
+    seriesSecondsLeft,
 }: {
+    videoRef: React.RefObject<HTMLVideoElement>;
     selected: AnimeEpisode;
     data: any;
     stepsAlertData: StepsAlertType | null;
+    seriesSecondsLeft: number | null;
 }) {
     const [time, setTime] = useState(getCurrentTime());
     useEffect(() => {
@@ -561,6 +574,71 @@ function VideoUIMenu({
         const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
         return `${formattedHours}:${formattedMinutes} ${ampm}`;
     }
+
+    function formatDate(date: Date) {
+        // If date is today, return time only
+        const now = new Date();
+        if (
+            date.getDate() === now.getDate() &&
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+        ) {
+            return date.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+            });
+        }
+        // If date is tomorrow return time and ("Tomorrow")
+        else if (
+            date.getDate() === now.getDate() + 1 &&
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+        ) {
+            return (
+                date.toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                }) + " (Tomorrow)"
+            );
+        }
+        // If date is past tomorrow, return number of days and date
+        else if (date.getDate() > now.getDate() + 1) {
+            return `${date.getMonth() + 1}/${date.getDate()} (${
+                date.getDate() - now.getDate()
+            } day(s) from now)`;
+        }
+        return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+        });
+    }
+
+    function getSeriesEndTime() {
+        const video = videoRef.current;
+        if (video) {
+            const secondsLeftOfVideo = video.duration - video.currentTime;
+
+            const videoEndDate = new Date();
+            videoEndDate.setSeconds(
+                videoEndDate.getSeconds() + secondsLeftOfVideo
+            );
+
+            const seriesEndDate = new Date();
+            seriesEndDate.setSeconds(
+                seriesEndDate.getSeconds() +
+                    seriesSecondsLeft! +
+                    (video.duration - video.currentTime)
+            );
+
+            return {
+                videoEnd: formatDate(videoEndDate),
+                seriesEnd: formatDate(seriesEndDate),
+            };
+        }
+        return {};
+    }
+
+    const { videoEnd, seriesEnd } = getSeriesEndTime();
 
     return (
         <div
@@ -600,7 +678,12 @@ function VideoUIMenu({
                 </h3>
 
                 <h4>
-                    <small>{time}</small>
+                    <div>
+                        <small>
+                            Now: {time} | Video End: {videoEnd} | Series End:{" "}
+                            {seriesEnd}
+                        </small>
+                    </div>
                 </h4>
             </div>
 

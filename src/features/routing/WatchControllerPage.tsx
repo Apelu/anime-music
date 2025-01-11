@@ -277,14 +277,11 @@ export function WatchControllerPage() {
         });
     }
 
-    useEffect(() => {
-        console.log("Bubbles", bubbles);
-    }, [bubbles]);
     return (
         <div className="watch-controller-page">
             {/* Round container for watch stuff */}
 
-            <div className="watch-controller-page-circle">
+            <div className="watch-controller-page-circle cool-background">
                 {/* Media Controls Play pause circle in center Left (previous) Right (next) Top (Skip) Bottom () */}
 
                 {/* Top Container */}
