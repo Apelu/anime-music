@@ -353,6 +353,7 @@ export function AnimeCard(props: AnimeCardProps) {
                         <Link to={onImageClickLink || ""}>
                             {/* <a href={onImageClickLink} > */}
                             <img
+                                loading="lazy"
                                 ref={imageRef}
                                 onClick={
                                     onImageClickFunction

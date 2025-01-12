@@ -225,6 +225,7 @@ export function AnimeGroup(props: {
                                                 target="_blank"
                                             >
                                                 <img
+                                                    loading="lazy"
                                                     src={
                                                         "https://anilist.co/img/logo_al.png"
                                                     }

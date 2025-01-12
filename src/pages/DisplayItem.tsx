@@ -123,6 +123,7 @@ export function DisplayItem({
                         draggable="false"
                     >
                         <img
+                            loading="lazy"
                             src="https://anilist.co/img/icons/icon.svg"
                             alt="Anilist Icon"
                             style={{

@@ -23,17 +23,47 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
 
     const seriesInfoLink = `/anime/${anime.seriesFolderName}`;
     const latestWatchedEpisode = getLatestWatchedEpisode(anime);
-    function convertToDurationString(seconds: number) {
+    function convertToDurationString(seconds: number, showDate = false) {
+        if (!seconds) return "";
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
         const remainingSeconds = seconds % 60;
 
-        const hourStr = hours.toString().padStart(2, "0");
-        const minStr = minutes.toString().padStart(2, "0");
-        const secStr = Math.floor(remainingSeconds).toString().padStart(2, "0");
+        const hourStr = hours.toString();
+        const minStr = minutes.toString();
+        const secStr = Math.floor(remainingSeconds).toString();
 
-        return `${hours > 0 ? hourStr + ":" : ""}${minStr}:${secStr}`;
+        const date = new Date();
+        // add seconds
+        date.setSeconds(date.getSeconds() + seconds);
+
+        return `${hours > 0 ? hourStr + "h " : ""}${minStr}m ${secStr}s${
+            showDate
+                ? " (" +
+                  date.toLocaleTimeString([], {
+                      hour: "numeric",
+                      minute: "2-digit",
+                  }) +
+                  ")"
+                : ""
+        }`;
     }
+
+    const timeLeft = latestWatchedEpisode
+        ? convertToDurationString(
+              Object.keys(anime.videoData || {}).reduce((acc, key) => {
+                  if (parseInt(key) > parseInt(latestWatchedEpisode)) {
+                      return (
+                          acc +
+                          anime.videoData[key].duration -
+                          (anime.watchProgress[key]?.progress || 0)
+                      );
+                  }
+                  return acc;
+              }, 0),
+              true
+          )
+        : "";
     return (
         <div
             className="container"
@@ -49,12 +79,7 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                 Return to Series
             </Button>
             {JSON.stringify(anime.issuesData)}
-            Total:{" "}
-            {convertToDurationString(
-                Object.keys(anime.videoData || {}).reduce((acc, key) => {
-                    return acc + anime.videoData[key].duration;
-                }, 0)
-            )}
+
             <AnimeCard
                 anime={anime}
                 imageSrc={anime.coverImageUrl}
@@ -71,6 +96,7 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                                 target="_blank"
                             >
                                 <img
+                                    loading="lazy"
                                     src={"https://anilist.co/img/logo_al.png"}
                                     alt="?"
                                     style={{
@@ -100,6 +126,41 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                     </div>
                 }
             />
+            <Card
+                style={{
+                    textAlign: "center",
+                }}
+            >
+                <Card.Body>
+                    <Card.Text className="d-flex justify-content-center">
+                        <div className="p-3 pt-1 pb-1">
+                            <div>
+                                <strong>Total Time</strong>
+                            </div>
+                            {convertToDurationString(
+                                Object.keys(anime.videoData || {}).reduce(
+                                    (acc, key) => {
+                                        return (
+                                            acc + anime.videoData[key].duration
+                                        );
+                                    },
+                                    0
+                                )
+                            )}
+                        </div>
+                        {timeLeft ? (
+                            <div className="p-3 pt-1 pb-1">
+                                <div>
+                                    <strong>Time Left</strong>
+                                </div>
+                                {timeLeft}
+                            </div>
+                        ) : (
+                            ""
+                        )}
+                    </Card.Text>
+                </Card.Body>
+            </Card>
             {/*  */}
             <div
                 style={{
@@ -212,6 +273,7 @@ function TimelineDisplayer(anime: AnimeData) {
                                             target="_blank"
                                         >
                                             <img
+                                                loading="lazy"
                                                 src={
                                                     "https://anilist.co/img/logo_al.png"
                                                 }
@@ -271,6 +333,7 @@ function RelationDisplayer(anime: AnimeData) {
                                 target="_blank"
                             >
                                 <img
+                                    loading="lazy"
                                     src={"https://anilist.co/img/logo_al.png"}
                                     alt="?"
                                     style={{
@@ -363,6 +426,7 @@ function RelationDisplayer(anime: AnimeData) {
                                         }}
                                     >
                                         <img
+                                            loading="lazy"
                                             src={
                                                 "https://anilist.co/img/logo_al.png"
                                             }

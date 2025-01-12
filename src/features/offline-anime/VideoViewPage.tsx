@@ -425,15 +425,11 @@ function OldVideo({
                                     data.alertMessage
                                 );
                                 if (result) {
-                                    video.play();
-                                    try {
-                                        fetch(serverCalls.confirmAlertUrl());
-                                        // .catch(e => {
-                                        //     // console.error(e);
-                                        // });
-                                    } catch (e) {
-                                        // console.error(e);
-                                    }
+                                    fetch(serverCalls.confirmAlertUrl()).then(
+                                        () => {
+                                            video.play();
+                                        }
+                                    );
                                 }
                             } catch (e) {
                                 video.play();
