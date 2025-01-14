@@ -13,6 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import { app } from "./../api/firebase/firebaseConfig";
 import { useEffect, useState } from "react";
+import { send } from "process";
 
 interface PositionType {
     X_Center: number;
@@ -40,51 +41,76 @@ interface BubblesType {
     TopLeft: JSX.Element;
     Center: JSX.Element;
 }
+
+function sendCommand(command: string) {
+    const serverCalls = new ServerCalls();
+
+    serverCalls.sendCommand(command);
+}
+
+// Page for round smartwatch controller
+interface CircleButtonProps {
+    icon: any[] | any;
+    size?: "lg" | "sm";
+    onClick: () => void;
+    onDoubleClick?: () => void;
+    appendText?: string;
+}
+function CircleButton(props: CircleButtonProps) {
+    const size =
+        props.size === "lg" ? "33vw" : props.size === "sm" ? "22vw" : "28vw";
+
+    return (
+        <button
+            className="btn btn-primary"
+            style={{
+                width: size,
+                height: size,
+                borderRadius: "50%",
+                fontSize: "5vw",
+            }}
+            onClick={props.onClick}
+            onDoubleClick={props.onDoubleClick}
+        >
+            {(Array.isArray(props.icon) ? props.icon : [props.icon]).map(
+                (icon, index) => {
+                    return <FontAwesomeIcon key={index} icon={icon} />;
+                }
+            )}
+            {props.appendText}
+        </button>
+    );
+}
+
+function CircleButtonV2(props: CircleButtonProps) {
+    return (
+        <div
+            style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                fontSize: "5vw",
+                color: "white",
+                // Center
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                // Keep whitespace
+                whiteSpace: "pre",
+            }}
+            onClick={props.onClick}
+            onDoubleClick={props.onDoubleClick}
+        >
+            {(Array.isArray(props.icon) ? props.icon : [props.icon]).map(
+                (icon, index) => {
+                    return <FontAwesomeIcon key={index} icon={icon} />;
+                }
+            )}
+            {props.appendText}
+        </div>
+    );
+}
 export function WatchControllerPage() {
-    // Page for round smartwatch controller
-    interface CircleButtonProps {
-        icon: any[] | any;
-        size?: "lg" | "sm";
-        onClick: () => void;
-        onDoubleClick?: () => void;
-        appendText?: string;
-    }
-    function CircleButton(props: CircleButtonProps) {
-        const size =
-            props.size === "lg"
-                ? "33vw"
-                : props.size === "sm"
-                ? "22vw"
-                : "28vw";
-
-        return (
-            <button
-                className="btn btn-primary"
-                style={{
-                    width: size,
-                    height: size,
-                    borderRadius: "50%",
-                    fontSize: "5vw",
-                }}
-                onClick={props.onClick}
-                onDoubleClick={props.onDoubleClick}
-            >
-                {(Array.isArray(props.icon) ? props.icon : [props.icon]).map(
-                    (icon, index) => {
-                        return <FontAwesomeIcon key={index} icon={icon} />;
-                    }
-                )}
-                {props.appendText}
-            </button>
-        );
-    }
-
-    function sendCommand(command: string) {
-        const serverCalls = new ServerCalls();
-
-        serverCalls.sendCommand(command);
-    }
-
     const positions: PositionsType = {
         Top: {
             X_Center: 50,
@@ -306,55 +332,37 @@ export function WatchControllerPage() {
         setBubbles(numberBubbles);
     }
 
-    const items = [
-        <WatchControllerCircle bubbles={bubbles} positions={positions} />,
-
-        <WatchControllerCircle bubbles={numberBubbles} positions={positions} />,
+    const testItems = [
+        <CircleContainer type={circleTypes.Compass} />, // Compass
+        <CircleContainer
+            type={circleTypes.Custom}
+            renderContent={<ContinueWatchingItems />}
+        />, // Select Show
     ];
 
-    const testItems = [<CircleContainer />, <CircleContainer />];
+    const showNew = true;
 
-    // return (
-    //     <div
-    //         className="hide-scrollbars"
-    //         style={{
-    //             display: "grid",
-    //             height: "100vh",
-    //             width: "100vw",
+    if (showNew)
+        return (
+            <div
+                className="hide-scrollbars"
+                style={{
+                    display: "grid",
+                    height: "100vh",
+                    width: "100vw",
 
-    //             // Make items horizontal
-    //             gridAutoFlow: "column",
-    //             // Center vertically
-    //             // justifyContent: "center",
-    //             // Center horizontally
-    //             alignItems: "center",
-    //             color: "white",
-    //             overflowX: "scroll",
-    //             scrollSnapType: "x mandatory",
-    //             // scrollBehavior: "smooth",
-    //         }}
-    //         // onWheel={e => {
-    //         //     const currentScroll = window.scrollY;
-    //         //     console.log(e.deltaY, currentScroll);
-
-    //         //     const isScrollingDown = e.deltaY > 0;
-
-    //         //     if (
-    //         //         isScrollingDown &&
-    //         //         currentScroll < window.innerHeight * (items.length - 1)
-    //         //     ) {
-    //         //         window.scrollTo(0, currentScroll + window.innerHeight);
-    //         //     } else if (!isScrollingDown && currentScroll > 0) {
-    //         //         window.scrollTo(0, currentScroll - window.innerHeight);
-    //         //     }
-    //         // }}
-    //     >
-    //         <BlackBackground />
-    //         {testItems}
-
-    //         {/* {items} */}
-    //     </div>
-    // );
+                    gridAutoFlow: "column",
+                    alignItems: "center",
+                    color: "white",
+                    overflowX: "scroll",
+                    scrollSnapType: "x mandatory",
+                    scrollBehavior: "smooth",
+                }}
+            >
+                <BlackBackground />
+                {testItems}
+            </div>
+        );
 
     return (
         <div className="watch-controller-page">
@@ -582,15 +590,320 @@ export function WatchControllerPage() {
     );
 }
 
-function CircleContainer() {
+function ContinueWatchingItems() {
+    interface Item {
+        seriesFolderName: string;
+        progress: number;
+        duration: number;
+        lastUpdated: number;
+        episodeNumber: string;
+        coverImageUrl: string;
+        watchUrl: string;
+    }
+
+    const [data, setData] = useState<Item[]>([]);
+    useEffect(() => {
+        const serverCalls = new ServerCalls();
+
+        fetch(serverCalls.getContinueWatchingUrl())
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                setData(data.data);
+            });
+    }, []);
+
+    function sendCommand(command: string) {
+        const serverCalls = new ServerCalls();
+
+        serverCalls.sendCommand(command);
+    }
+
+    const placeholder = (
+        <div
+            style={{
+                width: "30vw",
+                height: "30vw",
+            }}
+        ></div>
+    );
+
+    return (
+        <div
+            id="triangle-container"
+            style={{
+                width: "100vw",
+                height: "100%",
+                overflow: "scroll",
+                overflowX: "hidden",
+                borderRadius: "50%",
+                display: "flex",
+
+                flexWrap: "wrap",
+
+                justifyContent: "center",
+                padding: 0,
+                paddingTop: "6vw",
+                paddingBottom: "50vw",
+            }}
+        >
+            {placeholder}
+            {/* Watch items */}
+            {data.map((item, index) => {
+                const image = (
+                    <img
+                        src={item.coverImageUrl}
+                        style={{
+                            width: "30vw",
+                            height: "30vw",
+                            borderRadius: "5%",
+                            padding: 0,
+                            margin: "1vw",
+                        }}
+                        onDoubleClick={() => {
+                            sendCommand("open|" + item.watchUrl);
+                        }}
+                    />
+                );
+
+                if (index == 1) {
+                    return (
+                        <>
+                            {placeholder}
+                            {image}
+                        </>
+                    );
+                }
+
+                return image;
+            })}
+        </div>
+    );
+}
+
+const circleSize = {
+    lg: "33vw",
+    md: "27vw",
+    sm: "20vw",
+};
+const circleTypes = {
+    Compass: "Compass",
+    Dial: "Dial",
+    Cross: "Cross",
+    Square: "Square",
+    Custom: "Custom",
+};
+function CircleContainer(props: { type?: string; renderContent?: any }) {
+    const [compassItems, setCompassItems] = useState(getDefaultItems());
+
+    const { type = circleTypes.Square, renderContent } = props;
+
+    function getDefaultItems() {
+        return {
+            top: (
+                <CircleButtonV2
+                    icon={faForward}
+                    onClick={() => {
+                        sendCommand("skip");
+                    }}
+                    appendText=" 85"
+                />
+            ),
+
+            right: (
+                <CircleButtonV2
+                    icon={faForwardStep}
+                    onClick={() => {
+                        sendCommand("next");
+                    }}
+                />
+            ),
+            bottom: (
+                <CircleButtonV2
+                    icon={faBars}
+                    onClick={() => {
+                        sendCommand("menu");
+                    }}
+                />
+            ),
+            left: (
+                <CircleButtonV2
+                    icon={faBackwardStep}
+                    onClick={() => {
+                        sendCommand("previous");
+                    }}
+                />
+            ),
+            center: (
+                <CircleButtonV2
+                    size="lg"
+                    icon={[faPlay, faPause]}
+                    onClick={() => {
+                        sendCommand("playpause");
+                    }}
+                />
+            ),
+            topLeft: (
+                <CircleButtonV2
+                    icon={fa0}
+                    onClick={() => {
+                        sendCommand("restart");
+                    }}
+                    onDoubleClick={() => {
+                        switchToNumberBubbles();
+                    }}
+                    size="sm"
+                />
+            ),
+            topRight: (
+                <CircleButtonV2
+                    icon={faForward}
+                    onClick={() => {
+                        sendCommand("forward5");
+                    }}
+                    size={"sm"}
+                    appendText=" 5"
+                />
+            ),
+            bottomLeft: (
+                <CircleButtonV2
+                    icon={faBackward}
+                    onClick={() => {
+                        sendCommand("rewind5");
+                    }}
+                    size={"sm"}
+                    appendText=" 5"
+                />
+            ),
+            bottomRight: (
+                <CircleButtonV2
+                    icon={faBackward}
+                    onClick={() => {
+                        sendCommand("undo-skip");
+                    }}
+                    size={"sm"}
+                    appendText=" 85"
+                />
+            ),
+        };
+    }
+
+    function getNumberItems() {
+        return {
+            top: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("1");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 1"
+                />
+            ),
+            topRight: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("2");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 2"
+                    size="sm"
+                />
+            ),
+            right: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("3");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 3"
+                />
+            ),
+            bottomRight: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("4");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 4"
+                    size="sm"
+                />
+            ),
+            bottom: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("5");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 5"
+                />
+            ),
+            bottomLeft: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("6");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 6"
+                    size="sm"
+                />
+            ),
+            left: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("7");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 7"
+                />
+            ),
+            topLeft: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("8");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 8"
+                    size="sm"
+                />
+            ),
+            center: (
+                <CircleButtonV2
+                    icon={faCircleCheck}
+                    onClick={() => {
+                        sendCommand("9");
+                        revertToDefaultBubbles();
+                    }}
+                    appendText=" 9"
+                />
+            ),
+        };
+    }
+
+    function switchToNumberBubbles() {
+        setCompassItems(getNumberItems());
+    }
+
+    function revertToDefaultBubbles() {
+        setCompassItems(getDefaultItems());
+    }
+
     return (
         <div
             id="parent-circle"
+            className="cool-background"
             style={{
                 width: "100vw",
                 height: "100vw",
                 borderRadius: "50%",
-                backgroundColor: "red",
                 color: "white",
 
                 // Item to snap
@@ -598,131 +911,461 @@ function CircleContainer() {
                 position: "relative",
             }}
         >
+            {
+                {
+                    Compass: <CompassCircle {...compassItems} />,
+                    Dial: <DialCircle />,
+                    Cross: <CrossCircle />,
+                    Square: <SquareCircle />,
+                    Custom: <CustomCircle renderContent={renderContent} />,
+                }[type]
+            }
+        </div>
+    );
+}
+
+function CustomCircle(props: { renderContent: any }) {
+    return props.renderContent ? props.renderContent : null;
+}
+
+interface CompassCircleProps {
+    top: JSX.Element;
+    right: JSX.Element;
+    bottom: JSX.Element;
+    left: JSX.Element;
+    center: JSX.Element;
+    topLeft: JSX.Element;
+    topRight: JSX.Element;
+    bottomLeft: JSX.Element;
+    bottomRight: JSX.Element;
+}
+function CompassCircle(props: CompassCircleProps) {
+    const {
+        top,
+        right,
+        bottom,
+        left,
+        center,
+        topLeft,
+        topRight,
+        bottomLeft,
+        bottomRight,
+    } = props;
+    return (
+        <>
             {/* Top Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     top: "15%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
-                    width: "30vw",
-                    height: "30vw",
+                    width: circleSize.md,
+                    height: circleSize.md,
                     borderRadius: "50%",
-                    backgroundColor: "blue",
                 }}
-            ></div>
+            >
+                {top}
+            </div>
 
             {/* Right Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     top: "50%",
                     right: "15%",
                     transform: "translate(50%, -50%)",
-                    width: "30vw",
-                    height: "30vw",
+                    width: circleSize.md,
+                    height: circleSize.md,
                     borderRadius: "50%",
-                    backgroundColor: "blue",
                 }}
-            ></div>
+            >
+                {right}
+            </div>
 
             {/* Bottom Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     bottom: "15%",
                     left: "50%",
                     transform: "translate(-50%, 50%)",
-                    width: "30vw",
-                    height: "30vw",
+                    width: circleSize.md,
+                    height: circleSize.md,
                     borderRadius: "50%",
-                    backgroundColor: "blue",
                 }}
-            ></div>
+            >
+                {bottom}
+            </div>
 
             {/* Left Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     top: "50%",
                     left: "15%",
                     transform: "translate(-50%, -50%)",
-                    width: "30vw",
-                    height: "30vw",
+                    width: circleSize.md,
+                    height: circleSize.md,
                     borderRadius: "50%",
-                    backgroundColor: "blue",
                 }}
-            ></div>
+            >
+                {left}
+            </div>
 
             {/* Center Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
-                    width: "30vw",
-                    height: "30vw",
+                    width: circleSize.lg,
+                    height: circleSize.lg,
                     borderRadius: "50%",
-                    backgroundColor: "blue",
                 }}
-            ></div>
+            >
+                {center}
+            </div>
             {/* Top Left Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     top: "25%",
                     left: "25%",
                     transform: "translate(-50%, -50%)",
-                    width: "20vw",
-                    height: "20vw",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
                     borderRadius: "50%",
-                    backgroundColor: "green",
                 }}
-            ></div>
+            >
+                {topLeft}
+            </div>
 
             {/* Top Right Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     top: "25%",
                     right: "25%",
                     transform: "translate(50%, -50%)",
-                    width: "20vw",
-                    height: "20vw",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
                     borderRadius: "50%",
-                    backgroundColor: "green",
                 }}
-            ></div>
+            >
+                {topRight}
+            </div>
 
             {/* Bottom Left Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     bottom: "25%",
                     left: "25%",
                     transform: "translate(-50%, 50%)",
-                    width: "20vw",
-                    height: "20vw",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
                     borderRadius: "50%",
-                    backgroundColor: "green",
                 }}
-            ></div>
+            >
+                {bottomLeft}
+            </div>
 
             {/* Bottom Right Circle */}
             <div
+                className="btn btn-primary"
                 style={{
                     position: "absolute",
                     bottom: "25%",
                     right: "25%",
                     transform: "translate(50%, 50%)",
-                    width: "20vw",
-                    height: "20vw",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
                     borderRadius: "50%",
-                    backgroundColor: "green",
+                }}
+            >
+                {bottomRight}
+            </div>
+        </>
+    );
+}
+
+function DialCircle() {
+    return (
+        <>
+            {/* Top Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "15%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
                 }}
             ></div>
-        </div>
+
+            {/* Right Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "50%",
+                    right: "15%",
+                    transform: "translate(50%, -50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Bottom Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    bottom: "15%",
+                    left: "50%",
+                    transform: "translate(-50%, 50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Left Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "15%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Center Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.lg,
+                    height: circleSize.lg,
+                    borderRadius: "50%",
+                }}
+            ></div>
+            {/* Top Left Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "25%",
+                    left: "25%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Top Right Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "25%",
+                    right: "25%",
+                    transform: "translate(50%, -50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Bottom Left Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    bottom: "25%",
+                    left: "25%",
+                    transform: "translate(-50%, 50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Bottom Right Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    bottom: "25%",
+                    right: "25%",
+                    transform: "translate(50%, 50%)",
+                    width: circleSize.sm,
+                    height: circleSize.sm,
+                    borderRadius: "50%",
+                }}
+            ></div>
+        </>
+    );
+}
+
+function CrossCircle() {
+    return (
+        <>
+            {/* Top Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "15%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.md,
+                    height: circleSize.md,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Right Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "50%",
+                    right: "15%",
+                    transform: "translate(50%, -50%)",
+                    width: circleSize.md,
+                    height: circleSize.md,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Bottom Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    bottom: "15%",
+                    left: "50%",
+                    transform: "translate(-50%, 50%)",
+                    width: circleSize.md,
+                    height: circleSize.md,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Left Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "15%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.md,
+                    height: circleSize.md,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Center Circle */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.lg,
+                    height: circleSize.lg,
+                    borderRadius: "50%",
+                }}
+            ></div>
+        </>
+    );
+}
+
+function SquareCircle() {
+    return (
+        <>
+            {/* Quadrent 1 */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "31%",
+                    left: "31%",
+                    transform: "translate(-50%, -50%)",
+                    width: circleSize.lg,
+                    height: circleSize.lg,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Quadrent 2 */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    top: "31%",
+                    right: "31%",
+                    transform: "translate(50%, -50%)",
+                    width: circleSize.lg,
+                    height: circleSize.lg,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Quadrent 3 */}
+
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    bottom: "32%",
+                    left: "32%",
+                    transform: "translate(-50%, 50%)",
+                    width: circleSize.lg,
+                    height: circleSize.lg,
+                    borderRadius: "50%",
+                }}
+            ></div>
+
+            {/* Quadrent 4 */}
+            <div
+                className="btn btn-primary"
+                style={{
+                    position: "absolute",
+                    bottom: "32%",
+                    right: "32%",
+                    transform: "translate(50%, 50%)",
+                    width: circleSize.lg,
+                    height: circleSize.lg,
+                    borderRadius: "50%",
+                }}
+            ></div>
+        </>
     );
 }
 

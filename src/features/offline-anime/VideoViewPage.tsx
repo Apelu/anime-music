@@ -3,7 +3,7 @@ import { ServerCalls } from "@pages/AnimeDownloadPage";
 import { AnimeEpisode } from "@pages/OfflineAnime";
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import videojs from "video.js";
 import { ExpectedParams } from "./OfflineAnimeV2";
 import { use } from "video.js/dist/types/tech/middleware";
@@ -24,6 +24,7 @@ export interface StepsAlertType {
 }
 
 function VideoPlayerView(props: { data: any }) {
+    const navigate = useNavigate();
     const { data } = props;
 
     var lastUpdate = -1;
@@ -207,6 +208,9 @@ function VideoPlayerView(props: { data: any }) {
                     if (video) {
                         video.currentTime -= 5;
                     }
+                } else if (command.indexOf("open|") == 0) {
+                    const url = command.split("|")[1];
+                    document.location.href = url;
                 }
             }
         };

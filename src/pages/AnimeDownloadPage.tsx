@@ -63,6 +63,9 @@ export class ServerCalls {
         // this.baseURL = "http://localhost:5555/api/animeDownload/";
     }
 
+    getContinueWatchingUrl() {
+        return this.baseURL + "/getContinueWatching";
+    }
     sendCommand(command: string) {
         return fetch(this.baseURL + "/sendCommand?command=" + command);
     }
