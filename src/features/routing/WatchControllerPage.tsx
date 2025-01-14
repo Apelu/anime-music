@@ -631,7 +631,6 @@ function ContinueWatchingItems() {
 
     return (
         <div
-            id="triangle-container"
             style={{
                 width: "100vw",
                 height: "100%",
@@ -652,18 +651,9 @@ function ContinueWatchingItems() {
             {/* Watch items */}
             {data.map((item, index) => {
                 const image = (
-                    <img
-                        src={item.coverImageUrl}
-                        style={{
-                            width: "30vw",
-                            height: "30vw",
-                            borderRadius: "5%",
-                            padding: 0,
-                            margin: "1vw",
-                        }}
-                        onDoubleClick={() => {
-                            sendCommand("open|" + item.watchUrl);
-                        }}
+                    <SeriesImage
+                        coverImageUrl={item.coverImageUrl}
+                        watchUrl={item.watchUrl}
                     />
                 );
 
@@ -679,6 +669,41 @@ function ContinueWatchingItems() {
                 return image;
             })}
         </div>
+    );
+}
+
+function SeriesImage(props: { coverImageUrl: string; watchUrl: string }) {
+    const { coverImageUrl, watchUrl } = props;
+    const [isExpanded, setExpanded] = useState(false);
+    return (
+        <img
+            src={coverImageUrl}
+            style={
+                !isExpanded
+                    ? {
+                          width: "30vw",
+                          height: "30vw",
+                          borderRadius: "5%",
+                          padding: 0,
+                          margin: "1vw",
+                      }
+                    : {
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100vw",
+                          height: "100vw",
+                          borderRadius: "50%",
+                          padding: 0,
+                      }
+            }
+            onClick={() => {
+                setExpanded(!isExpanded);
+            }}
+            onDoubleClick={() => {
+                sendCommand("open|" + watchUrl);
+            }}
+        />
     );
 }
 
