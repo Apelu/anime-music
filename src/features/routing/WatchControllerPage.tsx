@@ -11,9 +11,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
-import { app } from "./../api/firebase/firebaseConfig";
+import React, { useRef } from "react";
 import { useEffect, useState } from "react";
-import { send } from "process";
 
 interface PositionType {
     X_Center: number;
@@ -56,31 +55,6 @@ interface CircleButtonProps {
     onDoubleClick?: () => void;
     appendText?: string;
 }
-function CircleButton(props: CircleButtonProps) {
-    const size =
-        props.size === "lg" ? "33vw" : props.size === "sm" ? "22vw" : "28vw";
-
-    return (
-        <button
-            className="btn btn-primary"
-            style={{
-                width: size,
-                height: size,
-                borderRadius: "50%",
-                fontSize: "5vw",
-            }}
-            onClick={props.onClick}
-            onDoubleClick={props.onDoubleClick}
-        >
-            {(Array.isArray(props.icon) ? props.icon : [props.icon]).map(
-                (icon, index) => {
-                    return <FontAwesomeIcon key={index} icon={icon} />;
-                }
-            )}
-            {props.appendText}
-        </button>
-    );
-}
 
 function CircleButtonV2(props: CircleButtonProps) {
     return (
@@ -111,496 +85,96 @@ function CircleButtonV2(props: CircleButtonProps) {
     );
 }
 export function WatchControllerPage() {
-    const positions: PositionsType = {
-        Top: {
-            X_Center: 50,
-            Y_Top: 15,
-        },
-        Left: {
-            X_Center: 15,
-            Y_Top: 50,
-        },
-        Center: {
-            X_Center: 50,
-            Y_Top: 50,
-        },
-        Right: {
-            X_Center: 85,
-            Y_Top: 50,
-        },
-        Bottom: {
-            X_Center: 50,
-            Y_Top: 85,
-        },
-        TopLeft: {
-            X_Center: 15,
-            Y_Top: 15,
-        },
-        BottomRight: {
-            X_Center: 65,
-            Y_Top: 65,
-        },
-    };
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    const defaultBubbles: BubblesType = {
-        Top: (
-            <CircleButton
-                icon={faForward}
-                onClick={() => {
-                    sendCommand("skip");
-                }}
-                appendText=" 85"
-            />
-        ),
-        TopRight: (
-            <CircleButton
-                icon={faForward}
-                onClick={() => {
-                    sendCommand("forward5");
-                }}
-                size={"sm"}
-                appendText=" 5"
-            />
-        ),
-        Right: (
-            <CircleButton
-                icon={faForwardStep}
-                onClick={() => {
-                    sendCommand("next");
-                }}
-            />
-        ),
-        BottomRight: (
-            <CircleButton
-                icon={faBackward}
-                onClick={() => {
-                    sendCommand("undo-skip");
-                }}
-                size={"sm"}
-                appendText=" 85"
-            />
-        ),
-        Bottom: (
-            <CircleButton
-                icon={faBars}
-                onClick={() => {
-                    sendCommand("menu");
-                }}
-            />
-        ),
-        BottomLeft: (
-            <CircleButton
-                icon={faBackward}
-                onClick={() => {
-                    sendCommand("rewind5");
-                }}
-                size={"sm"}
-                appendText=" 5"
-            />
-        ),
-        Left: (
-            <CircleButton
-                icon={faBackwardStep}
-                onClick={() => {
-                    sendCommand("previous");
-                }}
-            />
-        ),
-        TopLeft: (
-            <CircleButton
-                icon={fa0}
-                onClick={() => {
-                    sendCommand("restart");
-                }}
-                onDoubleClick={() => {
-                    switchToNumberBubbles();
-                }}
-                size={"sm"}
-            />
-        ),
-        Center: (
-            <CircleButton
-                size="lg"
-                icon={[faPlay, faPause]}
-                onClick={() => {
-                    sendCommand("playpause");
-                }}
-            />
-        ),
-    };
+    useEffect(() => {
+        const limit = 15000;
+        // cancel if new touch
+        let timeout = setTimeout(() => {
+            scrollToTopLeft();
+        }, limit);
 
-    const numberBubbles = {
-        Top: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("1");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 1"
-            />
-        ),
-        TopRight: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("2");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 2"
-                size="sm"
-            />
-        ),
-        Right: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("3");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 3"
-            />
-        ),
-        BottomRight: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("4");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 4"
-                size="sm"
-            />
-        ),
-        Bottom: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("5");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 5"
-            />
-        ),
-        BottomLeft: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("6");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 6"
-                size="sm"
-            />
-        ),
-        Left: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("7");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 7"
-            />
-        ),
-        TopLeft: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("8");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 8"
-                size="sm"
-            />
-        ),
-        Center: (
-            <CircleButton
-                icon={faCircleCheck}
-                onClick={() => {
-                    sendCommand("9");
-                    setBubbles(defaultBubbles);
-                }}
-                appendText=" 9"
-            />
-        ),
-    };
+        if (containerRef.current) {
+            containerRef.current.addEventListener("touchstart", () => {
+                clearTimeout(timeout);
+            });
 
-    const [bubbles, setBubbles] = useState<BubblesType>(defaultBubbles);
+            containerRef.current.addEventListener("mousedown", () => {
+                clearTimeout(timeout);
+            });
 
-    function switchToNumberBubbles() {
-        setBubbles(numberBubbles);
+            containerRef.current.addEventListener("mouseup", () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    scrollToTopLeft();
+                }, limit);
+            });
+
+            containerRef.current.addEventListener("touchend", () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    scrollToTopLeft();
+                }, limit);
+            });
+        }
+
+        return () => {
+            clearTimeout(timeout);
+        };
+    }, []);
+    function scrollToTopLeft() {
+        if (containerRef.current && containerRef.current.scrollLeft > 0) {
+            containerRef.current?.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: "smooth",
+            });
+        }
     }
 
     const testItems = [
-        <CircleContainer type={circleTypes.Compass} />, // Compass
+        <CircleContainer key="1" type={circleTypes.Compass} />, // Compass
         <CircleContainer
+            key="2"
             type={circleTypes.Custom}
             renderContent={<ContinueWatchingItems />}
         />, // Select Show
     ];
 
-    const showNew = true;
-
-    if (showNew)
-        return (
-            <div
-                className="hide-scrollbars"
-                style={{
-                    display: "grid",
-                    height: "100vh",
-                    width: "100vw",
-
-                    gridAutoFlow: "column",
-                    alignItems: "center",
-                    color: "white",
-                    overflowX: "scroll",
-                    scrollSnapType: "x mandatory",
-                    scrollBehavior: "smooth",
-                }}
-            >
-                <BlackBackground />
-                {testItems}
-            </div>
-        );
-
     return (
-        <div className="watch-controller-page">
-            {/* Round container for watch stuff */}
+        <div
+            ref={containerRef}
+            className="hide-scrollbars"
+            style={{
+                display: "grid",
+                height: "100vh",
+                width: "100vw",
 
-            <div
-                style={{
-                    position: "relative",
-                }}
-            >
-                <div className="watch-controller-page-circle cool-background">
-                    {/* Media Controls Play pause circle in center Left (previous) Right (next) Top (Skip) Bottom () */}
-
-                    {/* Top Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Top.Y_Top}%`,
-                            left: `${positions.Top.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Top}
-                    </div>
-                    {/* Left Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Left.Y_Top}%`,
-                            left: `${positions.Left.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Left}
-                    </div>
-                    {/* Center Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Center.Y_Top}%`,
-                            left: `${positions.Center.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Center}
-                    </div>
-                    {/* Right Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Right.Y_Top}%`,
-                            left: `${positions.Right.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Right}
-                    </div>
-                    {/* Bottom Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Bottom.Y_Top}%`,
-                            left: `${positions.Bottom.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Bottom}
-                    </div>
-
-                    {/* Bottom right corner container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.BottomRight.Y_Top}%`,
-                            left: `${positions.BottomRight.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.BottomRight}
-                    </div>
-
-                    {/* Top left corner container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.TopLeft.Y_Top}%`,
-                            left: `${positions.TopLeft.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.TopLeft}
-                    </div>
-
-                    {/* Top Right corner container*/}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.TopLeft.Y_Top}%`,
-                            left: `${positions.BottomRight.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.TopRight}
-                    </div>
-
-                    {/* Bottom Left corner container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.BottomRight.Y_Top}%`,
-                            left: `${positions.TopLeft.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.BottomLeft}
-                    </div>
-                </div>
-            </div>
-            <div
-                style={{
-                    position: "relative",
-                }}
-            >
-                <div className="watch-controller-page-circle cool-background">
-                    {/* Media Controls Play pause circle in center Left (previous) Right (next) Top (Skip) Bottom () */}
-
-                    {/* Top Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Top.Y_Top}%`,
-                            left: `${positions.Top.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Top}
-                    </div>
-                    {/* Left Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Left.Y_Top}%`,
-                            left: `${positions.Left.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Left}
-                    </div>
-                    {/* Center Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Center.Y_Top}%`,
-                            left: `${positions.Center.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Center}
-                    </div>
-                    {/* Right Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Right.Y_Top}%`,
-                            left: `${positions.Right.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Right}
-                    </div>
-                    {/* Bottom Container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.Bottom.Y_Top}%`,
-                            left: `${positions.Bottom.X_Center}%`,
-                            transform: "translate(-50%, -50%)",
-                        }}
-                    >
-                        {bubbles.Bottom}
-                    </div>
-
-                    {/* Bottom right corner container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.BottomRight.Y_Top}%`,
-                            left: `${positions.BottomRight.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.BottomRight}
-                    </div>
-
-                    {/* Top left corner container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.TopLeft.Y_Top}%`,
-                            left: `${positions.TopLeft.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.TopLeft}
-                    </div>
-
-                    {/* Top Right corner container*/}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.TopLeft.Y_Top}%`,
-                            left: `${positions.BottomRight.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.TopRight}
-                    </div>
-
-                    {/* Bottom Left corner container */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: `${positions.BottomRight.Y_Top}%`,
-                            left: `${positions.TopLeft.X_Center}%`,
-                        }}
-                    >
-                        {bubbles.BottomLeft}
-                    </div>
-                </div>
-            </div>
+                gridAutoFlow: "column",
+                alignItems: "center",
+                color: "white",
+                overflowX: "scroll",
+                scrollSnapType: "x mandatory",
+                scrollBehavior: "smooth",
+            }}
+        >
+            <BlackBackground />
+            {testItems}
         </div>
     );
 }
 
+interface Item {
+    seriesFolderName: string;
+    progress: number;
+    duration: number;
+    lastUpdated: number;
+    episodeNumber: string;
+    coverImageUrl: string;
+    watchUrl: string;
+    seriesTitle: string;
+}
 function ContinueWatchingItems() {
-    interface Item {
-        seriesFolderName: string;
-        progress: number;
-        duration: number;
-        lastUpdated: number;
-        episodeNumber: string;
-        coverImageUrl: string;
-        watchUrl: string;
-    }
-
     const [data, setData] = useState<Item[]>([]);
     useEffect(() => {
         const serverCalls = new ServerCalls();
@@ -613,12 +187,6 @@ function ContinueWatchingItems() {
                 setData(data.data);
             });
     }, []);
-
-    function sendCommand(command: string) {
-        const serverCalls = new ServerCalls();
-
-        serverCalls.sendCommand(command);
-    }
 
     const placeholder = (
         <div
@@ -650,19 +218,14 @@ function ContinueWatchingItems() {
             {placeholder}
             {/* Watch items */}
             {data.map((item, index) => {
-                const image = (
-                    <SeriesImage
-                        coverImageUrl={item.coverImageUrl}
-                        watchUrl={item.watchUrl}
-                    />
-                );
+                const image = <SeriesImage key={index} item={item} />;
 
                 if (index == 1) {
                     return (
-                        <>
+                        <React.Fragment key={index}>
                             {placeholder}
                             {image}
-                        </>
+                        </React.Fragment>
                     );
                 }
 
@@ -672,38 +235,65 @@ function ContinueWatchingItems() {
     );
 }
 
-function SeriesImage(props: { coverImageUrl: string; watchUrl: string }) {
-    const { coverImageUrl, watchUrl } = props;
+function SeriesImage(props: { item: Item }) {
+    const { coverImageUrl, watchUrl, seriesTitle } = props.item;
     const [isExpanded, setExpanded] = useState(false);
     return (
-        <img
-            src={coverImageUrl}
-            style={
-                !isExpanded
-                    ? {
-                          width: "30vw",
-                          height: "30vw",
-                          borderRadius: "5%",
-                          padding: 0,
-                          margin: "1vw",
-                      }
-                    : {
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100vw",
-                          height: "100vw",
-                          borderRadius: "50%",
-                          padding: 0,
-                      }
-            }
-            onClick={() => {
-                setExpanded(!isExpanded);
-            }}
-            onDoubleClick={() => {
-                sendCommand("open|" + watchUrl);
-            }}
-        />
+        <>
+            <img
+                src={coverImageUrl}
+                style={
+                    !isExpanded
+                        ? {
+                              width: "30vw",
+                              height: "30vw",
+                              borderRadius: "5%",
+                              padding: 0,
+                              margin: "1vw",
+                          }
+                        : {
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100vw",
+                              height: "100vw",
+                              borderRadius: "50%",
+                              padding: 0,
+                          }
+                }
+                onClick={() => {
+                    setExpanded(!isExpanded);
+                }}
+                onDoubleClick={() => {
+                    sendCommand("open|" + watchUrl);
+                }}
+            />
+
+            {isExpanded && (
+                <div
+                    style={{
+                        pointerEvents: "none",
+                        position: "absolute",
+                        bottom: 0,
+                        left: "auto",
+                        right: "auto",
+                        textAlign: "center",
+                        width: "100vw",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        color: "white",
+                        fontSize: "6vw",
+                        paddingLeft: "30vw",
+                        paddingRight: "30vw",
+                        paddingBottom: "5vw",
+                        overflow: "hidden",
+                        // borderBottomRightRadius: "100vw",
+                        // borderBottomLeftRadius: "100vw",
+                    }}
+                >
+                    {seriesTitle}
+                </div>
+            )}
+        </>
     );
 }
 
