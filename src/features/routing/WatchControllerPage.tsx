@@ -128,11 +128,11 @@ export function WatchControllerPage() {
     }, []);
     function scrollToTopLeft() {
         if (containerRef.current && containerRef.current.scrollLeft > 0) {
-            // containerRef.current?.scrollTo({
-            //     top: 0,
-            //     left: 0,
-            //     behavior: "smooth",
-            // });
+            containerRef.current?.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: "smooth",
+            });
         }
     }
 
@@ -197,26 +197,37 @@ function ContinueWatchingItems() {
             listName: "Completed",
         },
         {
+            listName: "Planning",
+        },
+        {
             listName: "Search",
         },
     ];
     const [listIndex, setListIndex] = useState(0);
     const [searchText, setSearchText] = useState("");
     const [data, setData] = useState<Item[]>([]);
+    const [hasMore, setHasMore] = useState(false);
 
     function getList() {
         return lists[listIndex] || lists[0];
     }
 
-    function getData() {
+    function getData(limit: number = 50) {
         const serverCalls = new ServerCalls();
 
-        fetch(serverCalls.getListItems(getList().listName, searchText))
+        fetch(
+            serverCalls.getListItems(
+                getList().listName,
+                searchText,
+                data.length >= limit ? data.length + limit : limit
+            )
+        )
             .then(response => {
                 return response.json();
             })
             .then(data => {
                 setData(data.data);
+                setHasMore(data.hasMore);
             });
     }
 
@@ -371,6 +382,28 @@ function ContinueWatchingItems() {
 
                 return image;
             })}
+
+            {hasMore && (
+                <div
+                    style={{
+                        width: "100vw",
+                    }}
+                >
+                    <button
+                        className="btn btn-primary btn-block"
+                        style={{
+                            marginTop: "5vw",
+                            width: "100vw",
+                            fontSize: "10vw",
+                        }}
+                        onClick={() => {
+                            getData();
+                        }}
+                    >
+                        More
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

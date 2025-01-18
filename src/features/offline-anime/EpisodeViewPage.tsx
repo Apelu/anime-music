@@ -5,9 +5,50 @@ import { removeWords } from "./AnimeGroup";
 import { getLatestWatchedEpisode, AnimeCard } from "./OfflineAnimeV2";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import ts from "typescript";
-import { Key } from "react";
+import { Key, useEffect } from "react";
 
 export function EpisodeViewPage(props: EpisodeViewPageProps) {
+    useEffect(() => {
+        const currentHour = new Date().getHours();
+
+        // if (currentHour <= 5) {
+        //     alert("It's past midnight, you should get some rest");
+        //     document.location.href = "/anime";
+        // }
+
+        /**
+         * Steps Alerts
+         */
+
+        const serverCalls = new ServerCalls();
+        const eventSource = new EventSource(serverCalls.getUpdatesUrl({}));
+
+        eventSource.onmessage = event => {
+            const eventData = JSON.parse(event.data);
+            console.log("Received update:", eventData);
+
+            const MyEvents = {
+                StepsUpdated: "StepsUpdated",
+                WatchController: "WatchController",
+                SeriesSecondsLeft: "SeriesSecondsLeft",
+            };
+
+            if (eventData.eventName == MyEvents.WatchController) {
+                const watchEventData = eventData.eventPayload;
+                const command = watchEventData.command;
+
+                if (command.indexOf("open|") == 0) {
+                    const url = command.split("|")[1];
+                    document.location.href = url;
+                }
+            }
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, []);
+
     const navigate = useNavigate();
 
     const { animeData, seriesFolderName } = props;
@@ -126,6 +167,38 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                     </div>
                 }
             />
+            {anime.watchStatus == "planning" ? (
+                <Button
+                    variant="success"
+                    onClick={() => {
+                        console.log(
+                            "Remove from planning",
+                            anime.seriesFolderName
+                        );
+                        const serverCalls = new ServerCalls();
+                        fetch(
+                            serverCalls.removeFromPlanning(
+                                anime.seriesFolderName
+                            )
+                        );
+                    }}
+                >
+                    Remove from planning
+                </Button>
+            ) : anime.watchStatus == "" ? (
+                <Button
+                    variant="success"
+                    onClick={() => {
+                        const serverCalls = new ServerCalls();
+                        fetch(
+                            serverCalls.addToPlanning(anime.seriesFolderName)
+                        );
+                    }}
+                >
+                    Add to planning
+                </Button>
+            ) : null}
+
             <Card
                 style={{
                     textAlign: "center",

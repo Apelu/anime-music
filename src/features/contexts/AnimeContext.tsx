@@ -203,6 +203,7 @@ export interface AnimeData {
             lastUpdated: number;
         };
     };
+    watchStatus: "planning" | "watching" | "completed" | "";
     /*
 const PotentialIssues = {
             MissingAniListMapping: "Missing AniList Mapping",

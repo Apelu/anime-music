@@ -94,6 +94,7 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
     } = {
         "Continue Watching": continueWatching,
         Completed: completedAnime,
+        Planning: animeData.filter(a => a.watchStatus == "planning"),
         All: animeData,
     };
 

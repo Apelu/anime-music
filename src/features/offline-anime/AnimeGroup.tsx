@@ -23,7 +23,7 @@ export function AnimeGroup(props: {
     const [isCollapsed, setIsCollapsed] = useState(
         // true
         // false
-        groupName == "Completed" ? true : false
+        groupName == "Completed" || groupName == "Planning" ? true : false
     );
 
     const [isRandomized, setIsRandomized] = useState(false);
@@ -248,16 +248,18 @@ export function AnimeGroup(props: {
                                     )
                                 }
                                 topRightComponent={
-                                    <div>
-                                        {latestWatchedEpisode
-                                            ? `${latestWatchedEpisode} / `
-                                            : ""}
-                                        {
-                                            anime.episodes[
-                                                anime.episodes.length - 1
-                                            ]
-                                        }
-                                    </div>
+                                    <>
+                                        <div>
+                                            {latestWatchedEpisode
+                                                ? `${latestWatchedEpisode} / `
+                                                : ""}
+                                            {
+                                                anime.episodes[
+                                                    anime.episodes.length - 1
+                                                ]
+                                            }
+                                        </div>
+                                    </>
                                 }
                             />
                         );

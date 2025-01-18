@@ -63,10 +63,24 @@ export class ServerCalls {
         // this.baseURL = "http://localhost:5555/api/animeDownload/";
     }
 
-    getListItems(listName: string, searchText: string) {
+    getListItems(listName: string, searchText: string, limit: number = 50) {
         return (
             this.baseURL +
-            `/getListItems?listName=${listName}&searchText=${searchText}`
+            `/getListItems?listName=${listName}&searchText=${searchText}&limit=${limit}`
+        );
+    }
+
+    addToPlanning(seriesFolderName: string) {
+        return (
+            this.baseURL + "/addToPlanning?seriesFolderName=" + seriesFolderName
+        );
+    }
+
+    removeFromPlanning(seriesFolderName: string) {
+        return (
+            this.baseURL +
+            "/removeFromPlanning?seriesFolderName=" +
+            seriesFolderName
         );
     }
 
