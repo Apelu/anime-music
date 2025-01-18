@@ -8,11 +8,15 @@ import {
     faBackward,
     faBars,
     fa0,
+    faRefresh,
+    faArrowLeft,
+    faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import React, { useRef } from "react";
 import { useEffect, useState } from "react";
+import { Button } from "react-bootstrap";
 
 interface PositionType {
     X_Center: number;
@@ -124,11 +128,11 @@ export function WatchControllerPage() {
     }, []);
     function scrollToTopLeft() {
         if (containerRef.current && containerRef.current.scrollLeft > 0) {
-            containerRef.current?.scrollTo({
-                top: 0,
-                left: 0,
-                behavior: "smooth",
-            });
+            // containerRef.current?.scrollTo({
+            //     top: 0,
+            //     left: 0,
+            //     behavior: "smooth",
+            // });
         }
     }
 
@@ -143,11 +147,11 @@ export function WatchControllerPage() {
 
     return (
         <div
-            ref={containerRef}
             className="hide-scrollbars"
+            ref={containerRef}
             style={{
                 display: "grid",
-                height: "100vh",
+                height: "100vw",
                 width: "100vw",
 
                 gridAutoFlow: "column",
@@ -164,6 +168,16 @@ export function WatchControllerPage() {
     );
 }
 
+function BottomContent() {
+    return (
+        <div>
+            <div>Watch</div>
+            <div>Download</div>
+            <div>Settings</div>
+        </div>
+    );
+}
+
 interface Item {
     seriesFolderName: string;
     progress: number;
@@ -175,18 +189,40 @@ interface Item {
     seriesTitle: string;
 }
 function ContinueWatchingItems() {
+    const lists = [
+        {
+            listName: "Continue Watching",
+        },
+        {
+            listName: "Completed",
+        },
+        {
+            listName: "Search",
+        },
+    ];
+    const [listIndex, setListIndex] = useState(0);
+    const [searchText, setSearchText] = useState("");
     const [data, setData] = useState<Item[]>([]);
-    useEffect(() => {
+
+    function getList() {
+        return lists[listIndex] || lists[0];
+    }
+
+    function getData() {
         const serverCalls = new ServerCalls();
 
-        fetch(serverCalls.getContinueWatchingUrl())
+        fetch(serverCalls.getListItems(getList().listName, searchText))
             .then(response => {
                 return response.json();
             })
             .then(data => {
                 setData(data.data);
             });
-    }, []);
+    }
+
+    useEffect(() => {
+        getData();
+    }, [listIndex]);
 
     const placeholder = (
         <div
@@ -199,6 +235,7 @@ function ContinueWatchingItems() {
 
     return (
         <div
+            className="hide-scrollbars"
             style={{
                 width: "100vw",
                 height: "100%",
@@ -212,10 +249,113 @@ function ContinueWatchingItems() {
                 justifyContent: "center",
                 padding: 0,
                 paddingTop: "6vw",
-                paddingBottom: "50vw",
+                paddingBottom: "55vw",
             }}
         >
-            {placeholder}
+            <div
+                style={{
+                    display: "flex",
+                    width: "100vw",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingTop: "5vw",
+                }}
+            >
+                <button
+                    className="btn btn-primary"
+                    style={{
+                        height: "fit-content",
+                    }}
+                >
+                    <FontAwesomeIcon
+                        icon={faArrowLeft}
+                        size="3x"
+                        onClick={() => {
+                            setListIndex(
+                                listIndex == 0
+                                    ? lists.length - 1
+                                    : listIndex - 1
+                            );
+                        }}
+                    />
+                </button>
+                <button
+                    className="btn btn-primary ms-3 me-3"
+                    style={{
+                        height: "fit-content",
+                        width: "fit-content",
+                    }}
+                >
+                    <FontAwesomeIcon
+                        icon={faRefresh}
+                        size="4x"
+                        onClick={() => {
+                            getData();
+                        }}
+                    />
+                </button>
+
+                <button
+                    className="btn btn-primary"
+                    style={{
+                        height: "fit-content",
+                    }}
+                >
+                    <FontAwesomeIcon
+                        className="p-0 m-0"
+                        icon={faArrowRight}
+                        size="3x"
+                        onClick={() => {
+                            setListIndex(
+                                listIndex == lists.length - 1
+                                    ? 0
+                                    : listIndex + 1
+                            );
+                        }}
+                    />
+                </button>
+            </div>
+
+            <div
+                style={{
+                    width: "100vw",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "3vw",
+                }}
+            >
+                <h1>{getList().listName}</h1>
+                <div>
+                    {getList().listName == "Search" && (
+                        <input
+                            className="form-control"
+                            type="text"
+                            value={searchText}
+                            onChange={e => {
+                                setSearchText(e.target.value);
+                            }}
+                            style={{
+                                width: "50vw",
+                                fontSize: "3vw",
+                                textAlign: "center",
+                            }}
+                        />
+                    )}
+                </div>
+                {getList().listName == "Search" && (
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                            getData();
+                        }}
+                    >
+                        Search
+                    </button>
+                )}
+            </div>
+            {/* {placeholder} */}
             {/* Watch items */}
             {data.map((item, index) => {
                 const image = <SeriesImage key={index} item={item} />;
@@ -223,7 +363,7 @@ function ContinueWatchingItems() {
                 if (index == 1) {
                     return (
                         <React.Fragment key={index}>
-                            {placeholder}
+                            {/* {placeholder} */}
                             {image}
                         </React.Fragment>
                     );
@@ -245,8 +385,8 @@ function SeriesImage(props: { item: Item }) {
                 style={
                     !isExpanded
                         ? {
-                              width: "30vw",
-                              height: "30vw",
+                              width: "40vw",
+                              height: "40vw",
                               borderRadius: "5%",
                               padding: 0,
                               margin: "1vw",
@@ -514,7 +654,7 @@ function CircleContainer(props: { type?: string; renderContent?: any }) {
     return (
         <div
             id="parent-circle"
-            className="cool-background"
+            className="cool-background hide-scrollbars"
             style={{
                 width: "100vw",
                 height: "100vw",

@@ -104,7 +104,8 @@
 @media (max-width: 600px) {
 }
 
-:root:has(.hide-scrollbars) {
+/* :root:has(.hide-scrollbars) { */
+.hide-scrollbars {
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
