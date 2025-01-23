@@ -7,13 +7,15 @@ import {
     faMagnifyingGlass,
     faMagnifyingGlassMinus,
 } from "@fortawesome/free-solid-svg-icons";
+import { ServerCalls } from "@pages/AnimeDownloadPage";
 
 export function AnimeGroup(props: {
     groupName: string;
     data: AnimeData[];
     anilistOrder: number[];
+    refreshData: () => void;
 }) {
-    const { groupName, data } = props;
+    const { groupName, data, refreshData } = props;
 
     const [search, setSearch] = useState({
         isSearching: false,
@@ -249,16 +251,67 @@ export function AnimeGroup(props: {
                                 }
                                 topRightComponent={
                                     <>
-                                        <div>
-                                            {latestWatchedEpisode
-                                                ? `${latestWatchedEpisode} / `
-                                                : ""}
-                                            {
-                                                anime.episodes[
-                                                    anime.episodes.length - 1
-                                                ]
+                                        <HoverComponent
+                                            normalComponent={
+                                                <div>
+                                                    {latestWatchedEpisode
+                                                        ? `${latestWatchedEpisode} / `
+                                                        : ""}
+                                                    {
+                                                        anime.episodes[
+                                                            anime.episodes
+                                                                .length - 1
+                                                        ]
+                                                    }{" "}
+                                                    {anime.watchStatus ==
+                                                    "planning"
+                                                        ? " (P)"
+                                                        : ""}
+                                                </div>
                                             }
-                                        </div>
+                                            hoverComponent={
+                                                !latestWatchedEpisode ? (
+                                                    anime.watchStatus ==
+                                                    "planning" ? (
+                                                        <Button
+                                                            style={{
+                                                                fontSize:
+                                                                    "0.75rem",
+                                                            }}
+                                                            onClick={() => {
+                                                                const serverCalls =
+                                                                    new ServerCalls();
+                                                                fetch(
+                                                                    serverCalls.removeFromPlanning(
+                                                                        anime.seriesFolderName
+                                                                    )
+                                                                );
+                                                            }}
+                                                        >
+                                                            Remove from Planning
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            style={{
+                                                                fontSize:
+                                                                    "0.75rem",
+                                                            }}
+                                                            onClick={() => {
+                                                                const serverCalls =
+                                                                    new ServerCalls();
+                                                                fetch(
+                                                                    serverCalls.addToPlanning(
+                                                                        anime.seriesFolderName
+                                                                    )
+                                                                );
+                                                            }}
+                                                        >
+                                                            Add to Planning
+                                                        </Button>
+                                                    )
+                                                ) : undefined
+                                            }
+                                        />
                                     </>
                                 }
                             />
@@ -267,6 +320,26 @@ export function AnimeGroup(props: {
                 </div>
             </Collapse>
         </>
+    );
+}
+
+function HoverComponent(props: {
+    normalComponent: JSX.Element;
+    hoverComponent: JSX.Element | undefined;
+}) {
+    const [isHovered, setIsHovered] = useState(false);
+
+    if (!props.hoverComponent) {
+        return props.normalComponent;
+    }
+
+    return (
+        <div
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {isHovered ? props.hoverComponent : props.normalComponent}
+        </div>
     );
 }
 

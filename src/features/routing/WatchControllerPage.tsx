@@ -207,19 +207,22 @@ function ContinueWatchingItems() {
     const [searchText, setSearchText] = useState("");
     const [data, setData] = useState<Item[]>([]);
     const [hasMore, setHasMore] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
 
     function getList() {
         return lists[listIndex] || lists[0];
     }
 
-    function getData(limit: number = 50) {
+    function getData(isListChange: boolean = false, limit: number = 50) {
         const serverCalls = new ServerCalls();
 
         fetch(
             serverCalls.getListItems(
                 getList().listName,
                 searchText,
-                data.length >= limit ? data.length + limit : limit
+                data.length >= limit && !isListChange
+                    ? data.length + limit
+                    : limit
             )
         )
             .then(response => {
@@ -228,11 +231,12 @@ function ContinueWatchingItems() {
             .then(data => {
                 setData(data.data);
                 setHasMore(data.hasMore);
+                setTotalCount(data.totalCount);
             });
     }
 
     useEffect(() => {
-        getData();
+        getData(true);
     }, [listIndex]);
 
     const placeholder = (
@@ -337,7 +341,10 @@ function ContinueWatchingItems() {
                     padding: "3vw",
                 }}
             >
-                <h1>{getList().listName}</h1>
+                <h1>
+                    {getList().listName}{" "}
+                    {totalCount > 0 ? `(${totalCount})` : `(${data.length})`}
+                </h1>
                 <div>
                     {getList().listName == "Search" && (
                         <input
@@ -400,6 +407,9 @@ function ContinueWatchingItems() {
                             getData();
                         }}
                     >
+                        <div>
+                            ({data.length} / {totalCount})
+                        </div>
                         More
                     </button>
                 </div>

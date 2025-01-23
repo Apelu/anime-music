@@ -108,6 +108,9 @@
 .hide-scrollbars {
     scrollbar-width: none;
     -ms-overflow-style: none;
+
+    /* Disable Panning in diagonal */
+    touch-action: pan-left pan-right;
 }
 
 .watch-controller-page {

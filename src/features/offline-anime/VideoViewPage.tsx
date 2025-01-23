@@ -92,6 +92,10 @@ function VideoPlayerView(props: { data: any }) {
     function handleEnded(goToNextEpisode = true) {
         // replace episodeNumber param with next episode number
         const selectedSeriesData = data.selectedSeriesData;
+        selectedSeriesData.sort((a: AnimeEpisode, b: AnimeEpisode) => {
+            return parseFloat(a.episodeNumber) - parseFloat(b.episodeNumber);
+        });
+
         const episodeIndex = selectedSeriesData.findIndex(
             (episode: AnimeEpisode) =>
                 episode.episodeNumber === params.episodeNumber
@@ -640,6 +644,11 @@ function VideoUIMenu({
 
     const { videoEnd, seriesEnd } = getSeriesEndTime();
 
+    const selectedSeriesData = data.selectedSeriesData;
+    selectedSeriesData.sort((a: AnimeEpisode, b: AnimeEpisode) => {
+        return parseFloat(a.episodeNumber) - parseFloat(b.episodeNumber);
+    });
+
     return (
         <div
             style={{
@@ -674,7 +683,11 @@ function VideoUIMenu({
                 <h1>{selected.seriesTitle}</h1>
 
                 <h3>
-                    {selected.episodeNumber} / {data.selectedSeriesData.length}
+                    {selected.episodeNumber} /{" "}
+                    {
+                        selectedSeriesData[selectedSeriesData.length - 1]
+                            .episodeNumber
+                    }
                 </h3>
 
                 <h4>

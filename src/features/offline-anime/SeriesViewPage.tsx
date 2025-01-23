@@ -7,6 +7,7 @@ import {
 } from "./OfflineAnimeV2";
 import { useEffect, useState } from "react";
 import { doc } from "firebase/firestore";
+import { ServerCalls } from "@pages/AnimeDownloadPage";
 
 export function SeriesViewPage(props: SeriesViewPageProps) {
     const [anilistOrder, setAnilistOrder] = useState<number[]>([]);
@@ -53,11 +54,43 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
             );
         } catch (e) {}
     }
-    useEffect(() => {
-        // fetchMoreData();
-    }, [pageNumber]);
+    // useEffect(() => {
+    //     // fetchMoreData();
+    // }, [pageNumber]);
 
-    const { animeData } = props;
+    const { animeData, refreshData } = props;
+
+    useEffect(() => {
+        const serverCalls = new ServerCalls();
+        const eventSource = new EventSource(serverCalls.getUpdatesUrl({}));
+
+        eventSource.onmessage = event => {
+            const eventData = JSON.parse(event.data);
+            console.log("Received update:", eventData);
+
+            const MyEvents = {
+                StepsUpdated: "StepsUpdated",
+                WatchController: "WatchController",
+                SeriesSecondsLeft: "SeriesSecondsLeft",
+                FileUpdated: "FileUpdated",
+            };
+
+            if (eventData.eventName == MyEvents.WatchController) {
+                // const watchEventData = eventData.eventPayload;
+                // const command = watchEventData.command;
+                // if (command.indexOf("open|") == 0) {
+                //     const url = command.split("|")[1];
+                //     document.location.href = url;
+                // }
+            } else if (eventData.eventName == MyEvents.FileUpdated) {
+                // props.refreshData();
+            }
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, []);
 
     const startedAnime = animeData
         .filter(anime => getLatestWatchedEpisode(anime))
@@ -113,6 +146,7 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
                         groupName={groupName}
                         data={data}
                         anilistOrder={anilistOrder}
+                        refreshData={props.refreshData}
                     />
                 );
             })}
@@ -122,4 +156,5 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
 
 export interface SeriesViewPageProps {
     animeData: AnimeData[];
+    refreshData: () => void;
 }

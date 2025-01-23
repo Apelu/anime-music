@@ -245,12 +245,14 @@ function OfflineAnimeV2() {
     const animeData = useAnimeData();
     const dispatch = useAnimeDispatch();
 
-    useEffect(() => {}, []);
-
-    useEffect(() => {
+    function refreshData() {
         getAnimeData(params).then(data => {
             dispatch({ type: AnimeActionType.updateAnime, payload: data });
         });
+    }
+
+    useEffect(() => {
+        refreshData();
     }, [params]);
 
     useEffect(() => {
@@ -276,7 +278,9 @@ function OfflineAnimeV2() {
     }, [animeData]);
 
     if (!seriesFolderName) {
-        return <SeriesViewPage animeData={animeData} />;
+        return (
+            <SeriesViewPage animeData={animeData} refreshData={refreshData} />
+        );
     }
 
     if (seriesFolderName && !episodeNumber) {
@@ -284,6 +288,7 @@ function OfflineAnimeV2() {
             <EpisodeViewPage
                 animeData={animeData}
                 seriesFolderName={seriesFolderName}
+                refreshData={refreshData}
             />
         );
     }

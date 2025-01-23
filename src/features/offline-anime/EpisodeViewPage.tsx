@@ -31,6 +31,7 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                 StepsUpdated: "StepsUpdated",
                 WatchController: "WatchController",
                 SeriesSecondsLeft: "SeriesSecondsLeft",
+                FileUpdated: "FileUpdated",
             };
 
             if (eventData.eventName == MyEvents.WatchController) {
@@ -41,6 +42,8 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                     const url = command.split("|")[1];
                     document.location.href = url;
                 }
+            } else if (eventData.eventName == MyEvents.FileUpdated) {
+                props.refreshData(true);
             }
         };
 
@@ -529,6 +532,7 @@ function RelationDisplayer(anime: AnimeData) {
 export interface EpisodeViewPageProps {
     animeData: AnimeData[];
     seriesFolderName: string;
+    refreshData: (isLive: boolean) => void;
 }
 
 export function getWatchProgressString(

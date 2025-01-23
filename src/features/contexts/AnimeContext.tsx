@@ -62,6 +62,14 @@ function animeReducer(data: AnimeData[], action: AnimeAction) {
                     newAnimeData.timelineData
                 ) {
                     newData[index].timelineData = newAnimeData.timelineData;
+                } else if (newAnimeData.watchProgress) {
+                    newData[index] = {
+                        ...newData[index],
+                        watchProgress: {
+                            ...newAnimeData.watchProgress,
+                        },
+                        watchStatus: newAnimeData.watchStatus,
+                    };
                 }
             });
 
