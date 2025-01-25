@@ -122,9 +122,38 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
         );
     });
 
+    console.log(completedAnime);
+    const recs: Record<number, boolean> = {
+        10536: true,
+        104454: true,
+        109492: true,
+        110178: true,
+        110229: true,
+        116922: true,
+        117074: true,
+        119960: true,
+        127863: true,
+        131708: true,
+        136829: true,
+        139359: true,
+        148002: true,
+        159309: true,
+        164702: true,
+        168872: true,
+        168999: true,
+        169512: true,
+        170019: true,
+        176858: true,
+        182317: true,
+        185756: true,
+    };
+
     const groups: {
         [groupName: string]: AnimeData[];
     } = {
+        // Reccomended: animeData.filter(
+        //     a => a.anilistID && recs[parseInt(a.anilistID)]
+        // ),
         "Continue Watching": continueWatching,
         Completed: completedAnime,
         Planning: animeData.filter(a => a.watchStatus == "planning"),

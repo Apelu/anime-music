@@ -367,7 +367,9 @@ export function AnimeCard(props: AnimeCardProps) {
                                 }
                                 src={
                                     window.navigator.onLine
-                                        ? imageSrc
+                                        ? imageSrc.indexOf("gogo") !== -1
+                                            ? offlineImage
+                                            : imageSrc
                                         : offlineImage
                                 }
                                 onError={() => {
