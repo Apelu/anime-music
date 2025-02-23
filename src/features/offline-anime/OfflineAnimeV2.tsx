@@ -234,7 +234,6 @@ export function AniListRedirectPage() {
 //     );
 // }
 
-// TODO ADD CONTROLLER FUNCTIONALITY
 // REFACTOR SERVER CODE
 
 function OfflineAnimeV2() {
@@ -372,17 +371,19 @@ export function AnimeCard(props: AnimeCardProps) {
                                             : imageSrc
                                         : offlineImage
                                 }
-                                onError={() => {
-                                    if (
-                                        window.navigator.onLine &&
-                                        anime?.seriesFolderName &&
-                                        imageRef.current &&
-                                        imageRef.current.src !== offlineImage
-                                    ) {
-                                        imageRef.current!.src = offlineImage;
-                                    }
-                                }}
-                                alt={typeof title == "string" ? title : ""}
+                                // onError={() => {
+                                //     if (
+                                //         window.navigator.onLine &&
+                                //         anime?.seriesFolderName &&
+                                //         imageRef.current &&
+                                //         imageRef.current.src !== offlineImage
+                                //     ) {
+                                //         imageRef.current!.src = offlineImage;
+                                //     }
+                                // }}
+                                alt={
+                                    "If this image is not loading, this anime is on a disconnected source"
+                                }
                                 style={{
                                     width: "100%",
                                     height: "100%",

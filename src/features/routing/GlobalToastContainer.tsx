@@ -1,4 +1,4 @@
-import { ToastData, useToastData } from "@features/contexts/TemplateContext";
+import { ToastData, useToastData } from "@features/contexts/ToastContext";
 import { ToastContainer, Toast } from "react-bootstrap";
 
 export function GlobalToastContainer() {

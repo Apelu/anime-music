@@ -1,12 +1,8 @@
-import SubBar from "@features/anime/AnimeSubBar";
-import { Anime } from "@features/api/anilist/AniListAPI";
-import { myLiveWallpapersRef } from "@features/api/firebase";
 import Background from "@features/background/Background";
-import {
-    BackgroundItem,
-    BackgroundKey,
-    BackgroundType,
-} from "@features/background/constants";
+import { UserProvider, useUserData } from "@features/contexts/UserContext";
+import OfflineAnimeV2, {
+    AniListRedirectPage,
+} from "@features/offline-anime/OfflineAnimeV2";
 import NavBar from "@features/ui/NavBar";
 import AnimeDownloadPage from "@pages/AnimeDownloadPage";
 import BackgroundLibrary from "@pages/BackgroundLibrary";
@@ -17,27 +13,17 @@ import LoginPage from "@pages/LoginPage";
 import MusicPage from "@pages/MusicPage";
 import OfflineAnime from "@pages/OfflineAnime";
 import ProfilePage from "@pages/ProfilePage";
-import VideoPage from "@pages/VideoPage";
-import {
-    getDocs,
-    limit,
-    orderBy,
-    query,
-    startAt,
-    where,
-} from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { Card, Container } from "react-bootstrap";
 import { Outlet, createBrowserRouter } from "react-router-dom";
 import "../../assets/App.css";
-import ProviderParent from "./ProviderParent";
-import OfflineAnimeV2, {
-    AniListRedirectPage,
-} from "@features/offline-anime/OfflineAnimeV2";
-import { WatchControllerPage } from "./WatchControllerPage";
+import { WatchControllerPage } from "../../pages/WatchControllerPage";
+import ProviderParent from "../contexts/ProviderParent";
+import { LocalAnimeHome } from "../../pages/LocalAnimeHome";
+import { LocalAnime } from "../../pages/LocalAnime";
+import { LocalAnimeVideo } from "../../pages/LocalAnimeVideo";
 
 export enum Paths {
     Anime = "/anime",
+    LocalAnime = "/local-anime-home",
     AnimeInfo = "/anime/:seriesFolderName",
     AnimeVideo = "/anime/:seriesFolderName/:episodeNumber",
     Music = "/music",
@@ -47,288 +33,35 @@ export enum Paths {
     Profile = "/profile",
     Features = "/features",
     BackgroundLibrary = "/background-library",
-    VideoPage = "/video",
     AnilistLoginRedirect = "/login-redirect",
     WatchController = "/watch-controller",
 }
 
 function Root() {
-    const [animeData, setAnimeData] = useState<Anime[]>([]);
+    const user = useUserData();
 
-    const [backgroundItems, setBackgroundItems] = useState<BackgroundItem[]>([
-        // {
-        //     id: 1721879935266,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12371",
-        //     description: "Sakura Drops Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Sakura-Drops.jpg",
-        // },
-        // {
-        //     id: 1721879935267,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12389",
-        //     description: "Reach Out-Nier Automata Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Reach-Out-Nier-Automata.jpg",
-        // },
-        // {
-        //     id: 1721879935268,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12409",
-        //     description: "Anime Girl Shooting Stars Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Anime-Girl-Shooting-Stars.jpg",
-        // },
-        // {
-        //     id: 1721879935269,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12447",
-        //     description: "Uraraka Ochako Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Uraraka-Ochako.jpg",
-        // },
-        // {
-        //     id: 1721879935270,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12471",
-        //     description: "Izumi Sagiri Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Izumi-Sagiri.jpg",
-        // },
-        // {
-        //     id: 1721879935272,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12493",
-        //     description: "Mashu Kyrielight-Fate Grand Order Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Mashu-Kyrielight-FGO.jpg",
-        // },
-        // {
-        //     id: 1721879935273,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12497",
-        //     description: "Berserker-Fate Zero Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Berserker-Fate-Zero.jpg",
-        // },
-        // {
-        //     id: 1721879935274,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12534",
-        //     description: "Spice and Wolf Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Spice-and-Wolf.jpg",
-        // },
-        // {
-        //     id: 1721879935275,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12538",
-        //     description: "Natsuki-Doki Doki Literature Club Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Natsuki-Doki-Doki-Literature-Club.jpg",
-        // },
-        // {
-        //     id: 1721880008221,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12542",
-        //     description: "My Neighbor Totoro Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-My-Neighbor-Totoro.jpg",
-        // },
-        // {
-        //     id: 1721880008223,
-        //     type: BackgroundType.Video,
-        //     url: "https://mylivewallpapers.com/?ddownload=12562",
-        //     description: "Ayame Ugasi Live Wallpaper",
-        //     poster: "https://mylivewallpapers.com/wp-content/uploads/Anime/thumb-Ayame-Ugasi.jpg",
-        // },
-    ]);
-    const [currentItemID, setCurrentID] = useState(
-        parseInt(localStorage.getItem("currentItemID") || "0")
-    );
-    const [firstLastIDs, setFirstLastIDs] = useState({
-        first: 1721873782968,
-        last: 1721873782968,
-    });
-
-    const fetchData = async (fetchForward = true) => {
-        if (fetchForward) return;
-        if (!fetchForward) return;
-        const LOAD_COUNT = 10;
-        const docsQuery = fetchForward
-            ? query(
-                  myLiveWallpapersRef,
-                  orderBy("createdAt", "asc"),
-                  startAt(currentItemID),
-                  limit(LOAD_COUNT + 1)
-              )
-            : query(
-                  myLiveWallpapersRef,
-                  orderBy("createdAt", "desc"),
-                  where("createdAt", "<=", currentItemID),
-                  limit(LOAD_COUNT + 1)
-              );
-        const querySnapshot = await getDocs(docsQuery);
-
-        const lastItemQuery = query(
-            myLiveWallpapersRef,
-            orderBy("createdAt", "desc"),
-            limit(1)
-        );
-        const lastItemSnapshot = await getDocs(lastItemQuery);
-
-        const newestItemID = {
-            first: firstLastIDs.first,
-            last: firstLastIDs.last,
-        };
-
-        lastItemSnapshot.forEach(doc => {
-            var docData = doc.data();
-            newestItemID["last"] = docData.createdAt;
-        });
-
-        var allData: BackgroundItem[] = [];
-        querySnapshot.forEach(doc => {
-            // doc.data() is never undefined for query doc snapshots
-            var docData = doc.data();
-            var wallpaper: BackgroundItem = {
-                [BackgroundKey.ID]: docData.createdAt,
-                [BackgroundKey.Type]: BackgroundType.Video,
-                [BackgroundKey.Url]: docData.url,
-                [BackgroundKey.Description]: docData.description,
-                [BackgroundKey.Poster]: docData.poster,
-            };
-
-            if (
-                wallpaper.url &&
-                wallpaper.url.includes("https://") &&
-                (backgroundItems.find(item => {
-                    return item[BackgroundKey.ID] === currentItemID;
-                }) === undefined ||
-                    wallpaper[BackgroundKey.ID] != currentItemID)
-            ) {
-                allData.push(wallpaper);
-            }
-        });
-        console.log({ allData, newestItemID });
-
-        if (fetchForward && allData.length > 0) {
-            setBackgroundItems([...backgroundItems, ...allData]);
-
-            if (allData[0][BackgroundKey.ID] !== undefined) {
-                setCurrentID(allData[0][BackgroundKey.ID]);
-            }
-        } else {
-            setBackgroundItems([...allData.reverse(), ...backgroundItems]);
-            var lastID = allData[allData.length - 1][BackgroundKey.ID];
-            if (lastID !== undefined) {
-                setCurrentID(lastID);
-            }
-        }
-        setFirstLastIDs(newestItemID);
-    };
-
-    useEffect(() => {
-        // performEmailPasswordSignIn(
-        //     "apelu47@gmail.com",
-        //     "kih209kjeu3409erklbgi892i0po3kwtr8h95i0mkbn34u0rkoefjbthu423k;l"
-        // );
-        // fetchData();
-    }, []);
-
-    useEffect(() => {}, []);
-
-    function getCurrentIndex() {
-        var index = backgroundItems.findIndex(
-            item =>
-                item[BackgroundKey.ID] &&
-                item[BackgroundKey.ID] === currentItemID
-        );
-        return index === -1 ? 0 : index;
-    }
-
-    function nextBackgroundItem() {
-        if (currentItemID == firstLastIDs.last)
-            return console.log("End of List");
-        console.log("Next Background Item");
-
-        var nextIndex =
-            getCurrentIndex() < backgroundItems.length - 1
-                ? getCurrentIndex() + 1
-                : 0;
-
-        if (nextIndex === 0) {
-            console.log("Fetching Data");
-            fetchData();
-
-            return;
-        }
-
-        var nextID = backgroundItems[nextIndex][BackgroundKey.ID];
-        if (nextID === undefined) {
-            console.log("Next ID is undefined", { nextIndex, nextID });
-            return;
-        }
-        console.log({ nextID });
-        setCurrentID(nextID);
-        localStorage.setItem("currentItemID", nextID.toString());
-    }
-
-    function previousBackgroundItem() {
-        if (currentItemID == firstLastIDs.first) {
-            return console.log("Beginning of List");
-        }
-
-        var previousIndex =
-            getCurrentIndex() > 0
-                ? getCurrentIndex() - 1
-                : backgroundItems.length - 1;
-
-        if (previousIndex === backgroundItems.length - 1) {
-            fetchData(false);
-            return;
-        }
-
-        var previousID = backgroundItems[previousIndex][BackgroundKey.ID];
-        if (previousID === undefined) {
-            console.log("Previous ID is undefined", {
-                previousIndex,
-                previousID,
-            });
-            return;
-        }
-        setCurrentID(previousID);
-        localStorage.setItem("currentItemID", previousID.toString());
-    }
-
-    return (
-        <>
-            <main
-                className="text-light"
-                // bg-dark"
-            >
-                {/* <GlobalToastContainer /> */}
-                <Background
-                    backgroundItems={backgroundItems}
-                    setBackgroundItems={setBackgroundItems}
-                    currentItemID={currentItemID}
-                    setCurrentID={setCurrentID}
-                />
+    if (user.isLoggedIn) {
+        return (
+            <main className="text-light">
+                <Background />
                 <NavBar />
-                {/* <SubBar/> */}
-                <SubBar
-                    {...{
-                        currentItemIndex: currentItemID,
-                        nextBackgroundItem,
-                        previousBackgroundItem,
-                    }}
-                />
-                <Outlet
-                    context={{
-                        nextBackgroundItem,
-                        previousBackgroundItem,
-                        animeData,
-                        setAnimeData,
-                        backgroundItems,
-                    }}
-                />
+                <Outlet />
             </main>
-        </>
-    );
+        );
+    }
+
+    return <LoginPage />;
 }
 
-const router = createBrowserRouter([
+const appRouter = createBrowserRouter([
+    {
+        path: Paths.Login,
+        element: (
+            <UserProvider>
+                <LoginPage />
+            </UserProvider>
+        ),
+    },
     {
         path: Paths.WatchController,
         element: <WatchControllerPage />,
@@ -342,49 +75,57 @@ const router = createBrowserRouter([
         ),
         children: [
             {
-                path: "/",
-                element: <MealCalendarPage />,
-            },
-
-            {
                 path: Paths.AnilistLoginRedirect,
                 element: <AniListRedirectPage />,
             },
 
+            // TODO
+            // /local-anime-home
+            // /local-anime/:animeID            ==Redirects=To==> /local-anime/:animeID/<AnimeName>
+            // /local-anime-video/:animeID/:episodeID ==Redirects=To==> /local-anime/:animeID/<AnimeName>/:episodeID
+
+            {
+                path: "/local-anime-home",
+                element: <LocalAnimeHome />,
+            },
+
+            {
+                path: "/local-anime/:animeID",
+                element: <LocalAnime />,
+            },
+
+            {
+                path: "/local-anime/:animeID/:animeName",
+                element: <LocalAnime />,
+            },
+
+            {
+                path: "/local-anime-video/:animeID/:episodeID",
+                element: <LocalAnimeVideo />,
+            },
+
+            {
+                path: "/local-anime-video/:animeID/:animeName/:episodeID",
+                element: <LocalAnimeVideo />,
+            },
+
             {
                 path: Paths.AnimeVideo,
-
-                element: (
-                    <>
-                        {/* <OfflineAnimeV2 /> */}
-                        <OfflineAnime />
-                    </>
-                ),
+                element: <OfflineAnime />,
+                // <OfflineAnimeV2 />
             },
 
             {
                 path: Paths.AnimeInfo,
-                element: (
-                    <>
-                        <OfflineAnimeV2 />
-                        {/* <OfflineAnime /> */}
-                    </>
-                ),
+                element: <OfflineAnimeV2 />,
             },
 
             {
                 path: Paths.Anime,
-                element: (
-                    <>
-                        <OfflineAnimeV2 />
-                        {/* <OfflineAnime /> */}
-                    </>
-                ),
+                element: <OfflineAnimeV2 />,
             },
 
             { path: Paths.Music, element: <MusicPage /> },
-            { path: Paths.Login, element: <LoginPage /> },
-            { path: Paths.VideoPage, element: <VideoPage /> },
             { path: Paths.Controller, element: <ControllerPage /> },
             { path: Paths.AnimeDownload, element: <AnimeDownloadPage /> },
             { path: Paths.Profile, element: <ProfilePage /> },
@@ -398,82 +139,4 @@ const router = createBrowserRouter([
     },
 ]);
 
-function MealCalendarPage() {
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    return (
-        <Container fluid className="mt-3">
-            <DisplaySelectedDate selectedDate={selectedDate} />
-            <DisplaySelectedDateContent selectedDate={selectedDate} />
-        </Container>
-    );
-}
-
-function DisplaySelectedDateMeals({ selectedDate }: { selectedDate: Date }) {
-    const [meals, setMeals] = useState<string[]>([]);
-    return (
-        <div
-            style={{
-                width: "65%",
-            }}
-            className="bg-primary rounded p-2 me-2"
-        >
-            Meals
-            {meals.map((meal, index) => {
-                return (
-                    <Card key={index} className="mt-2">
-                        <Card.Body>{meal}</Card.Body>
-                    </Card>
-                );
-            })}
-        </div>
-    );
-}
-
-function DisplayMealPool() {
-    return (
-        <div
-            style={{
-                width: "35%",
-            }}
-            className="bg-primary rounded p-2"
-        >
-            Meal Pool
-            <input className="form-control form-control-sm" />
-            <MealPoolItem />
-        </div>
-    );
-}
-
-function MealPoolItem() {
-    return (
-        <div className="d-flex mt-2">
-            <img src="" width={96} height={96} />
-            <div>
-                <h6>Meal Name</h6>
-                <p>Meal Description</p>
-            </div>
-        </div>
-    );
-}
-
-function DisplaySelectedDateContent({ selectedDate }: { selectedDate: Date }) {
-    //https://docs.dndkit.com/introduction/getting-started
-    return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "row",
-                width: "100%",
-            }}
-        >
-            <DisplaySelectedDateMeals selectedDate={selectedDate} />
-            <DisplayMealPool />
-        </div>
-    );
-}
-
-function DisplaySelectedDate({ selectedDate }: { selectedDate: Date }) {
-    return <h1>{selectedDate.toDateString()}</h1>;
-}
-
-export default router;
+export default appRouter;

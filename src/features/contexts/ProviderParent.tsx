@@ -1,7 +1,8 @@
 import { DisplaySettingsProvider } from "@features/contexts/DisplaySettingsContext";
 import { SubBarSettingsProvider } from "@features/contexts/SubBarContext";
 import { AnimeProvider } from "@features/contexts/AnimeContext";
-import { ToastProvider } from "@features/contexts/TemplateContext";
+import { ToastProvider } from "@features/contexts/ToastContext";
+import { UserProvider } from "./UserContext";
 
 function ProviderParent({ children }: { children: JSX.Element }) {
     return (
@@ -9,7 +10,7 @@ function ProviderParent({ children }: { children: JSX.Element }) {
             <AnimeProvider>
                 <SubBarSettingsProvider>
                     <DisplaySettingsProvider>
-                        {children}
+                        <UserProvider>{children}</UserProvider>
                     </DisplaySettingsProvider>
                 </SubBarSettingsProvider>
             </AnimeProvider>

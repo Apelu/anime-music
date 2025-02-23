@@ -540,6 +540,9 @@ function CircleContainer(props: { type?: string; renderContent?: any }) {
                     onClick={() => {
                         sendCommand("playpause");
                     }}
+                    onDoubleClick={() => {
+                        sendCommand("toggle-controls");
+                    }}
                 />
             ),
             topLeft: (

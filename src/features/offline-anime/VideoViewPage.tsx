@@ -1,4 +1,4 @@
-import { useToastDispatch } from "@features/contexts/TemplateContext";
+import { useToastDispatch } from "@features/contexts/ToastContext";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import { AnimeEpisode } from "@pages/OfflineAnime";
 import { useState, useEffect, useRef } from "react";
@@ -33,6 +33,7 @@ function VideoPlayerView(props: { data: any }) {
     const params: ExpectedParams = useParams() as any;
 
     const [showingMenu, setShowingMenu] = useState(true);
+    const [showingControls, setShowingControls] = useState(true);
     const [subtitle, setSubtitle] = useState<string | null>(null);
     const [stepsAlertData, setStepsAlertData] = useState<StepsAlertType | null>(
         null
@@ -81,6 +82,9 @@ function VideoPlayerView(props: { data: any }) {
                     : null;
 
                 if (savedProgress) {
+                    if (savedProgress.progress > video.duration - 15) {
+                        savedProgress.progress = video.duration - 15;
+                    }
                     video.currentTime = savedProgress.progress;
                 } else {
                     video.currentTime = 0;
@@ -114,9 +118,14 @@ function VideoPlayerView(props: { data: any }) {
     }
 
     const showingMenuRef = useRef(showingMenu);
+    const showingControlsRef = useRef(showingControls);
     useEffect(() => {
         showingMenuRef.current = showingMenu;
     }, [showingMenu]);
+
+    useEffect(() => {
+        showingControlsRef.current = showingControls;
+    }, [showingControls]);
 
     useEffect(() => {
         const currentHour = new Date().getHours();
@@ -187,6 +196,8 @@ function VideoPlayerView(props: { data: any }) {
                     }
                 } else if (command == "menu") {
                     setShowingMenu(!showingMenuRef.current);
+                } else if (command == "toggle-controls") {
+                    setShowingControls(!showingControlsRef.current);
                 } else if (command == "restart") {
                     const video = videoRef.current;
                     if (video) {
@@ -222,7 +233,7 @@ function VideoPlayerView(props: { data: any }) {
         return () => {
             eventSource.close();
         };
-    }, [showingMenuRef]);
+    }, [showingMenuRef, showingControlsRef]);
 
     // useEffect(() => {
     //     console.log(showingMenu);
@@ -258,6 +269,8 @@ function VideoPlayerView(props: { data: any }) {
                 setStepsAlertData={setStepsAlertData}
                 showingMenu={showingMenu}
                 setShowingMenu={setShowingMenu}
+                showingControls={showingControls}
+                setShowingControls={setShowingControls}
                 handleEnded={handleEnded}
                 lastUpdate={lastUpdate}
             />
@@ -360,6 +373,8 @@ function OldVideo({
     setStepsAlertData,
     showingMenu,
     setShowingMenu,
+    showingControls,
+    setShowingControls,
     handleEnded,
     lastUpdate,
 }: {
@@ -371,6 +386,8 @@ function OldVideo({
     >;
     showingMenu: boolean;
     setShowingMenu: React.Dispatch<React.SetStateAction<boolean>>;
+    showingControls: boolean;
+    setShowingControls: React.Dispatch<React.SetStateAction<boolean>>;
     handleEnded: (goToNextEpisode?: boolean) => void;
     lastUpdate: number;
 }) {
@@ -391,7 +408,7 @@ function OldVideo({
                 params.seriesFolderName,
                 params.episodeNumber
             )}
-            controls
+            controls={showingControls}
             autoPlay
             onPlay={() => {
                 videoRef.current?.focus();

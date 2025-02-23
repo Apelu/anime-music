@@ -1,7 +1,7 @@
 import { Anime } from "@features/api/anilist/AniListAPI";
 import { useEffect, useState } from "react";
 import { DisplayItem } from "./DisplayItem";
-import { DisplayAnimeCard } from "./AnimeDownloadPage";
+import { baseURL, DisplayAnimeCard } from "./AnimeDownloadPage";
 import { ToastContainer, Toast } from "react-bootstrap";
 
 interface Episode {
@@ -104,7 +104,7 @@ function ControllerPage() {
     const [serverStatus, setServerStatus] = useState("Down");
 
     function refreshQueue() {
-        fetch(`http://192.168.1.228:5555/api/animeDownload/downloadQueue`)
+        fetch(baseURL + `:5555/api/animeDownload/downloadQueue`)
             .then(response => {
                 return response.json();
             })
@@ -124,7 +124,7 @@ function ControllerPage() {
     }
 
     function getAnilistObj() {
-        fetch(`http://192.168.1.228:5555/api/animeDownload/anilistObject`)
+        fetch(baseURL + `:5555/api/animeDownload/anilistObject`)
             .then(response => {
                 return response.json();
             })
@@ -539,7 +539,7 @@ function MapToAniList() {
     });
 
     function refreshQueue() {
-        fetch(`http://192.168.1.228:5555/api/animeDownload/downloadQueue`)
+        fetch(baseURL + `:5555/api/animeDownload/downloadQueue`)
             .then(response => {
                 return response.json();
             })
@@ -692,7 +692,8 @@ function MapToAniList() {
                     var handledAuto = false;
                     if (isExactMatch) {
                         fetch(
-                            `http://192.168.1.228:5555/api/animeDownload/updateAnilistID?gogoSeriesPageUrl=${item.gogoSeriesPageUrl}&anilistID=${item.anilistResults.id}`
+                            baseURL +
+                                `:5555/api/animeDownload/updateAnilistID?gogoSeriesPageUrl=${item.gogoSeriesPageUrl}&anilistID=${item.anilistResults.id}`
                         )
                             .then(response => {
                                 return response.json();
@@ -803,7 +804,8 @@ function MapToAniList() {
                                                     );
 
                                                     fetch(
-                                                        `http://192.168.1.228:5555/api/animeDownload/updateAnilistID?gogoSeriesPageUrl=${item.gogoSeriesPageUrl}&anilistID=${item.anilistResults.id}`
+                                                        baseURL +
+                                                            `:5555/api/animeDownload/updateAnilistID?gogoSeriesPageUrl=${item.gogoSeriesPageUrl}&anilistID=${item.anilistResults.id}`
                                                     )
                                                         .then(response => {
                                                             return response.json();
@@ -916,7 +918,8 @@ router.get("/potentialMatches", async (req, res) => {
 
         try {
             const response = await fetch(
-                `http://192.168.1.228:5555/api/animeDownload/potentialMatches?seriesTitle=${item.seriesTitle}`
+                baseURL +
+                    `:5555/api/animeDownload/potentialMatches?seriesTitle=${item.seriesTitle}`
             );
 
             const data = await response.json();

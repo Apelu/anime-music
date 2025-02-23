@@ -1,3 +1,0 @@
-// Placholder
-
-export default {};

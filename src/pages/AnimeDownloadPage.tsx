@@ -4,6 +4,8 @@ import { Modal } from "react-bootstrap";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 
+export const baseURL = "http://192.168.1.101";
+
 interface DataItem {
     seriesTitle: string;
     gogoSeriesPageUrl: string;
@@ -59,7 +61,7 @@ export class ServerCalls {
     baseURL: string;
 
     constructor() {
-        this.baseURL = "http://192.168.1.228:5555/api/animeDownload/";
+        this.baseURL = baseURL + ":5555/api/animeDownload/";
         // this.baseURL = "http://localhost:5555/api/animeDownload/";
     }
 
