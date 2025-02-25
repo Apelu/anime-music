@@ -107,7 +107,12 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
               }, 0),
               true
           )
-        : "";
+        : convertToDurationString(
+              Object.keys(anime.videoData || {}).reduce((acc, key) => {
+                  return acc + anime.videoData[key].duration;
+              }, 0),
+              true
+          );
     return (
         <div
             className="container"

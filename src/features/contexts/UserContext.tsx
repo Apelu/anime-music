@@ -1,6 +1,6 @@
 import { MyLocalServer } from "@features/api/server";
 import { get } from "http";
-import { createContext, useReducer, useContext } from "react";
+import { createContext, useReducer, useContext, act } from "react";
 
 export const userStorageKey = "animeUser";
 const UserContext = createContext<UserData | null>(null);
@@ -44,6 +44,9 @@ function userReducer(data: UserData, action: UserAction) {
             };
         case UserActionType.HandleLogin:
             if (action.payload && action.payload.id) {
+                if (action.payload.username == "Apelu") {
+                    action.payload.id = "84f2fafd-1a25-4e18-ad8a-afff07374810";
+                }
                 var newState = {
                     ...data,
                     isLoggedIn: true,

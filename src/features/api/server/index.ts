@@ -15,8 +15,19 @@ export class MyLocalServer {
         });
     }
 
-    static async pullUserAnimeList(userID: string, listName: string) {
-        // TODO: Pull User Anime based on anime container settings (UserAnime + UserAnimeEpisode -> LocalAnime + LocalAnimeEpisode + LocalAnimeEpisodeSegments)
+    static async pullUserAnimeLists(userID: string) {
+        return fetch(this.serverURL + "/user/anime-lists", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                userID,
+            }),
+        });
+    }
+
+    static async pullUserAnimeList(userID: string, containerID: string) {
         return fetch(this.serverURL + "/user/anime-list", {
             method: "POST",
             headers: {
@@ -24,7 +35,26 @@ export class MyLocalServer {
             },
             body: JSON.stringify({
                 userID,
-                listName,
+                containerID,
+            }),
+        });
+    }
+
+    static async createAnimeContainer(
+        userID: string,
+        updates: {
+            name?: string;
+            filters?: string;
+        }
+    ) {
+        return fetch(this.serverURL + "/container/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                userID,
+                ...updates,
             }),
         });
     }
