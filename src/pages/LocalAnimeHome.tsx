@@ -168,11 +168,6 @@ function CreateContainerModal({
     );
 }
 
-interface AnimeContainerProps {
-    title: string;
-    items: any[];
-}
-
 function AnimeContainer({ container }: { container: any }) {
     const user = useUserData();
 
@@ -252,7 +247,7 @@ function AnimeContainer({ container }: { container: any }) {
                                 topLeftComponent={
                                     <span>
                                         <a
-                                            href={`https://anilist.co/anime/${anime.anilistID}`}
+                                            href={`https://anilist.co/anime/${anime.aniListID}`}
                                             target="_blank"
                                         >
                                             <img
@@ -392,6 +387,7 @@ function AnimeContainer({ container }: { container: any }) {
 
 interface AnimeContainerItemData {
     localAnimeID: string;
+    aniListID: number;
     title: string;
     coverImage: string;
     folderPath: string;
