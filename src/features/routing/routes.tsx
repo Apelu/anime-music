@@ -21,6 +21,7 @@ import { LocalAnime } from "../local-anime/LocalAnime";
 import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
 import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo";
 import { ConfirmationModal } from "@features/local-anime/LocalAnimeHome/Modal/ConfirmationModal";
+import SubBar from "@features/subBars/SubBar";
 
 export enum Paths {
     Anime = "/anime",
@@ -46,6 +47,7 @@ function Root() {
             <main className="text-light">
                 <Background />
                 <NavBar />
+
                 <Outlet />
             </main>
         );

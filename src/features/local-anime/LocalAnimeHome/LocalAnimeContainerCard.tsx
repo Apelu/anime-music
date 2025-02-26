@@ -21,6 +21,8 @@ export interface AnimeContainerCardProps {
     topLeftComponent?: string | JSX.Element | null;
     topRightComponent?: string | JSX.Element;
     bottomComponent?: string | JSX.Element;
+    marginTop?: string;
+    marginRight?: string;
 }
 
 export function AnimeContainerCard(props: AnimeContainerCardProps) {
@@ -34,6 +36,8 @@ export function AnimeContainerCard(props: AnimeContainerCardProps) {
         topLeftComponent,
         topRightComponent,
         bottomComponent,
+        marginTop,
+        marginRight,
     } = props;
 
     return (
@@ -45,8 +49,8 @@ export function AnimeContainerCard(props: AnimeContainerCardProps) {
                     width: imageWidth || "200px",
                     height: imageHeight || "300px",
                     border: "1px solid black",
-                    marginTop: "10px",
-                    marginRight: "10px",
+                    // marginTop: marginTop || "10px",
+                    // marginRight: marginRight || "10px",
                     borderRadius: bottomComponent ? "5px 5px 0 0" : "5px",
                 }}
             >

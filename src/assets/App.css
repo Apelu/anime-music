@@ -182,11 +182,11 @@ video::cue {
 
 /* Display the hover content when hovering over the trigger */
 .hover-trigger:hover > .hover-content {
-    display: block;
+    display: inline-block;
 }
 
 .card.hover-trigger:hover .hover-content {
-    display: block;
+    display: inline-block;
 }
 
 /* 
