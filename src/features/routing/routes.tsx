@@ -17,10 +17,9 @@ import { Outlet, createBrowserRouter } from "react-router-dom";
 import "../../assets/App.css";
 import { WatchControllerPage } from "../../pages/WatchControllerPage";
 import ProviderParent from "../contexts/ProviderParent";
-import { LocalAnime } from "../local-anime/LocalAnime";
+import { LocalAnime } from "../local-anime/LocalAnime/LocalAnime";
 import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
-import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo";
-import { ConfirmationModal } from "@features/local-anime/LocalAnimeHome/Modal/ConfirmationModal";
+import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo/LocalAnimeVideo";
 import SubBar from "@features/subBars/SubBar";
 
 export enum Paths {

@@ -1,24 +1,18 @@
 import { useUserData } from "@features/contexts/UserContext";
 import MyLocalServer from "@features/server/MyLocalServer";
 import { useEffect, useState } from "react";
-import { Button, Container, Form, Modal } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import { AnimeContainer } from "./LocalAnimeContainer";
-import { FormModal } from "./Modal/FormModal";
 import CreateNewModalContainerModal, {
     ShowCreateNewModalContainerButton,
-} from "./Modal/CreateNewModalContainerModal";
-import UpdateModalContainerModal from "./Modal/UpdateModalContainerModal";
-
-interface UpdateContainerPayload {
-    containerId: string;
-}
-export interface ShowingModal {
-    name: "Create new Container" | "Update Container";
-    payload?: UpdateContainerPayload;
-}
+} from "../Modal/CreateNewModalContainerModal";
+import UpdateModalContainerModal from "../Modal/UpdateModalContainerModal";
+import { ShowingModal } from "../Modal";
+import { useShowingModal } from "@features/contexts/ModalContext";
 
 export function LocalAnimeHome() {
     const user = useUserData();
+    const modal = useShowingModal();
 
     const [userContainers, setUserContainers] = useState<any[]>([]);
     async function retrieveUserContainers() {
@@ -33,9 +27,6 @@ export function LocalAnimeHome() {
         }
     }
 
-    // TODO: Probably move to context
-    const [showingModal, setShowingModal] = useState<ShowingModal | null>(null);
-
     useEffect(() => {
         retrieveUserContainers();
     }, []);
@@ -44,29 +35,15 @@ export function LocalAnimeHome() {
         <Container>
             {userContainers.map((container, index) => {
                 return (
-                    <AnimeContainer
-                        container={container}
-                        key={container.id}
-                        showingModal={showingModal}
-                        setShowingModal={setShowingModal}
-                    />
+                    <AnimeContainer container={container} key={container.id} />
                 );
             })}
 
-            <ShowCreateNewModalContainerButton
-                showingModal={showingModal}
-                setShowingModal={setShowingModal}
-            />
+            <ShowCreateNewModalContainerButton />
 
-            <CreateNewModalContainerModal
-                showingModal={showingModal}
-                setShowingModal={setShowingModal}
-            />
+            <CreateNewModalContainerModal />
 
-            <UpdateModalContainerModal
-                showingModal={showingModal}
-                setShowingModal={setShowingModal}
-            />
+            <UpdateModalContainerModal />
         </Container>
     );
 }

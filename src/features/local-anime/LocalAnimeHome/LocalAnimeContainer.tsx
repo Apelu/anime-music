@@ -1,24 +1,19 @@
+import {
+    ModalActionType,
+    useSetShowingModalDispatch,
+} from "@features/contexts/ModalContext";
 import { useUserData } from "@features/contexts/UserContext";
 import MyLocalServer from "@features/server/MyLocalServer";
+import { faPen } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { Badge, Button, Container } from "react-bootstrap";
 import { AnimeContainerCard } from "./LocalAnimeContainerCard";
-import { ShowUpdateModalContainerButton } from "./Modal/UpdateModalContainerModal";
-import SubBar from "@features/subBars/SubBar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen } from "@fortawesome/free-solid-svg-icons";
-import { set } from "video.js/dist/types/tech/middleware";
 
-export function AnimeContainer({
-    container,
-    showingModal,
-    setShowingModal,
-}: {
-    container: any;
-    showingModal: any;
-    setShowingModal: any;
-}) {
+// TODO: Live updates
+export function AnimeContainer({ container }: { container: any }) {
     const user = useUserData();
+    const setShowingModal = useSetShowingModalDispatch();
 
     const [data, setData] = useState({
         container: {
@@ -34,7 +29,15 @@ export function AnimeContainer({
             .then(res => res.json())
             .then(data => {
                 console.log({ data });
-                setData(data);
+                setData({
+                    ...data,
+                    ...{
+                        container: {
+                            ...data.container,
+                            expanded: true,
+                        },
+                    },
+                });
             })
             .catch(err => {
                 console.error(err);
@@ -45,21 +48,27 @@ export function AnimeContainer({
         pullData();
     }, []);
 
-    const containerRef = useRef<HTMLDivElement>(null);
+    // Set page title
+    useEffect(() => {
+        document.title = `Local Anime - ${container.name}`;
+    }, [container.name]);
 
-    data.container.expanded = true;
+    const containerRef = useRef<HTMLDivElement>(null);
 
     function scrollToItem(type: "prev" | "next") {
         const container = containerRef.current;
         if (!container) {
+            console.error("Container not found");
             return;
         }
 
-        const scrollAmount = container.clientWidth * 0.8;
-        console.log({ scrollAmount });
+        const scrollAmount =
+            container.clientWidth * (container.clientWidth > 600 ? 0.8 : 0.1);
+
+        console.log({ clientWidth: container.clientWidth, scrollAmount });
         container.scrollBy({
             left: type === "prev" ? -scrollAmount : scrollAmount,
-            behavior: "smooth",
+            behavior: "auto",
         });
     }
 
@@ -101,7 +110,7 @@ export function AnimeContainer({
                         onClick={e => {
                             e.stopPropagation();
                             setShowingModal({
-                                name: "Update Container",
+                                type: ModalActionType.UpdateContainer,
                                 payload: {
                                     containerId: container.id,
                                 },
@@ -122,13 +131,23 @@ export function AnimeContainer({
                             ? {
                                   display: "flex",
                                   justifyContent: "center",
-                                  backgroundColor: "rgba(0, 178, 33, 0.7)",
+                                  //   backgroundColor: "rgba(0, 178, 33, 0.7)",
                                   margin: "0",
                                   padding: "0",
                               }
                             : {}
                     }
                 >
+                    {/* <SubBar
+                        currentItemIndex={0}
+                        nextBackgroundItem={function (): void {
+                            throw new Error("Function not implemented.");
+                        }}
+                        previousBackgroundItem={function (): void {
+                            throw new Error("Function not implemented.");
+                        }}
+                    /> */}
+                    {/* TODO: Add Anime Container Settings (Sort, Filter, View Type, Keyword Search) */}
                     [Sort By] + [Sort Order] | [
                     <span onClick={() => setRowCount(null)}>
                         Infinite Rows |
@@ -138,7 +157,8 @@ export function AnimeContainer({
             </div>
             <div
                 style={{
-                    display: "flex",
+                    position: "relative",
+                    display: data.container.expanded ? "flex" : "none",
                     alignItems: "center",
                     ...(!rowCount
                         ? { paddingTop: "10px", paddingBottom: "10px" }
@@ -148,11 +168,16 @@ export function AnimeContainer({
             >
                 {rowCount && (
                     <Button
-                        variant="secondary"
+                        variant="outline-secondary"
                         onClick={() => scrollToItem("prev")}
                         style={{
                             height: "fit-content",
+                            position: "absolute",
+                            left: "10px",
+                            zIndex: 1,
+                            borderRadius: "50%",
                         }}
+                        size="lg"
                     >
                         {"<"}
                     </Button>
@@ -223,11 +248,16 @@ export function AnimeContainer({
 
                 {rowCount && (
                     <Button
-                        variant="secondary"
+                        variant="outline-secondary"
                         onClick={() => scrollToItem("next")}
                         style={{
                             height: "fit-content",
+                            position: "absolute",
+                            right: "10px",
+                            zIndex: 1,
+                            borderRadius: "50%",
                         }}
+                        size="lg"
                     >
                         {">"}
                     </Button>

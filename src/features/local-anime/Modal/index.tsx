@@ -12,3 +12,11 @@ export interface ModalState {
 export interface ModalProps extends ModalState {
     handleCancel: () => void;
 }
+
+export interface UpdateContainerPayload {
+    containerId: string;
+}
+export interface ShowingModal {
+    name: "Create new Container" | "Update Container";
+    payload?: UpdateContainerPayload;
+}

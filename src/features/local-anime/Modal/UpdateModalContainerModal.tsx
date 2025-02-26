@@ -2,7 +2,12 @@ import { useUserData } from "@features/contexts/UserContext";
 import MyLocalServer from "@features/server/MyLocalServer";
 import { useEffect, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import { ShowingModal } from "../LocalAnimeHome";
+import { ShowingModal } from ".";
+import {
+    ModalActionType,
+    useSetShowingModalDispatch,
+    useShowingModal,
+} from "@features/contexts/ModalContext";
 
 export function ShowUpdateModalContainerButton(props: {
     showingModal: ShowingModal | null;
@@ -25,19 +30,19 @@ export function ShowUpdateModalContainerButton(props: {
     );
 }
 
-function UpdateModalContainerModal(props: {
-    showingModal: ShowingModal | null;
-    setShowingModal: (modal: ShowingModal | null) => void;
-}) {
+function UpdateModalContainerModal() {
     const user = useUserData();
+    const showingModal = useShowingModal();
+    const setShowingModal = useSetShowingModalDispatch();
+
     const [formData, setFormData] = useState({
         containerName: "",
         containerFilters: "",
     });
 
-    const containerId = props.showingModal?.payload?.containerId || "";
+    const containerId = showingModal?.payload?.containerId || "";
     useEffect(() => {
-        if (props.showingModal?.name === "Update Container") {
+        if (showingModal?.type === ModalActionType.UpdateContainer) {
             if (!containerId) {
                 alert("No container id provided");
                 return;
@@ -61,7 +66,7 @@ function UpdateModalContainerModal(props: {
                     alert("Failed to fetch container data");
                 });
         }
-    }, [props.showingModal]);
+    }, [showingModal]);
 
     function updateFormData(event: any) {
         const { name, value } = event.target;
@@ -72,7 +77,9 @@ function UpdateModalContainerModal(props: {
     }
 
     function handleCancel() {
-        props.setShowingModal(null);
+        setShowingModal({
+            type: ModalActionType.ClearModal,
+        });
     }
 
     function handleFormSubmit(data: any) {
@@ -89,7 +96,9 @@ function UpdateModalContainerModal(props: {
             .then(res => res.json())
             .then(data => {
                 console.log({ data });
-                props.setShowingModal(null);
+                setShowingModal({
+                    type: ModalActionType.ClearModal,
+                });
             })
             .catch(err => {
                 alert("Failed to update container");
@@ -97,8 +106,8 @@ function UpdateModalContainerModal(props: {
             });
     }
 
-    if (props.showingModal?.name === "Update Container") {
-        const containerId = props.showingModal.payload?.containerId;
+    if (showingModal?.type === ModalActionType.UpdateContainer) {
+        const containerId = showingModal.payload?.containerId;
         if (!containerId) {
             return null;
         }

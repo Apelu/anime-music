@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
-import { ShowingModal } from "../LocalAnimeHome";
 import MyLocalServer from "@features/server/MyLocalServer";
 import { useUserData } from "@features/contexts/UserContext";
+import {
+    ModalActionType,
+    useSetShowingModalDispatch,
+    useShowingModal,
+} from "./../../contexts/ModalContext";
 
-export function ShowCreateNewModalContainerButton(props: {
-    showingModal: ShowingModal | null;
-    setShowingModal: (modal: ShowingModal | null) => void;
-}) {
+export function ShowCreateNewModalContainerButton() {
+    const setShowingModal = useSetShowingModalDispatch();
     return (
         <Button
             onClick={() =>
-                props.setShowingModal({ name: "Create new Container" })
+                setShowingModal({
+                    type: ModalActionType.CreateNewContainer,
+                })
             }
         >
             Create new Container
@@ -19,11 +23,11 @@ export function ShowCreateNewModalContainerButton(props: {
     );
 }
 
-function CreateNewModalContainerModal(props: {
-    showingModal: ShowingModal | null;
-    setShowingModal: (modal: ShowingModal | null) => void;
-}) {
+function CreateNewModalContainerModal() {
     const user = useUserData();
+    const showingModal = useShowingModal();
+    const setShowingModal = useSetShowingModalDispatch();
+
     const [formData, setFormData] = useState({
         containerName: "",
         containerFilters: JSON.stringify(
@@ -49,7 +53,9 @@ function CreateNewModalContainerModal(props: {
     }
 
     function handleCancel() {
-        props.setShowingModal(null);
+        setShowingModal({
+            type: ModalActionType.ClearModal,
+        });
     }
 
     function handleFormSubmit(data: any) {
@@ -67,7 +73,9 @@ function CreateNewModalContainerModal(props: {
             .then(res => res.json())
             .then(data => {
                 console.log({ data });
-                props.setShowingModal(null);
+                setShowingModal({
+                    type: ModalActionType.ClearModal,
+                });
             })
             .catch(err => {
                 alert("Failed to create container");
@@ -75,7 +83,7 @@ function CreateNewModalContainerModal(props: {
             });
     }
 
-    if (props.showingModal?.name === "Create new Container") {
+    if (showingModal?.type === ModalActionType.CreateNewContainer) {
         return (
             <Modal
                 show={true}
