@@ -1,17 +1,13 @@
-import React, { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faBars,
     faDragon,
-    faEllipsis,
-    faGauge,
     faHouse,
     faList,
     faMusic,
     faTable,
     faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import { faOpensuse } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useState } from "react";
 
 function SideBar() {
     const [isOpen, setOpen] = useState(true);

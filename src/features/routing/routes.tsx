@@ -17,9 +17,10 @@ import { Outlet, createBrowserRouter } from "react-router-dom";
 import "../../assets/App.css";
 import { WatchControllerPage } from "../../pages/WatchControllerPage";
 import ProviderParent from "../contexts/ProviderParent";
-import { LocalAnimeHome } from "../../pages/LocalAnimeHome";
-import { LocalAnime } from "../../pages/LocalAnime";
-import { LocalAnimeVideo } from "../../pages/LocalAnimeVideo";
+import { LocalAnime } from "../local-anime/LocalAnime";
+import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
+import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo";
+import { ConfirmationModal } from "@features/local-anime/LocalAnimeHome/Modal/ConfirmationModal";
 
 export enum Paths {
     Anime = "/anime",

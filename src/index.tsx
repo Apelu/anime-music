@@ -1,5 +1,5 @@
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "@assets/custom.scss";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 import ReactDOM from "react-dom/client";
 

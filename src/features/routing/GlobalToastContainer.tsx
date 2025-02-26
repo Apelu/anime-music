@@ -1,5 +1,5 @@
 import { ToastData, useToastData } from "@features/contexts/ToastContext";
-import { ToastContainer, Toast } from "react-bootstrap";
+import { Toast, ToastContainer } from "react-bootstrap";
 
 export function GlobalToastContainer() {
     const toasts = useToastData();

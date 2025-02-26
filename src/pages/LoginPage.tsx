@@ -1,4 +1,4 @@
-import { MyLocalServer } from "@features/api/server";
+import MyLocalServer from "@features/server/MyLocalServer";
 import {
     UserActionType,
     useUserData,

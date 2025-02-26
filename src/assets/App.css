@@ -101,6 +101,11 @@
 
 /* Web Preview dimensions */
 
+/* dialogClassName="modal-90w" */
+.modal-90w {
+    width: 80%;
+    max-width: 1200px;
+}
 @media (max-width: 600px) {
 }
 

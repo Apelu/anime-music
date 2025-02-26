@@ -1,6 +1,6 @@
 import { baseURL } from "@pages/AnimeDownloadPage";
 
-export class MyLocalServer {
+class MyLocalServer {
     static serverURL = baseURL + ":2222/api";
     static async loginUser(username: string, password: string) {
         return fetch(this.serverURL + "/user/login", {
@@ -59,5 +59,28 @@ export class MyLocalServer {
         });
     }
 
+    static async updateAnimeContainer(
+        userID: string,
+        containerID: string,
+        updates: {
+            name?: string;
+            filters?: string;
+        }
+    ) {
+        return fetch(this.serverURL + "/container/update", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                userID,
+                containerID,
+                ...updates,
+            }),
+        });
+    }
+
     static async refreshUser() {}
 }
+
+export default MyLocalServer;
