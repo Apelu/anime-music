@@ -5,17 +5,14 @@
  */
 
 import { AniListSortOptions } from "@data/constants";
-import { linkedSeriesRef } from "@features/api/firebase";
 import {
     DisplaySettingsActionType,
     DisplaySettingsContext,
     DisplaySettingsDispatchContext,
 } from "@features/contexts/DisplaySettingsContext";
-import TheUltimateDropdown from "@features/ui/TheUltimateDropdown";
-import { faEllipsisH, faEllipsisV } from "@fortawesome/free-solid-svg-icons";
+import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { getDoc } from "firebase/firestore";
-import { useState, useEffect, useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
     Badge,
     Button,
@@ -24,7 +21,6 @@ import {
     Dropdown,
     ListGroup,
     ListGroupItem,
-    ToggleButton,
 } from "react-bootstrap";
 
 interface SeriesLink {

@@ -1,56 +1,44 @@
 import {
-    AniListSortOptions,
     getSortIcon,
+    SortDirection,
     SortType,
-    AniListGroupOptions,
     ViewType,
     ViewTypeIcons,
-    AniListFilterOptions,
-    AniListStatusOptions,
-    AniListFormatOptions,
-    AniListTagOptions,
 } from "@data/constants";
+import TheUltimateDropdown from "@features/ui/TheUltimateDropdown";
 import {
-    DisplaySettingsActionType,
-    DisplaySettingsContext,
-    DisplaySettingsDispatchContext,
-} from "@features/contexts/DisplaySettingsContext";
-import HrWithName from "@features/ui/HrWithName";
-import TheUltimateDropdown, {
-    TitleType,
-} from "@features/ui/TheUltimateDropdown";
-import {
-    faFilterCircleXmark,
-    faFilter,
     faClose,
+    faFilter,
+    faFilterCircleXmark,
     faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useContext } from "react";
+import { useState } from "react";
 import {
-    Container,
-    ButtonGroup,
-    Button,
     Badge,
-    ToggleButtonGroup,
-    ToggleButton,
+    Button,
+    ButtonGroup,
+    Container,
     Form,
+    ToggleButton,
+    ToggleButtonGroup,
 } from "react-bootstrap";
 
-function DisplaySettingsSubBar() {
-    const displaySettings = useContext(DisplaySettingsContext);
-    const dispatchDisplaySettings = useContext(DisplaySettingsDispatchContext);
-    console.log(displaySettings);
+export interface AnimeContainerSettingsSubBarProps {
+    id: string;
+    settings: AnimeContainerSettings;
+    updateSettings: (action: AnimeContainerSettingsAction) => void;
+}
 
-    if (!displaySettings || !dispatchDisplaySettings) {
-        return null;
-    }
-
+function AnimeContainerSettingsSubBar(
+    props: AnimeContainerSettingsSubBarProps
+) {
+    const { id, settings, updateSettings } = props;
     return (
-        <Container fluid className="pt-2 pb-2 bg-dark text-light mt-1">
+        <Container fluid className="bg-dark text-light">
             <div className=" d-flex align-items-end mb-2">
                 {/* Sort By */}
-                <div className="d-flex flex-column">
+                <div className="ms-auto d-flex flex-column">
                     Sort By
                     <ButtonGroup className="me-2">
                         <TheUltimateDropdown
@@ -60,12 +48,12 @@ function DisplaySettingsSubBar() {
                             toggleProps={{
                                 variant: "primary",
                             }}
-                            title={displaySettings.sortBy}
-                            selectedItems={[displaySettings.sortBy]}
-                            items={displaySettings.sortByOptions}
+                            title={settings.sortBy}
+                            selectedItems={[settings.sortBy]}
+                            items={settings.sortByOptions}
                             handleItemClick={(item: string) => {
-                                dispatchDisplaySettings({
-                                    type: DisplaySettingsActionType.HandleSortBySelection,
+                                updateSettings({
+                                    type: AnimeContainerSettingsActionType.HandleSortBySelection,
                                     payload: item,
                                 });
                             }}
@@ -74,55 +62,15 @@ function DisplaySettingsSubBar() {
                         <Button
                             variant={"secondary"}
                             onClick={() =>
-                                dispatchDisplaySettings({
-                                    type: DisplaySettingsActionType.ToggleSortDirection,
+                                updateSettings({
+                                    type: AnimeContainerSettingsActionType.ToggleSortDirection,
                                 })
                             }
                         >
                             <FontAwesomeIcon
                                 icon={getSortIcon(
                                     SortType.Numeric,
-                                    displaySettings.sortDirection
-                                )}
-                            />
-                        </Button>
-                    </ButtonGroup>
-                </div>
-
-                {/* Group By */}
-                <div className="d-flex flex-column me-2">
-                    Group By
-                    <ButtonGroup>
-                        <TheUltimateDropdown
-                            dropdownProps={{
-                                as: ButtonGroup,
-                            }}
-                            toggleProps={{
-                                variant: "primary",
-                            }}
-                            titleType={TitleType.SelectedItems}
-                            selectedItems={[displaySettings.groupBy]}
-                            items={displaySettings.groupByOptions}
-                            handleItemClick={(item: string) =>
-                                dispatchDisplaySettings({
-                                    type: DisplaySettingsActionType.HandleGroupBySelection,
-                                    payload: item,
-                                })
-                            }
-                        />
-
-                        <Button
-                            variant={"secondary"}
-                            onClick={() =>
-                                dispatchDisplaySettings({
-                                    type: DisplaySettingsActionType.ToggleGroupDirection,
-                                })
-                            }
-                        >
-                            <FontAwesomeIcon
-                                icon={getSortIcon(
-                                    SortType.Alphabetical,
-                                    displaySettings.groupDirection
+                                    settings.sortDirection
                                 )}
                             />
                         </Button>
@@ -133,28 +81,28 @@ function DisplaySettingsSubBar() {
                 <Button
                     variant={"outline-success"}
                     onClick={() =>
-                        dispatchDisplaySettings({
-                            type: DisplaySettingsActionType.ToggleIsFiltering,
+                        updateSettings({
+                            type: AnimeContainerSettingsActionType.ToggleIsFiltering,
                         })
                     }
                     title={
-                        displaySettings.showingFilters
+                        settings.showingFilters
                             ? "Hide Filters"
                             : "Show Filters <Current Filter: " +
-                              JSON.stringify(displaySettings.filter) +
+                              JSON.stringify(settings.filter) +
                               ">"
                     }
                     className="position-relative"
                 >
                     <FontAwesomeIcon
                         icon={
-                            displaySettings.showingFilters
+                            settings.showingFilters
                                 ? faFilterCircleXmark
                                 : faFilter
                         }
                     />
-                    {/* {Object.values(displaySettings.filter).filter(
-                        it => it.length > 0
+                    {Object.values(settings.filter).filter(
+                        (it: any) => it.length > 0
                     ).length > 0 && (
                         <Badge
                             pill
@@ -167,32 +115,32 @@ function DisplaySettingsSubBar() {
                                 zIndex: 10,
                             }}
                         >
-                             {
-                                Object.values(displaySettings.filter).filter(
-                                    it => it.length > 0
+                            {
+                                Object.values(settings.filter).filter(
+                                    (it: any) => it.length > 0
                                 ).length
-                            } 
+                            }
                         </Badge>
-                    )} */}
+                    )}
                 </Button>
 
                 {/* View Type */}
-                <div className="d-flex flex-column align-items-center ms-auto me-2">
+                <div className="d-flex flex-column align-items-center ms-2">
                     <ToggleButtonGroup
                         type="radio"
-                        name="viewToggle"
-                        defaultValue={displaySettings.viewType}
-                        onChange={(e: any) => {
-                            dispatchDisplaySettings({
-                                type: DisplaySettingsActionType.HandleViewTypeChange,
-                                payload: e.target.value,
+                        name={`tbg-radio-${id}`}
+                        defaultValue={settings.viewType}
+                        onChange={(viewType: ViewType) => {
+                            updateSettings({
+                                type: AnimeContainerSettingsActionType.HandleViewTypeChange,
+                                payload: viewType,
                             });
                         }}
                     >
                         {Object.values(ViewType).map(viewType => (
                             <ToggleButton
                                 key={viewType}
-                                id={`tbg-radio-${viewType}`}
+                                id={`tbg-radio-${viewType}-${id}`}
                                 value={viewType}
                                 variant="outline-success"
                             >
@@ -207,31 +155,31 @@ function DisplaySettingsSubBar() {
 
                 {/* Toggle Search */}
                 <Button
+                    className="ms-2 me-auto"
                     variant={"outline-success"}
                     onClick={() =>
-                        dispatchDisplaySettings({
-                            type: DisplaySettingsActionType.ToggleIsSearching,
+                        updateSettings({
+                            type: AnimeContainerSettingsActionType.ToggleIsSearching,
                         })
                     }
                 >
                     <FontAwesomeIcon
-                        icon={displaySettings.isSearching ? faClose : faSearch}
+                        icon={settings.isSearching ? faClose : faSearch}
                     />
                 </Button>
             </div>
 
             {/* Search Bar */}
-            {displaySettings.isSearching && (
+            {settings.isSearching && (
                 <>
-                    Keyword Search
                     <Form.Control
                         type="search"
-                        placeholder="Search"
+                        placeholder="Keyword Search"
                         className="mb-2"
-                        value={displaySettings.searchText}
+                        value={settings.searchText}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            dispatchDisplaySettings({
-                                type: DisplaySettingsActionType.HandleSearchTextUpdates,
+                            updateSettings({
+                                type: AnimeContainerSettingsActionType.HandleSearchTextUpdates,
                                 payload: e.target.value,
                             })
                         }
@@ -240,7 +188,7 @@ function DisplaySettingsSubBar() {
             )}
 
             {/* Filters */}
-            {/* {displaySettings.showingFilters && (
+            {/* {settings.showingFilters && (
                 <>
                     <HrWithName name="Filters" />
                     <div className="d-flex flex-wrap">
@@ -257,7 +205,7 @@ function DisplaySettingsSubBar() {
                                     title={filterOption}
                                     titleType={TitleType.Both}
                                     selectedItems={
-                                        displaySettings.filter[filterOption]
+                                        settings.filter[filterOption]
                                     }
                                     items={Object.values(
                                         filterOption === FilterOptions.Status
@@ -271,14 +219,14 @@ function DisplaySettingsSubBar() {
                                     )}
                                     handleItemClick={(item: string) => {
                                         var selectedItems =
-                                            displaySettings.filter[
+                                            settings.filter[
                                                 filterOption
                                             ];
                                         if (selectedItems.includes(item)) {
                                             // setDisplaySettings({
-                                            //     ...displaySettings,
+                                            //     ...settings,
                                             //     filter: {
-                                            //         ...displaySettings.filter,
+                                            //         ...settings.filter,
                                             //         [filterOption]:
                                             //             selectedItems.filter(
                                             //                 selectedItem =>
@@ -289,9 +237,9 @@ function DisplaySettingsSubBar() {
                                             // });
                                         } else {
                                             // setDisplaySettings({
-                                            //     ...displaySettings,
+                                            //     ...settings,
                                             //     filter: {
-                                            //         ...displaySettings.filter,
+                                            //         ...settings.filter,
                                             //         [filterOption]: [
                                             //             ...selectedItems,
                                             //             item,
@@ -309,4 +257,45 @@ function DisplaySettingsSubBar() {
         </Container>
     );
 }
-export default DisplaySettingsSubBar;
+
+export enum AnimeContainerSettingsActionType {
+    SetSortByOptions = "SetSortByOptions",
+    ToggleIsFiltering = "ToggleIsFiltering",
+    ToggleIsSearching = "ToggleIsSearching",
+    HandleSearchTextUpdates = "HandleSearchTextUpdates",
+    HandleViewTypeChange = "HandleViewTypeChange",
+    ToggleGroupDirection = "ToggleGroupDirection",
+    HandleGroupBySelection = "HandleGroupBySelection",
+    ToggleSortDirection = "ToggleSortDirection",
+    HandleSortBySelection = "HandleSortBySelection",
+}
+
+export interface AnimeContainerSettingsAction {
+    type:
+        | AnimeContainerSettingsActionType.SetSortByOptions
+        | AnimeContainerSettingsActionType.ToggleIsFiltering
+        | AnimeContainerSettingsActionType.ToggleIsSearching
+        | AnimeContainerSettingsActionType.HandleSearchTextUpdates
+        | AnimeContainerSettingsActionType.HandleViewTypeChange
+        | AnimeContainerSettingsActionType.ToggleGroupDirection
+        | AnimeContainerSettingsActionType.HandleGroupBySelection
+        | AnimeContainerSettingsActionType.ToggleSortDirection
+        | AnimeContainerSettingsActionType.HandleSortBySelection;
+    payload?: any;
+}
+
+export interface AnimeContainerSettings {
+    isOpen: boolean;
+    showingFilters: boolean;
+    filter: any;
+
+    isSearching: boolean;
+    searchText: string;
+
+    sortBy: string;
+    sortByOptions: string[];
+    sortDirection: SortDirection;
+
+    viewType: ViewType;
+}
+export default AnimeContainerSettingsSubBar;

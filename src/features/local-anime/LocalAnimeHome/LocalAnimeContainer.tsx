@@ -3,18 +3,26 @@ import {
     useSetShowingModalDispatch,
 } from "@features/contexts/ModalContext";
 import { useUserData } from "@features/contexts/UserContext";
+import TheUltimateDropdown from "@features/ui/TheUltimateDropdown";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useRef, useState } from "react";
-import { Badge, Button, Container } from "react-bootstrap";
 import MyLocalServer from "@shared/MyLocalServer";
 import { UserContainer } from "@shared/serverCalls/PullLocalUserAnimeContainers";
+import UpdateLocalUserAnimeContainer from "@shared/serverCalls/UpdateLocalUserAnimeContainer";
+import { useEffect, useRef, useState } from "react";
+import { Badge, Button, Card, Container } from "react-bootstrap";
 import AniListLogoLink from "../Global/AniListLogoLink";
 import { AnimeContainerCard } from "./LocalAnimeContainerCard";
-import CreateNewLocalUserAnimeContainer from "@shared/serverCalls/CreateNewLocalUserAnimeContainer";
-import UpdateLocalUserAnimeContainer from "@shared/serverCalls/UpdateLocalUserAnimeContainer";
+import SubBar from "@features/subBars/SubBar";
+import {
+    AnimeContainerSettings,
+    AnimeContainerSettingsAction,
+    AnimeContainerSettingsActionType,
+} from "@features/subBars/AnimeContainerSettingsSubBar";
+import { SortDirection, ViewType } from "@data/constants";
 
-// TODO: Live updates / Sorting / Refactoring
+// TODO: Live updates / Sorting / Refactorin
+// TODO: Add sort options and send update when subbar settings updated
 export function LocalUserAnimeContainer({
     userContainer,
 }: {
@@ -32,7 +40,71 @@ export function LocalUserAnimeContainer({
         items: [],
     });
 
-    const [rowCount, setRowCount] = useState<number | null>(null);
+    const [settings, setSettings] = useState<AnimeContainerSettings>({
+        isOpen: false,
+        showingFilters: false,
+        filter: {},
+
+        isSearching: false,
+        searchText: "",
+
+        sortBy: "",
+        sortByOptions: [],
+        sortDirection: SortDirection.Descending,
+
+        viewType: ViewType.Card,
+    });
+
+    function updateSettings(action: AnimeContainerSettingsAction) {
+        setSettings(newSettings());
+        function newSettings() {
+            switch (action.type) {
+                case AnimeContainerSettingsActionType.SetSortByOptions:
+                    return {
+                        ...settings,
+                        sortBy: action.payload[0],
+                        sortByOptions: action.payload, // newSortByOptions
+                    };
+                case AnimeContainerSettingsActionType.ToggleIsFiltering:
+                    return {
+                        ...settings,
+                        showingFilters: !settings.showingFilters,
+                    };
+                case AnimeContainerSettingsActionType.ToggleIsSearching:
+                    return {
+                        ...settings,
+                        isSearching: !settings.isSearching,
+                        searchText: "",
+                    };
+                case AnimeContainerSettingsActionType.HandleSearchTextUpdates:
+                    return {
+                        ...settings,
+                        searchText: action.payload, // newSearchText
+                    };
+                case AnimeContainerSettingsActionType.HandleViewTypeChange:
+                    return {
+                        ...settings,
+                        viewType: action.payload, // newValue
+                    };
+
+                case AnimeContainerSettingsActionType.ToggleSortDirection:
+                    return {
+                        ...settings,
+                        sortDirection:
+                            settings.sortDirection === SortDirection.Ascending
+                                ? SortDirection.Descending
+                                : SortDirection.Ascending,
+                    };
+                case AnimeContainerSettingsActionType.HandleSortBySelection:
+                    return {
+                        ...settings,
+                        sortBy: action.payload,
+                    };
+                default:
+                    throw new Error("Unknown action type");
+            }
+        }
+    }
 
     function pullData() {
         MyLocalServer.getUserAnimeContainer(user.id, userContainer.id)
@@ -67,6 +139,7 @@ export function LocalUserAnimeContainer({
         });
     }
 
+    const rowCount = settings.viewType === ViewType.List ? 1 : 0;
     return (
         <Container
             fluid
@@ -146,21 +219,17 @@ export function LocalUserAnimeContainer({
                             : {}
                     }
                 >
-                    {/* <SubBar
-                        currentItemIndex={0}
-                        nextBackgroundItem={function (): void {
-                            throw new Error("Function not implemented.");
+                    <SubBar
+                        id={userContainer.id}
+                        settings={settings}
+                        updateSettings={updateSettings}
+                        toggleOpen={() => {
+                            setSettings({
+                                ...settings,
+                                isOpen: !settings.isOpen,
+                            });
                         }}
-                        previousBackgroundItem={function (): void {
-                            throw new Error("Function not implemented.");
-                        }}
-                    /> */}
-                    {/* TODO: Add Anime Container Settings (Sort, Filter, View Type, Keyword Search) */}
-                    [Sort By] + [Sort Order] | [
-                    <span onClick={() => setRowCount(null)}>
-                        Infinite Rows |
-                    </span>
-                    <span onClick={() => setRowCount(1)}>| 1 Row]</span>
+                    />
                 </div>
             </div>
             <div
@@ -211,36 +280,44 @@ export function LocalUserAnimeContainer({
                         scrollbarWidth: "none",
                     }}
                 >
-                    {containerContent.items.map((anime: any, index: number) => {
-                        return (
-                            <div
-                                key={anime.localAnimeID}
-                                style={{ scrollSnapAlign: "center" }}
-                            >
-                                <AnimeContainerCard
-                                    anime={anime}
-                                    onImageClickLink={`/local-anime/${anime.localAnimeID}`}
-                                    onTitleClickLink={`/local-anime/${anime.localAnimeID}`}
-                                    topLeftComponent={
-                                        <AniListLogoLink
-                                            aniListID={anime.aniListID}
-                                        />
-                                    }
-                                    topRightComponent={
-                                        <div>
-                                            {anime.watchProgress
-                                                ? `${anime.watchProgress} / `
-                                                : ""}
-                                            {anime.finalEpisode}{" "}
-                                            {anime.watchStatus == "Planning"
-                                                ? " (P)"
-                                                : ""}
-                                        </div>
-                                    }
-                                />
-                            </div>
-                        );
-                    })}
+                    {containerContent.items
+                        .filter(
+                            (anime: any) =>
+                                !settings.isSearching ||
+                                anime.title
+                                    .toLowerCase()
+                                    .includes(settings.searchText.toLowerCase())
+                        )
+                        .map((anime: any, index: number) => {
+                            return (
+                                <div
+                                    key={anime.localAnimeID}
+                                    style={{ scrollSnapAlign: "center" }}
+                                >
+                                    <AnimeContainerCard
+                                        anime={anime}
+                                        onImageClickLink={`/local-anime/${anime.localAnimeID}`}
+                                        onTitleClickLink={`/local-anime/${anime.localAnimeID}`}
+                                        topLeftComponent={
+                                            <AniListLogoLink
+                                                aniListID={anime.aniListID}
+                                            />
+                                        }
+                                        topRightComponent={
+                                            <div>
+                                                {anime.watchProgress
+                                                    ? `${anime.watchProgress} / `
+                                                    : ""}
+                                                {anime.finalEpisode}{" "}
+                                                {anime.watchStatus == "Planning"
+                                                    ? " (P)"
+                                                    : ""}
+                                            </div>
+                                        }
+                                    />
+                                </div>
+                            );
+                        })}
                 </div>
 
                 {rowCount && (
@@ -261,5 +338,31 @@ export function LocalUserAnimeContainer({
                 )}
             </div>
         </Container>
+    );
+}
+
+function StackedCard(props: any) {
+    const {
+        label = "Placeholder",
+        value,
+        onClick = () => alert("Clicked"),
+    } = props;
+    return (
+        <Card
+            style={{
+                cursor: "pointer",
+                padding: "0px 8px",
+            }}
+        >
+            <div
+                style={{
+                    marginBottom: "-4px",
+                    fontSize: "0.7em",
+                }}
+            >
+                <strong>{label}</strong>
+            </div>
+            <TheUltimateDropdown />
+        </Card>
     );
 }

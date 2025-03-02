@@ -20,7 +20,6 @@ import ProviderParent from "../contexts/ProviderParent";
 import { LocalAnime } from "../local-anime/LocalAnime/LocalAnime";
 import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
 import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo/LocalAnimeVideo";
-import SubBar from "@features/subBars/SubBar";
 
 export enum Paths {
     Anime = "/anime",
@@ -43,8 +42,8 @@ function Root() {
 
     if (user.isLoggedIn) {
         return (
-            <main className="text-light bg-dark">
-                {/* <Background /> */}
+            <main className="text-light ">
+                <Background />
                 <NavBar />
 
                 <Outlet />
