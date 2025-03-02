@@ -14,9 +14,10 @@ export interface ModalProps extends ModalState {
 }
 
 export interface UpdateContainerPayload {
-    containerId: string;
+    containerID: string;
 }
-export interface ShowingModal {
-    name: "Create new Container" | "Update Container";
-    payload?: UpdateContainerPayload;
-}
+
+// export interface ShowingModal {
+//     name: "Create new Container" | "Update Container";
+//     payload?: UpdateContainerPayload;
+// }

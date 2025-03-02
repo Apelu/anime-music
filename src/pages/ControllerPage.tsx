@@ -1,8 +1,9 @@
 import { Anime } from "@features/api/anilist/AniListAPI";
 import { useEffect, useState } from "react";
 import { DisplayItem } from "./DisplayItem";
-import { baseURL, DisplayAnimeCard } from "./AnimeDownloadPage";
+import { DisplayAnimeCard } from "./AnimeDownloadPage";
 import { ToastContainer, Toast } from "react-bootstrap";
+import { baseURL } from "@shared/MyLocalServer";
 
 interface Episode {
     watchPageUrl: string;

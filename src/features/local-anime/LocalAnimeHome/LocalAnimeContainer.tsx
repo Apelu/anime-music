@@ -3,40 +3,44 @@ import {
     useSetShowingModalDispatch,
 } from "@features/contexts/ModalContext";
 import { useUserData } from "@features/contexts/UserContext";
-import MyLocalServer from "@features/server/MyLocalServer";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { Badge, Button, Container } from "react-bootstrap";
+import MyLocalServer from "@shared/MyLocalServer";
+import { UserContainer } from "@shared/serverCalls/PullLocalUserAnimeContainers";
+import AniListLogoLink from "../Global/AniListLogoLink";
 import { AnimeContainerCard } from "./LocalAnimeContainerCard";
+import CreateNewLocalUserAnimeContainer from "@shared/serverCalls/CreateNewLocalUserAnimeContainer";
+import UpdateLocalUserAnimeContainer from "@shared/serverCalls/UpdateLocalUserAnimeContainer";
 
-// TODO: Live updates
-export function AnimeContainer({ container }: { container: any }) {
+// TODO: Live updates / Sorting / Refactoring
+export function LocalUserAnimeContainer({
+    userContainer,
+}: {
+    userContainer: UserContainer;
+}) {
     const user = useUserData();
     const setShowingModal = useSetShowingModalDispatch();
 
-    const [data, setData] = useState({
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerContent, setContainerContent] = useState({
         container: {
             name: "",
             expanded: false,
         },
         items: [],
     });
+
     const [rowCount, setRowCount] = useState<number | null>(null);
 
     function pullData() {
-        MyLocalServer.pullUserAnimeList(user.id, container.id)
+        MyLocalServer.getUserAnimeContainer(user.id, userContainer.id)
             .then(res => res.json())
             .then(data => {
                 console.log({ data });
-                setData({
+                setContainerContent({
                     ...data,
-                    ...{
-                        container: {
-                            ...data.container,
-                            expanded: true,
-                        },
-                    },
                 });
             })
             .catch(err => {
@@ -48,27 +52,18 @@ export function AnimeContainer({ container }: { container: any }) {
         pullData();
     }, []);
 
-    // Set page title
-    useEffect(() => {
-        document.title = `Local Anime - ${container.name}`;
-    }, [container.name]);
-
-    const containerRef = useRef<HTMLDivElement>(null);
-
     function scrollToItem(type: "prev" | "next") {
         const container = containerRef.current;
         if (!container) {
-            console.error("Container not found");
-            return;
+            return console.error("Container not found");
         }
 
         const scrollAmount =
             container.clientWidth * (container.clientWidth > 600 ? 0.8 : 0.1);
 
-        console.log({ clientWidth: container.clientWidth, scrollAmount });
         container.scrollBy({
             left: type === "prev" ? -scrollAmount : scrollAmount,
-            behavior: "auto",
+            behavior: "smooth",
         });
     }
 
@@ -93,11 +88,24 @@ export function AnimeContainer({ container }: { container: any }) {
                 <h2
                     className="bg-primary p-2 mb-0 hover-trigger"
                     onClick={() => {
-                        setData({
-                            ...data,
+                        new UpdateLocalUserAnimeContainer().fetch({
+                            userID: user.id,
+                            updatedContainer: {
+                                id: userContainer.id,
+                                userID: user.id,
+                                name: userContainer.name,
+                                filters: userContainer.filters,
+                                expanded: !containerContent.container.expanded,
+                                sortBy: "",
+                                sortOrder: "desc",
+                            },
+                        });
+
+                        setContainerContent({
+                            ...containerContent,
                             container: {
-                                ...data.container,
-                                expanded: !data.container.expanded,
+                                ...containerContent.container,
+                                expanded: !containerContent.container.expanded,
                             },
                         });
                     }}
@@ -112,22 +120,22 @@ export function AnimeContainer({ container }: { container: any }) {
                             setShowingModal({
                                 type: ModalActionType.UpdateContainer,
                                 payload: {
-                                    containerId: container.id,
+                                    containerID: userContainer.id,
                                 },
                             });
                         }}
                     />
-                    {data.container.name}{" "}
+                    {containerContent.container.name}{" "}
                     <Badge bg="info" className="p-1">
-                        <small>{data.items.length}</small>
+                        <small>{containerContent.items.length}</small>
                     </Badge>
                 </h2>
                 <div
                     className={`collapse ${
-                        data.container.expanded ? "show" : ""
+                        containerContent.container.expanded ? "show" : ""
                     }`}
                     style={
-                        data.container.expanded
+                        containerContent.container.expanded
                             ? {
                                   display: "flex",
                                   justifyContent: "center",
@@ -158,13 +166,17 @@ export function AnimeContainer({ container }: { container: any }) {
             <div
                 style={{
                     position: "relative",
-                    display: data.container.expanded ? "flex" : "none",
+                    display: containerContent.container.expanded
+                        ? "flex"
+                        : "none",
                     alignItems: "center",
                     ...(!rowCount
                         ? { paddingTop: "10px", paddingBottom: "10px" }
                         : { padding: "10px" }),
                 }}
-                className={`collapse ${data.container.expanded ? "show" : ""}`}
+                className={`collapse ${
+                    containerContent.container.expanded ? "show" : ""
+                }`}
             >
                 {rowCount && (
                     <Button
@@ -191,43 +203,28 @@ export function AnimeContainer({ container }: { container: any }) {
                         gap: "10px",
                         paddingLeft: !rowCount ? "" : "10px",
                         paddingRight: !rowCount ? "" : "10px",
-                        // marginLeft: !rowCount ? "" : "10px",
-                        // marginRight: !rowCount ? "" : "10px",
                         flexWrap: !rowCount ? "wrap" : "nowrap",
                         overflowX: !rowCount ? "hidden" : "auto",
                         justifyContent: !rowCount ? "center" : "flex-start",
-                        // backgroundColor: "rgba(0, 0, 0, 0.5)",
                         scrollSnapType: "x mandatory",
 
                         scrollbarWidth: "none",
                     }}
                 >
-                    {data.items.map((anime: any, index: number) => {
+                    {containerContent.items.map((anime: any, index: number) => {
                         return (
-                            <div style={{ scrollSnapAlign: "center" }}>
+                            <div
+                                key={anime.localAnimeID}
+                                style={{ scrollSnapAlign: "center" }}
+                            >
                                 <AnimeContainerCard
-                                    // marginTop={!rowCount ? undefined : "0px"}
-                                    key={index}
                                     anime={anime}
                                     onImageClickLink={`/local-anime/${anime.localAnimeID}`}
                                     onTitleClickLink={`/local-anime/${anime.localAnimeID}`}
-                                    // TODO: Make Template for topLeft is AniList Link
                                     topLeftComponent={
-                                        <span>
-                                            <a
-                                                href={`https://anilist.co/anime/${anime.aniListID}`}
-                                                target="_blank"
-                                            >
-                                                <img
-                                                    loading="lazy"
-                                                    src={
-                                                        "https://anilist.co/img/logo_al.png"
-                                                    }
-                                                    alt="?"
-                                                    style={{ width: "20px" }}
-                                                />
-                                            </a>
-                                        </span>
+                                        <AniListLogoLink
+                                            aniListID={anime.aniListID}
+                                        />
                                     }
                                     topRightComponent={
                                         <div>

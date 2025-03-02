@@ -3,8 +3,7 @@ import { DisplayItem } from "./DisplayItem";
 import { Modal } from "react-bootstrap";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
-
-export const baseURL = "http://192.168.1.101";
+import { baseURL } from "@shared/MyLocalServer";
 
 interface DataItem {
     seriesTitle: string;

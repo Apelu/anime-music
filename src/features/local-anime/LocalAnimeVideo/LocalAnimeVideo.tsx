@@ -1,3 +1,3 @@
 export function LocalAnimeVideo() {
-    return <div></div>;
+    return <div>VID</div>;
 }

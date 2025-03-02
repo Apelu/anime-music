@@ -1,11 +1,10 @@
 import { AnimeData } from "@features/contexts/AnimeContext";
+import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { useEffect } from "react";
 import { Button, Card, ProgressBar } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { removeWords } from "./AnimeGroup";
-import { getLatestWatchedEpisode, AnimeCard } from "./OfflineAnimeV2";
-import { ServerCalls } from "@pages/AnimeDownloadPage";
-import ts from "typescript";
-import { Key, useEffect } from "react";
+import { AnimeCard, getLatestWatchedEpisode } from "./OfflineAnimeV2";
 
 export function EpisodeViewPage(props: EpisodeViewPageProps) {
     useEffect(() => {

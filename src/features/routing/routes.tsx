@@ -43,8 +43,8 @@ function Root() {
 
     if (user.isLoggedIn) {
         return (
-            <main className="text-light">
-                <Background />
+            <main className="text-light bg-dark">
+                {/* <Background /> */}
                 <NavBar />
 
                 <Outlet />

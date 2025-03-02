@@ -1,26 +1,30 @@
 import { useUserData } from "@features/contexts/UserContext";
-import MyLocalServer from "@features/server/MyLocalServer";
 import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
-import { AnimeContainer } from "./LocalAnimeContainer";
-import CreateNewModalContainerModal, {
-    ShowCreateNewModalContainerButton,
-} from "../Modal/CreateNewModalContainerModal";
-import UpdateModalContainerModal from "../Modal/UpdateModalContainerModal";
-import { ShowingModal } from "../Modal";
-import { useShowingModal } from "@features/contexts/ModalContext";
+import CreateUpdateModalContainerModal, {
+    CreateNewModalContainerButton,
+} from "../Modal/CreateUpdateModalContainerModal";
+import { LocalUserAnimeContainer } from "./LocalAnimeContainer";
+import PullLocalUserAnimeContainers, {
+    PullLocalUserAnimeContainersResponse,
+    UserContainer,
+} from "@shared/serverCalls/PullLocalUserAnimeContainers";
 
 export function LocalAnimeHome() {
     const user = useUserData();
-    const modal = useShowingModal();
 
-    const [userContainers, setUserContainers] = useState<any[]>([]);
+    const [userContainers, setUserContainers] = useState<UserContainer[]>([]);
+
     async function retrieveUserContainers() {
         try {
-            const response = await MyLocalServer.pullUserAnimeLists(user.id);
-            const retrievedUserContainers = await response.json();
-            console.log({ retrievedUserContainers });
-            setUserContainers(retrievedUserContainers);
+            const response = await new PullLocalUserAnimeContainers().fetch({
+                userID: user.id,
+            });
+            const data: PullLocalUserAnimeContainersResponse =
+                await response.json();
+
+            console.log({ userContainers: data.userContainers });
+            setUserContainers(data.userContainers);
         } catch (e) {
             console.error(e);
             alert("Failed to retrieve user containers");
@@ -28,22 +32,23 @@ export function LocalAnimeHome() {
     }
 
     useEffect(() => {
+        //  TODO: Listen for live updates (New containers, container updates)
         retrieveUserContainers();
     }, []);
 
     return (
-        <Container>
-            {userContainers.map((container, index) => {
+        <Container fluid>
+            {userContainers.map(userContainer => {
                 return (
-                    <AnimeContainer container={container} key={container.id} />
+                    <LocalUserAnimeContainer
+                        userContainer={userContainer}
+                        key={userContainer.id}
+                    />
                 );
             })}
 
-            <ShowCreateNewModalContainerButton />
-
-            <CreateNewModalContainerModal />
-
-            <UpdateModalContainerModal />
+            <CreateNewModalContainerButton />
+            <CreateUpdateModalContainerModal />
         </Container>
     );
 }

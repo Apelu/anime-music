@@ -1,4 +1,4 @@
-import MyLocalServer from "@features/server/MyLocalServer";
+import MyLocalServer from "@shared/MyLocalServer";
 import {
     UserActionType,
     useUserData,
