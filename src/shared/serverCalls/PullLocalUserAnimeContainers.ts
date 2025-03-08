@@ -18,8 +18,9 @@ export interface NewUserContainer {
     expanded: boolean;
 
     sortBy: string;
-    sortOrder: string; // "asc" or "desc"
+    sortDirection: string; // "asc" or "desc"
     filters: any;
+    viewType: string;
 }
 export interface UserContainer extends NewUserContainer {
     id: string;

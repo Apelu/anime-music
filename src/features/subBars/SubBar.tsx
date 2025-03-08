@@ -1,21 +1,13 @@
-import {
-    SubBarActionType,
-    SubBarSettingsContext,
-    SubBarSettingsDispatchContext,
-} from "@features/contexts/SubBarContext";
 import { Feature, FeatureStatus } from "@features/documentation/constants";
+import { AnimeContainerAction } from "@features/local-anime/LocalAnimeHome/AnimeContainer";
 import {
     faArrowsDownToLine,
     faArrowsUpToLine,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useContext } from "react";
 import AnimeContainerSettingsSubBar, {
     AnimeContainerSettings,
-    AnimeContainerSettingsAction,
-    AnimeContainerSettingsSubBarProps,
 } from "./AnimeContainerSettingsSubBar";
-import { set } from "video.js/dist/types/tech/middleware";
 
 export const AnimeSubBarFeature: Feature = {
     title: "Anime SubBar",
@@ -53,15 +45,15 @@ export const AnimeSubBarFeature: Feature = {
 
 interface SubBarProps {
     id: string;
-    settings: AnimeContainerSettings;
-    updateSettings: (action: AnimeContainerSettingsAction) => void;
+    animeContainer: AnimeContainerSettings;
+    updateSettings: (action: AnimeContainerAction) => void;
     toggleOpen: () => void;
 }
 function SubBar(props: SubBarProps) {
     const {
         id,
-        settings,
-        settings: { isOpen },
+        animeContainer,
+        animeContainer: { subBarIsOpen },
         updateSettings,
         toggleOpen,
     } = props;
@@ -79,18 +71,20 @@ function SubBar(props: SubBarProps) {
             >
                 <div className="d-flex flex-row">
                     <FontAwesomeIcon
-                        title={isOpen ? "Close SubBar" : "Open SubBar"}
-                        icon={isOpen ? faArrowsUpToLine : faArrowsDownToLine}
+                        title={subBarIsOpen ? "Close SubBar" : "Open SubBar"}
+                        icon={
+                            subBarIsOpen ? faArrowsUpToLine : faArrowsDownToLine
+                        }
                         className="btn btn-sm text-secondary p-0 ps-2 pe-2 ms-3 me-2 me-3"
                     />
                 </div>
             </div>
 
             {/* SubBar */}
-            {isOpen && (
+            {subBarIsOpen && (
                 <AnimeContainerSettingsSubBar
                     id={id}
-                    settings={settings}
+                    animeContainer={animeContainer}
                     updateSettings={updateSettings}
                 />
             )}

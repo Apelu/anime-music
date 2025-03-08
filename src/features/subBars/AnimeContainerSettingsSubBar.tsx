@@ -5,7 +5,13 @@ import {
     ViewType,
     ViewTypeIcons,
 } from "@data/constants";
-import TheUltimateDropdown from "@features/ui/TheUltimateDropdown";
+import {
+    AnimeContainerAction,
+    AnimeContainerActionType,
+} from "@features/local-anime/LocalAnimeHome/AnimeContainer";
+import TheUltimateDropdown, {
+    TitleType,
+} from "@features/ui/TheUltimateDropdown";
 import {
     faClose,
     faFilter,
@@ -13,6 +19,11 @@ import {
     faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    FilterOperation,
+    FilterTemplate,
+    SortOptionTypes,
+} from "@shared/constant";
 import { useState } from "react";
 import {
     Badge,
@@ -20,20 +31,23 @@ import {
     ButtonGroup,
     Container,
     Form,
+    FormControl,
+    FormGroup,
+    InputGroup,
     ToggleButton,
     ToggleButtonGroup,
 } from "react-bootstrap";
 
 export interface AnimeContainerSettingsSubBarProps {
     id: string;
-    settings: AnimeContainerSettings;
-    updateSettings: (action: AnimeContainerSettingsAction) => void;
+    animeContainer: AnimeContainerSettings;
+    updateSettings: (action: AnimeContainerAction) => void;
 }
 
 function AnimeContainerSettingsSubBar(
     props: AnimeContainerSettingsSubBarProps
 ) {
-    const { id, settings, updateSettings } = props;
+    const { id, animeContainer, updateSettings } = props;
     return (
         <Container fluid className="bg-dark text-light">
             <div className=" d-flex align-items-end mb-2">
@@ -48,12 +62,12 @@ function AnimeContainerSettingsSubBar(
                             toggleProps={{
                                 variant: "primary",
                             }}
-                            title={settings.sortBy}
-                            selectedItems={[settings.sortBy]}
-                            items={settings.sortByOptions}
+                            title={animeContainer.sortBy}
+                            selectedItems={[animeContainer.sortBy]}
+                            items={animeContainer.sortByOptions}
                             handleItemClick={(item: string) => {
                                 updateSettings({
-                                    type: AnimeContainerSettingsActionType.HandleSortBySelection,
+                                    type: AnimeContainerActionType.HandleSortBySelection,
                                     payload: item,
                                 });
                             }}
@@ -63,14 +77,15 @@ function AnimeContainerSettingsSubBar(
                             variant={"secondary"}
                             onClick={() =>
                                 updateSettings({
-                                    type: AnimeContainerSettingsActionType.ToggleSortDirection,
+                                    type: AnimeContainerActionType.ToggleSortDirection,
                                 })
                             }
                         >
                             <FontAwesomeIcon
                                 icon={getSortIcon(
-                                    SortType.Numeric,
-                                    settings.sortDirection
+                                    SortOptionTypes[animeContainer.sortBy] ||
+                                        SortType.Other,
+                                    animeContainer.sortDirection
                                 )}
                             />
                         </Button>
@@ -78,30 +93,31 @@ function AnimeContainerSettingsSubBar(
                 </div>
 
                 {/* Toggle Filters */}
+
                 <Button
                     variant={"outline-success"}
                     onClick={() =>
                         updateSettings({
-                            type: AnimeContainerSettingsActionType.ToggleIsFiltering,
+                            type: AnimeContainerActionType.ToggleIsFiltering,
                         })
                     }
                     title={
-                        settings.showingFilters
+                        animeContainer.showingFilters
                             ? "Hide Filters"
                             : "Show Filters <Current Filter: " +
-                              JSON.stringify(settings.filter) +
+                              JSON.stringify(animeContainer.filters) +
                               ">"
                     }
                     className="position-relative"
                 >
                     <FontAwesomeIcon
                         icon={
-                            settings.showingFilters
+                            animeContainer.showingFilters
                                 ? faFilterCircleXmark
                                 : faFilter
                         }
                     />
-                    {Object.values(settings.filter).filter(
+                    {Object.values(animeContainer.filters).filter(
                         (it: any) => it.length > 0
                     ).length > 0 && (
                         <Badge
@@ -116,7 +132,7 @@ function AnimeContainerSettingsSubBar(
                             }}
                         >
                             {
-                                Object.values(settings.filter).filter(
+                                Object.values(animeContainer.filters).filter(
                                     (it: any) => it.length > 0
                                 ).length
                             }
@@ -129,10 +145,10 @@ function AnimeContainerSettingsSubBar(
                     <ToggleButtonGroup
                         type="radio"
                         name={`tbg-radio-${id}`}
-                        defaultValue={settings.viewType}
+                        defaultValue={animeContainer.viewType}
                         onChange={(viewType: ViewType) => {
                             updateSettings({
-                                type: AnimeContainerSettingsActionType.HandleViewTypeChange,
+                                type: AnimeContainerActionType.HandleViewTypeChange,
                                 payload: viewType,
                             });
                         }}
@@ -159,27 +175,27 @@ function AnimeContainerSettingsSubBar(
                     variant={"outline-success"}
                     onClick={() =>
                         updateSettings({
-                            type: AnimeContainerSettingsActionType.ToggleIsSearching,
+                            type: AnimeContainerActionType.ToggleIsSearching,
                         })
                     }
                 >
                     <FontAwesomeIcon
-                        icon={settings.isSearching ? faClose : faSearch}
+                        icon={animeContainer.isSearching ? faClose : faSearch}
                     />
                 </Button>
             </div>
 
             {/* Search Bar */}
-            {settings.isSearching && (
+            {animeContainer.isSearching && (
                 <>
                     <Form.Control
                         type="search"
                         placeholder="Keyword Search"
                         className="mb-2"
-                        value={settings.searchText}
+                        value={animeContainer.searchText}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             updateSettings({
-                                type: AnimeContainerSettingsActionType.HandleSearchTextUpdates,
+                                type: AnimeContainerActionType.HandleSearchTextUpdates,
                                 payload: e.target.value,
                             })
                         }
@@ -188,6 +204,23 @@ function AnimeContainerSettingsSubBar(
             )}
 
             {/* Filters */}
+            {animeContainer.showingFilters && (
+                <>
+                    <div
+                        style={{
+                            display: animeContainer.showingFilters
+                                ? "block"
+                                : "none",
+                            textWrap: "wrap",
+                            whiteSpace: "pre-wrap",
+                        }}
+                    >
+                        {JSON.stringify(animeContainer.filters, null, 2)}
+                    </div>
+
+                    <FiltersGUI initialFilters={animeContainer.filters} />
+                </>
+            )}
             {/* {settings.showingFilters && (
                 <>
                     <HrWithName name="Filters" />
@@ -258,36 +291,10 @@ function AnimeContainerSettingsSubBar(
     );
 }
 
-export enum AnimeContainerSettingsActionType {
-    SetSortByOptions = "SetSortByOptions",
-    ToggleIsFiltering = "ToggleIsFiltering",
-    ToggleIsSearching = "ToggleIsSearching",
-    HandleSearchTextUpdates = "HandleSearchTextUpdates",
-    HandleViewTypeChange = "HandleViewTypeChange",
-    ToggleGroupDirection = "ToggleGroupDirection",
-    HandleGroupBySelection = "HandleGroupBySelection",
-    ToggleSortDirection = "ToggleSortDirection",
-    HandleSortBySelection = "HandleSortBySelection",
-}
-
-export interface AnimeContainerSettingsAction {
-    type:
-        | AnimeContainerSettingsActionType.SetSortByOptions
-        | AnimeContainerSettingsActionType.ToggleIsFiltering
-        | AnimeContainerSettingsActionType.ToggleIsSearching
-        | AnimeContainerSettingsActionType.HandleSearchTextUpdates
-        | AnimeContainerSettingsActionType.HandleViewTypeChange
-        | AnimeContainerSettingsActionType.ToggleGroupDirection
-        | AnimeContainerSettingsActionType.HandleGroupBySelection
-        | AnimeContainerSettingsActionType.ToggleSortDirection
-        | AnimeContainerSettingsActionType.HandleSortBySelection;
-    payload?: any;
-}
-
 export interface AnimeContainerSettings {
-    isOpen: boolean;
+    subBarIsOpen: boolean;
     showingFilters: boolean;
-    filter: any;
+    filters: FilterTemplate[];
 
     isSearching: boolean;
     searchText: string;
@@ -299,3 +306,129 @@ export interface AnimeContainerSettings {
     viewType: ViewType;
 }
 export default AnimeContainerSettingsSubBar;
+
+export function FiltersGUI({
+    initialFilters,
+}: {
+    initialFilters?: FilterTemplate[];
+}) {
+    const [filters, setFilters] = useState<FilterTemplate[]>(
+        initialFilters || []
+    );
+
+    const FilterJSX = filters.map((filter: FilterTemplate) => {
+        return (
+            <div className="mb-3">
+                <InputGroup className="mb-3">
+                    <TheUltimateDropdown
+                        dropdownProps={{
+                            as: ButtonGroup,
+                        }}
+                        toggleProps={{
+                            variant: "success",
+                        }}
+                        title={"Table Name"}
+                        titleType={TitleType.SelectedItems}
+                        selectedItems={[filter.tableName]}
+                        items={[filter.tableName]}
+                        handleItemClick={(item: string) => {
+                            // updateSettings({
+                            //     type: AnimeContainerActionType.HandleSortBySelection,
+                            //     payload: item,
+                            // });
+                        }}
+                    />
+                    <TheUltimateDropdown
+                        dropdownProps={{
+                            as: ButtonGroup,
+                        }}
+                        toggleProps={{
+                            variant: "primary",
+                        }}
+                        title={"Field Name"}
+                        titleType={TitleType.SelectedItems}
+                        selectedItems={[filter.fieldName]}
+                        items={[filter.fieldName]}
+                        handleItemClick={(item: string) => {
+                            // updateSettings({
+                            //     type: AnimeContainerActionType.HandleSortBySelection,
+                            //     payload: item,
+                            // });
+                        }}
+                    />
+
+                    <TheUltimateDropdown
+                        dropdownProps={{
+                            as: ButtonGroup,
+                        }}
+                        toggleProps={{
+                            variant: "primary",
+                        }}
+                        title={"Operation"}
+                        titleType={TitleType.SelectedItems}
+                        selectedItems={[filter.operation]}
+                        items={[
+                            FilterOperation.MatchesOneOf,
+                            FilterOperation.DoesNotMatchOneOf,
+                            FilterOperation.IsInRange,
+                            FilterOperation.IsEmpty,
+                            FilterOperation.IsNotEmpty,
+                        ]}
+                        handleItemClick={(item: string) => {
+                            // updateSettings({
+                            //     type: AnimeContainerActionType.HandleSortBySelection,
+                            //     payload: item,
+                            // });
+                        }}
+                    />
+                    <TheUltimateDropdown
+                        dropdownProps={{
+                            as: ButtonGroup,
+                        }}
+                        toggleProps={{
+                            variant: "primary",
+                        }}
+                        title={"Matches One Of"}
+                        titleType={TitleType.SelectedItems}
+                        selectedItems={[filter.operation]}
+                        items={[
+                            FilterOperation.MatchesOneOf,
+                            FilterOperation.DoesNotMatchOneOf,
+                            FilterOperation.IsInRange,
+                            FilterOperation.IsEmpty,
+                            FilterOperation.IsNotEmpty,
+                        ]}
+                        handleItemClick={(item: string) => {
+                            // updateSettings({
+                            //     type: AnimeContainerActionType.HandleSortBySelection,
+                            //     payload: item,
+                            // });
+                        }}
+                    />
+                    {/* <FormControl placeholder="start" />
+                    <FormControl placeholder="end" /> */}
+                </InputGroup>
+                <ButtonGroup>
+                    <Button variant="secondary">OR</Button>
+                    <Button variant="danger">X</Button>
+                </ButtonGroup>
+            </div>
+        );
+    });
+
+    return (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+            }}
+        >
+            Filters
+            {FilterJSX}
+            <Button variant="info" className="m-3">
+                Add Another Filter (AND)
+            </Button>
+        </div>
+    );
+}

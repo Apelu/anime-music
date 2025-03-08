@@ -1,4 +1,4 @@
-import { Card, ProgressBar, Button } from "react-bootstrap";
+import { Card, ProgressBar, Button, Badge } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { AnimeData, EpisodeData } from "@shared/MyLocalServer";
 
@@ -12,7 +12,9 @@ function EpisodeCard(props: EpisodeCardProps) {
 
     const progressPercent = (episode.progress / episode.duration) * 100;
     const episodeNumber = episode.episodeNumber;
-    const episodeLink = `/local-anime-video/${animeData.id}/${animeData.title}/${episode.id}`;
+    const episodeLink = `/local-anime-video/${
+        animeData.id
+    }/${animeData.title.replaceAll(" ", "-")}/${episode.id}`;
 
     return (
         <Card
@@ -29,7 +31,15 @@ function EpisodeCard(props: EpisodeCardProps) {
                         color: "inherit",
                     }}
                 >
-                    <Card.Title>Episode {episodeNumber}</Card.Title>
+                    <Card.Title>
+                        <Badge
+                            style={{ padding: "0.25rem 0.5rem" }}
+                            bg={episode.resolution < 1080 ? "info" : "primary"}
+                        >
+                            {episode.resolution}p
+                        </Badge>{" "}
+                        Episode {episodeNumber}
+                    </Card.Title>
                     <Card.Subtitle className="mb-2 text-muted">
                         {animeData.title}
                     </Card.Subtitle>

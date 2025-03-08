@@ -1,103 +1,174 @@
+import { SortDirection, ViewType } from "@data/constants";
 import {
     ModalActionType,
     useSetShowingModalDispatch,
 } from "@features/contexts/ModalContext";
 import { useUserData } from "@features/contexts/UserContext";
-import TheUltimateDropdown from "@features/ui/TheUltimateDropdown";
+import { AnimeContainerSettings } from "@features/subBars/AnimeContainerSettingsSubBar";
+import SubBar from "@features/subBars/SubBar";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import MyLocalServer from "@shared/MyLocalServer";
-import { UserContainer } from "@shared/serverCalls/PullLocalUserAnimeContainers";
+import { SortOptions } from "@shared/constant";
+import PullLocalUserAnimeContainer, {
+    PullLocalUserAnimeContainerResponse,
+} from "@shared/serverCalls/PullLocalUserAnimeContainer";
 import UpdateLocalUserAnimeContainer from "@shared/serverCalls/UpdateLocalUserAnimeContainer";
 import { useEffect, useRef, useState } from "react";
-import { Badge, Button, Card, Container } from "react-bootstrap";
+import { Badge, Button, Container, FormControl } from "react-bootstrap";
 import AniListLogoLink from "../Global/AniListLogoLink";
-import { AnimeContainerCard } from "./LocalAnimeContainerCard";
-import SubBar from "@features/subBars/SubBar";
 import {
-    AnimeContainerSettings,
-    AnimeContainerSettingsAction,
-    AnimeContainerSettingsActionType,
-} from "@features/subBars/AnimeContainerSettingsSubBar";
-import { SortDirection, ViewType } from "@data/constants";
+    AnimeContainerAction,
+    AnimeContainerActionType,
+    UserAnimeContainer,
+} from "./AnimeContainer";
+import { AnimeContainerCard } from "./LocalAnimeContainerCard";
 
-// TODO: Live updates / Sorting / Refactorin
-// TODO: Add sort options and send update when subbar settings updated
+// TODO: Live updates + filtering GUI
 export function LocalUserAnimeContainer({
-    userContainer,
+    userContainerID,
 }: {
-    userContainer: UserContainer;
+    userContainerID: string;
 }) {
     const user = useUserData();
     const setShowingModal = useSetShowingModalDispatch();
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const [containerContent, setContainerContent] = useState({
-        container: {
-            name: "",
-            expanded: false,
-        },
-        items: [],
-    });
+    const [animeContainer, setAnimeContainer] = useState<UserAnimeContainer>({
+        name: "<Loading>",
 
-    const [settings, setSettings] = useState<AnimeContainerSettings>({
-        isOpen: false,
+        subBarIsOpen: false,
+
         showingFilters: false,
-        filter: {},
+        filters: [],
 
         isSearching: false,
         searchText: "",
 
         sortBy: "",
-        sortByOptions: [],
+        sortByOptions: SortOptions,
         sortDirection: SortDirection.Descending,
 
         viewType: ViewType.Card,
-    });
 
-    function updateSettings(action: AnimeContainerSettingsAction) {
-        setSettings(newSettings());
-        function newSettings() {
+        expanded: false,
+        items: [],
+    });
+    const [scrollPosition, setScrollPosition] = useState(0);
+    const [endOfScroll, setEndOfScroll] = useState(false);
+    useEffect(() => {
+        pullData();
+    }, []);
+
+    if (animeContainer.name == "<Loading>") return null;
+
+    // TODO: Create Filter GUI
+
+    function sendUpdateToServer(
+        updatedAnimeContainer: UserAnimeContainer,
+        type: AnimeContainerActionType
+    ) {
+        const containerWithoutItems = { ...updatedAnimeContainer };
+        delete containerWithoutItems.items;
+        new UpdateLocalUserAnimeContainer()
+            .fetch({
+                userID: user.id,
+                updatedContainer: {
+                    ...containerWithoutItems,
+                    id: userContainerID,
+                    userID: user.id,
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    if (
+                        [
+                            AnimeContainerActionType.HandleSortBySelection,
+                            AnimeContainerActionType.ToggleSortDirection,
+                        ].includes(type)
+                    ) {
+                        pullData();
+                    }
+                } else {
+                    alert("Failed to update container");
+                }
+            });
+    }
+
+    function handleAnimeContainerUpdate(action: AnimeContainerAction) {
+        const updatedAnimeContainer = {
+            ...animeContainer,
+            ...updateAnimeContainer(),
+        };
+        if (
+            [
+                AnimeContainerActionType.ToggleExpanded,
+                AnimeContainerActionType.HandleSortBySelection,
+                AnimeContainerActionType.ToggleSortDirection,
+                AnimeContainerActionType.HandleViewTypeChange,
+                AnimeContainerActionType.HandleContainerNameUpdates,
+            ].includes(action.type)
+        ) {
+            sendUpdateToServer(updatedAnimeContainer, action.type);
+        }
+        setAnimeContainer(updatedAnimeContainer);
+        // setSettings(newSettings());
+        function updateAnimeContainer() {
             switch (action.type) {
-                case AnimeContainerSettingsActionType.SetSortByOptions:
+                case AnimeContainerActionType.HandleContainerNameUpdates:
                     return {
-                        ...settings,
+                        ...animeContainer,
+                        name: action.payload,
+                    };
+                case AnimeContainerActionType.ToggleExpanded:
+                    return {
+                        ...animeContainer,
+                        expanded: !animeContainer.expanded,
+                    };
+                case AnimeContainerActionType.ToggleSubBar:
+                    return {
+                        ...animeContainer,
+                        subBarIsOpen: !animeContainer.subBarIsOpen,
+                    };
+                case AnimeContainerActionType.SetSortByOptions:
+                    return {
+                        ...animeContainer,
                         sortBy: action.payload[0],
                         sortByOptions: action.payload, // newSortByOptions
                     };
-                case AnimeContainerSettingsActionType.ToggleIsFiltering:
+                case AnimeContainerActionType.ToggleIsFiltering:
                     return {
-                        ...settings,
-                        showingFilters: !settings.showingFilters,
+                        ...animeContainer,
+                        showingFilters: !animeContainer.showingFilters,
                     };
-                case AnimeContainerSettingsActionType.ToggleIsSearching:
+                case AnimeContainerActionType.ToggleIsSearching:
                     return {
-                        ...settings,
-                        isSearching: !settings.isSearching,
+                        ...animeContainer,
+                        isSearching: !animeContainer.isSearching,
                         searchText: "",
                     };
-                case AnimeContainerSettingsActionType.HandleSearchTextUpdates:
+                case AnimeContainerActionType.HandleSearchTextUpdates:
                     return {
-                        ...settings,
+                        ...animeContainer,
                         searchText: action.payload, // newSearchText
                     };
-                case AnimeContainerSettingsActionType.HandleViewTypeChange:
+                case AnimeContainerActionType.HandleViewTypeChange:
                     return {
-                        ...settings,
+                        ...animeContainer,
                         viewType: action.payload, // newValue
                     };
 
-                case AnimeContainerSettingsActionType.ToggleSortDirection:
+                case AnimeContainerActionType.ToggleSortDirection:
                     return {
-                        ...settings,
+                        ...animeContainer,
                         sortDirection:
-                            settings.sortDirection === SortDirection.Ascending
+                            animeContainer.sortDirection ===
+                            SortDirection.Ascending
                                 ? SortDirection.Descending
                                 : SortDirection.Ascending,
                     };
-                case AnimeContainerSettingsActionType.HandleSortBySelection:
+                case AnimeContainerActionType.HandleSortBySelection:
                     return {
-                        ...settings,
+                        ...animeContainer,
                         sortBy: action.payload,
                     };
                 default:
@@ -106,23 +177,29 @@ export function LocalUserAnimeContainer({
         }
     }
 
-    function pullData() {
-        MyLocalServer.getUserAnimeContainer(user.id, userContainer.id)
-            .then(res => res.json())
-            .then(data => {
-                console.log({ data });
-                setContainerContent({
-                    ...data,
-                });
-            })
-            .catch(err => {
-                console.error(err);
+    async function pullData() {
+        try {
+            const response = await new PullLocalUserAnimeContainer().fetch({
+                userID: user.id,
+                containerID: userContainerID,
             });
-    }
+            const data: PullLocalUserAnimeContainerResponse =
+                await response.json();
 
-    useEffect(() => {
-        pullData();
-    }, []);
+            setAnimeContainer({
+                showingFilters: false,
+                subBarIsOpen: false,
+                isSearching: false,
+                searchText: "",
+                sortByOptions: SortOptions,
+                ...(animeContainer.name == "<Loading>" ? {} : animeContainer),
+                ...data,
+            });
+        } catch (e) {
+            console.error(e);
+            alert("Failed to retrieve user containers");
+        }
+    }
 
     function scrollToItem(type: "prev" | "next") {
         const container = containerRef.current;
@@ -139,7 +216,7 @@ export function LocalUserAnimeContainer({
         });
     }
 
-    const rowCount = settings.viewType === ViewType.List ? 1 : 0;
+    const rowCount = animeContainer.viewType === ViewType.List ? 1 : 0;
     return (
         <Container
             fluid
@@ -151,35 +228,24 @@ export function LocalUserAnimeContainer({
             className="mb-2"
         >
             <div
-                style={{
-                    textAlign: "center",
-                    position: "sticky",
-                    top: "0",
-                    zIndex: 1,
-                }}
+                style={
+                    !rowCount
+                        ? {
+                              textAlign: "center",
+                              position: "sticky",
+                              top: "0",
+                              zIndex: 1,
+                          }
+                        : {
+                              textAlign: "center",
+                          }
+                }
             >
                 <h2
                     className="bg-primary p-2 mb-0 hover-trigger"
                     onClick={() => {
-                        new UpdateLocalUserAnimeContainer().fetch({
-                            userID: user.id,
-                            updatedContainer: {
-                                id: userContainer.id,
-                                userID: user.id,
-                                name: userContainer.name,
-                                filters: userContainer.filters,
-                                expanded: !containerContent.container.expanded,
-                                sortBy: "",
-                                sortOrder: "desc",
-                            },
-                        });
-
-                        setContainerContent({
-                            ...containerContent,
-                            container: {
-                                ...containerContent.container,
-                                expanded: !containerContent.container.expanded,
-                            },
+                        handleAnimeContainerUpdate({
+                            type: AnimeContainerActionType.ToggleExpanded,
                         });
                     }}
                 >
@@ -190,25 +256,37 @@ export function LocalUserAnimeContainer({
                         title={"Click to update container"}
                         onClick={e => {
                             e.stopPropagation();
-                            setShowingModal({
-                                type: ModalActionType.UpdateContainer,
-                                payload: {
-                                    containerID: userContainer.id,
-                                },
-                            });
+                            // setShowingModal({
+                            //     type: ModalActionType.UpdateContainer,
+                            //     payload: {
+                            //         containerID: userContainerID,
+                            //     },
+                            // });
+
+                            const newName = prompt(
+                                "Enter new container name",
+                                animeContainer.name
+                            );
+
+                            if (newName) {
+                                handleAnimeContainerUpdate({
+                                    type: AnimeContainerActionType.HandleContainerNameUpdates,
+                                    payload: newName,
+                                });
+                            }
                         }}
                     />
-                    {containerContent.container.name}{" "}
+                    {animeContainer.name}{" "}
                     <Badge bg="info" className="p-1">
-                        <small>{containerContent.items.length}</small>
+                        <small>{animeContainer.items.length}</small>
                     </Badge>
                 </h2>
                 <div
                     className={`collapse ${
-                        containerContent.container.expanded ? "show" : ""
+                        animeContainer.expanded ? "show" : ""
                     }`}
                     style={
-                        containerContent.container.expanded
+                        animeContainer.expanded
                             ? {
                                   display: "flex",
                                   justifyContent: "center",
@@ -220,13 +298,14 @@ export function LocalUserAnimeContainer({
                     }
                 >
                     <SubBar
-                        id={userContainer.id}
-                        settings={settings}
-                        updateSettings={updateSettings}
+                        id={userContainerID}
+                        animeContainer={
+                            animeContainer as AnimeContainerSettings
+                        }
+                        updateSettings={handleAnimeContainerUpdate}
                         toggleOpen={() => {
-                            setSettings({
-                                ...settings,
-                                isOpen: !settings.isOpen,
+                            handleAnimeContainerUpdate({
+                                type: AnimeContainerActionType.ToggleSubBar,
                             });
                         }}
                     />
@@ -235,19 +314,19 @@ export function LocalUserAnimeContainer({
             <div
                 style={{
                     position: "relative",
-                    display: containerContent.container.expanded
-                        ? "flex"
+                    display: animeContainer.expanded
+                        ? !rowCount
+                            ? "block"
+                            : "flex"
                         : "none",
                     alignItems: "center",
                     ...(!rowCount
                         ? { paddingTop: "10px", paddingBottom: "10px" }
                         : { padding: "10px" }),
                 }}
-                className={`collapse ${
-                    containerContent.container.expanded ? "show" : ""
-                }`}
+                className={`collapse ${animeContainer.expanded ? "show" : ""}`}
             >
-                {rowCount && (
+                {rowCount ? (
                     <Button
                         variant="outline-secondary"
                         onClick={() => scrollToItem("prev")}
@@ -257,15 +336,42 @@ export function LocalUserAnimeContainer({
                             left: "10px",
                             zIndex: 1,
                             borderRadius: "50%",
+                            ...(scrollPosition == 0
+                                ? { opacity: 0, pointerEvents: "none" }
+                                : {}),
                         }}
                         size="lg"
                     >
                         {"<"}
                     </Button>
-                )}
+                ) : null}
 
                 <div
                     ref={containerRef}
+                    onScroll={() => {
+                        setScrollPosition(
+                            containerRef.current?.scrollLeft || 0
+                        );
+                        const containerWidth =
+                            containerRef.current?.clientWidth || 0;
+                        const scrollWidth =
+                            containerRef.current?.scrollWidth || 0;
+
+                        console.log({
+                            scrollPosition,
+                            containerWidth,
+                            scrollWidth,
+
+                            isEnd:
+                                scrollPosition + containerWidth >= scrollWidth,
+                            val: `${
+                                scrollPosition + containerWidth
+                            } >= ${scrollWidth}`,
+                        });
+                        setEndOfScroll(
+                            scrollPosition + containerWidth >= scrollWidth - 10
+                        );
+                    }}
                     style={{
                         position: "relative",
                         display: "flex",
@@ -280,13 +386,15 @@ export function LocalUserAnimeContainer({
                         scrollbarWidth: "none",
                     }}
                 >
-                    {containerContent.items
+                    {animeContainer.items
                         .filter(
                             (anime: any) =>
-                                !settings.isSearching ||
+                                !animeContainer.isSearching ||
                                 anime.title
                                     .toLowerCase()
-                                    .includes(settings.searchText.toLowerCase())
+                                    .includes(
+                                        animeContainer.searchText.toLowerCase()
+                                    )
                         )
                         .map((anime: any, index: number) => {
                             return (
@@ -320,7 +428,15 @@ export function LocalUserAnimeContainer({
                         })}
                 </div>
 
-                {rowCount && (
+                {rowCount ? (
+                    // const containerWidth = containerRef.current?.clientWidth || 0;
+                    // const scrollWidth = containerRef.current?.scrollWidth || 0;
+                    // console.log({
+                    //     scrollPosition,
+                    //     containerWidth,
+                    //     scrollWidth,
+                    //     isEnd: scrollPosition + containerWidth >= scrollWidth,
+                    // });
                     <Button
                         variant="outline-secondary"
                         onClick={() => scrollToItem("next")}
@@ -330,39 +446,16 @@ export function LocalUserAnimeContainer({
                             right: "10px",
                             zIndex: 1,
                             borderRadius: "50%",
+                            ...(endOfScroll
+                                ? { opacity: 0, pointerEvents: "none" }
+                                : {}),
                         }}
                         size="lg"
                     >
                         {">"}
                     </Button>
-                )}
+                ) : null}
             </div>
         </Container>
-    );
-}
-
-function StackedCard(props: any) {
-    const {
-        label = "Placeholder",
-        value,
-        onClick = () => alert("Clicked"),
-    } = props;
-    return (
-        <Card
-            style={{
-                cursor: "pointer",
-                padding: "0px 8px",
-            }}
-        >
-            <div
-                style={{
-                    marginBottom: "-4px",
-                    fontSize: "0.7em",
-                }}
-            >
-                <strong>{label}</strong>
-            </div>
-            <TheUltimateDropdown />
-        </Card>
     );
 }

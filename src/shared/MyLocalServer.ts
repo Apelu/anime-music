@@ -28,7 +28,7 @@ class MyLocalServer {
     }
 
     static async getUserAnimeContainer(userID: string, containerID: string) {
-        return fetch(this.serverURL + "/user/anime-list", {
+        return fetch(this.serverURL + "/container/anime-container", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

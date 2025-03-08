@@ -1,16 +1,14 @@
 import {
-    faArrowUpZA,
-    faArrowDownZA,
-    faArrowUp91,
     faArrowDown91,
     faArrowDownWideShort,
+    faArrowDownZA,
+    faArrowUp91,
     faArrowUpWideShort,
-    IconDefinition,
-    faTableList,
+    faArrowUpZA,
     faGrip,
+    faTableList,
+    IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
-import exp from "constants";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export enum SortDirection {
     Ascending = "Ascending",

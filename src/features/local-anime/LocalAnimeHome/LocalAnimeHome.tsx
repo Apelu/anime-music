@@ -1,14 +1,15 @@
 import { useUserData } from "@features/contexts/UserContext";
 import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
-import CreateUpdateModalContainerModal, {
-    CreateNewModalContainerButton,
-} from "../Modal/CreateUpdateModalContainerModal";
+
 import { LocalUserAnimeContainer } from "./LocalAnimeContainer";
 import PullLocalUserAnimeContainers, {
     PullLocalUserAnimeContainersResponse,
     UserContainer,
 } from "@shared/serverCalls/PullLocalUserAnimeContainers";
+import CreateUpdateModalContainerModal, {
+    CreateNewModalContainerButton,
+} from "../Modal/CreateUpdateModalContainerModal";
 
 export function LocalAnimeHome() {
     const user = useUserData();
@@ -37,11 +38,11 @@ export function LocalAnimeHome() {
     }, []);
 
     return (
-        <Container fluid>
+        <Container fluid style={{ paddingBottom: "500px" }}>
             {userContainers.map(userContainer => {
                 return (
                     <LocalUserAnimeContainer
-                        userContainer={userContainer}
+                        userContainerID={userContainer.id}
                         key={userContainer.id}
                     />
                 );

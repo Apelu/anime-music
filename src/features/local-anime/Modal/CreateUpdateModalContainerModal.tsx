@@ -1,18 +1,16 @@
 import { useUserData } from "@features/contexts/UserContext";
+import { ViewType } from "@shared/constant";
+import MyLocalServer from "@shared/MyLocalServer";
+import CreateNewLocalUserAnimeContainer, {
+    CreateNewLocalUserAnimeContainerResponse,
+} from "@shared/serverCalls/CreateNewLocalUserAnimeContainer";
 import { useEffect, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import MyLocalServer from "@shared/MyLocalServer";
 import {
     ModalActionType,
     useSetShowingModalDispatch,
     useShowingModal,
 } from "../../contexts/ModalContext";
-import CreateNewLocalUserAnimeContainer, {
-    CreateNewLocalUserAnimeContainerResponse,
-} from "@shared/serverCalls/CreateNewLocalUserAnimeContainer";
-import UpdateLocalUserAnimeContainer, {
-    UpdateLocalUserAnimeContainerResponse,
-} from "@shared/serverCalls/UpdateLocalUserAnimeContainer";
 
 interface CreateUpdateModalFormData {
     containerName: string;
@@ -90,7 +88,8 @@ function CreateUpdateModalContainerModal() {
                             filters: JSON.parse(formData.containerFilters),
                             expanded: true,
                             sortBy: "",
-                            sortOrder: "desc",
+                            sortDirection: "desc",
+                            viewType: ViewType.Card,
                         },
                     });
                 const createNewContainerData: CreateNewLocalUserAnimeContainerResponse =
@@ -98,23 +97,23 @@ function CreateUpdateModalContainerModal() {
 
                 console.log({ createNewContainerData });
             } else if (type === ModalActionType.UpdateContainer) {
-                const response =
-                    await new UpdateLocalUserAnimeContainer().fetch({
-                        userID: user.id,
-                        updatedContainer: {
-                            userID: user.id,
-                            id: containerID,
-                            name: formData.containerName,
-                            filters: JSON.parse(formData.containerFilters),
-                            expanded: true,
-                            sortBy: "",
-                            sortOrder: "desc",
-                        },
-                    });
-                const updatedContainerData: UpdateLocalUserAnimeContainerResponse =
-                    await response.json();
-
-                console.log({ updatedContainerData });
+                // const response =
+                //     await new UpdateLocalUserAnimeContainer().fetch({
+                //         userID: user.id,
+                //         updatedContainer: {
+                //             userID: user.id,
+                //             id: containerID,
+                //             name: formData.containerName,
+                //             filters: JSON.parse(formData.containerFilters),
+                //             expanded: true,
+                //             sortBy: "",
+                //             sortDirection: "desc",
+                //             viewType: ViewType.Card,
+                //         },
+                //     });
+                // const updatedContainerData: UpdateLocalUserAnimeContainerResponse =
+                //     await response.json();
+                // console.log({ updatedContainerData });
             }
             setShowingModal({
                 type: ModalActionType.ClearModal,

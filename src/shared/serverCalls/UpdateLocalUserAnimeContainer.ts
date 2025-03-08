@@ -5,7 +5,6 @@ import MyLocalServerCall, {
     UrlParams,
 } from "@shared/MyLocalServerCall";
 import PullLocalUserAnimeContainers, {
-    NewUserContainer,
     UserContainer,
 } from "./PullLocalUserAnimeContainers";
 
