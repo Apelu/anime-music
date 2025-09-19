@@ -31,9 +31,16 @@ function EpisodeCard(props: EpisodeCardProps) {
                         color: "inherit",
                     }}
                 >
-                    <Card.Title>
+                    <Card.Title className="hover-trigger">
                         <Badge
-                            style={{ padding: "0.25rem 0.5rem" }}
+                            style={{
+                                padding: "0.25rem 0.5rem",
+                            }}
+                            className={
+                                episode.resolution == 1080
+                                    ? "hover-content"
+                                    : ""
+                            }
                             bg={episode.resolution < 1080 ? "info" : "primary"}
                         >
                             {episode.resolution}p

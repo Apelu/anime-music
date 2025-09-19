@@ -148,17 +148,24 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
         185756: true,
     };
 
+    var missingAnilistID = animeData.filter(a => !a.anilistID);
+
     const groups: {
         [groupName: string]: AnimeData[];
     } = {
         // Reccomended: animeData.filter(
         //     a => a.anilistID && recs[parseInt(a.anilistID)]
         // ),
+
         "Continue Watching": continueWatching,
         Completed: completedAnime,
         Planning: animeData.filter(a => a.watchStatus == "planning"),
         All: animeData,
     };
+
+    // if (missingAnilistID.length > 0) {
+    //     groups["Missing AniList ID"] = missingAnilistID;
+    // }
 
     return (
         <div

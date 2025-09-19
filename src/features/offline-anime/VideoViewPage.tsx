@@ -65,7 +65,7 @@ function VideoPlayerView(props: { data: any }) {
                 }
             });
     }, []);
-
+    //
     const selected = data.selectedSeriesData.find(
         (episode: AnimeEpisode) =>
             episode.episodeNumber === params.episodeNumber
@@ -177,12 +177,12 @@ function VideoPlayerView(props: { data: any }) {
                     // Skip 85 seconds
                     const video = videoRef.current;
                     if (video) {
-                        video.currentTime += 85;
+                        video.currentTime += video.duration > 15 * 60 ? 85 : 55;
                     }
                 } else if (command == "undo-skip") {
                     const video = videoRef.current;
                     if (video) {
-                        video.currentTime -= 85;
+                        video.currentTime -= video.duration > 15 * 60 ? 85 : 55;
                     }
                 } else if (command == "next") {
                     handleEnded();
@@ -391,8 +391,13 @@ function OldVideo({
     handleEnded: (goToNextEpisode?: boolean) => void;
     lastUpdate: number;
 }) {
+    const [lastMove, setLastMove] = useState(Date.now());
     return (
         <video
+            onMouseMove={() => {
+                videoRef.current?.focus();
+                setLastMove(Date.now());
+            }}
             id="video"
             style={{
                 position: "fixed",
@@ -411,7 +416,7 @@ function OldVideo({
             controls={showingControls}
             autoPlay
             onPlay={() => {
-                videoRef.current?.focus();
+                videoRef.current?.blur();
             }}
             onEnded={() => {
                 handleEnded();
@@ -419,6 +424,11 @@ function OldVideo({
             onTimeUpdate={async () => {
                 const video = videoRef.current;
                 if (!video) return;
+
+                // Hide controls after 3 seconds of no mouse movement
+                if (Date.now() - lastMove > 1000) {
+                    videoRef.current?.blur();
+                }
 
                 const currentTime = parseInt(video.currentTime.toString());
 

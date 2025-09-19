@@ -57,6 +57,15 @@ function ActualPage(props: { downloadQueue: DownloadQueue }) {
 }
 
 export class ServerCalls {
+    confirmAniListMapping(
+        seriesFolderName: string,
+        anilistID: number
+    ): RequestInfo | URL {
+        return (
+            this.baseURL +
+            `/confirmAniListMapping?seriesFolderName=${seriesFolderName}&anilistID=${anilistID}`
+        );
+    }
     baseURL: string;
 
     constructor() {

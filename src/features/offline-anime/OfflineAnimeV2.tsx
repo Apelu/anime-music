@@ -335,7 +335,9 @@ export function AnimeCard(props: AnimeCardProps) {
     } = props;
 
     const imageRef = useRef<HTMLImageElement>(null);
-    const offlineImage = `http://localhost:5555/api/animeDownload/image?seriesFolderName=${anime?.seriesFolderName}`;
+    const offlineImage = `http://localhost:5555/api/animeDownload/image?seriesFolderName=${encodeURIComponent(
+        anime?.seriesFolderName ?? ""
+    )}`;
 
     return (
         <div>
@@ -366,9 +368,9 @@ export function AnimeCard(props: AnimeCardProps) {
                                 }
                                 src={
                                     window.navigator.onLine
-                                        ? imageSrc.indexOf("gogo") !== -1
-                                            ? offlineImage
-                                            : imageSrc
+                                        ? imageSrc.indexOf("anilist") !== -1
+                                            ? imageSrc
+                                            : offlineImage
                                         : offlineImage
                                 }
                                 // onError={() => {
@@ -446,7 +448,15 @@ export function AnimeCard(props: AnimeCardProps) {
                             textAlign: "center",
                         }}
                     >
-                        {title}
+                        <Link
+                            to={onTitleClickLink || ""}
+                            style={{
+                                color: "inherit",
+                                textDecoration: "inherit",
+                            }}
+                        >
+                            {title}
+                        </Link>
                     </div>
                 )}
 

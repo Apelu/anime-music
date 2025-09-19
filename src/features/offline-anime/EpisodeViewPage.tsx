@@ -5,16 +5,182 @@ import { Button, Card, ProgressBar } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { removeWords } from "./AnimeGroup";
 import { AnimeCard, getLatestWatchedEpisode } from "./OfflineAnimeV2";
+import { useState } from "react";
+import { Modal } from "react-bootstrap";
+import AniListLogoLink from "@features/local-anime/Global/AniListLogoLink";
+import { use } from "video.js/dist/types/tech/middleware";
+
+function AnilistSearchComponent({
+    defaultSearch = "",
+    idSearch = "",
+    anime,
+}: {
+    defaultSearch?: string;
+    idSearch?: string;
+    anime: AnimeData;
+}) {
+    const [searchQuery, setSearchQuery] = useState(defaultSearch);
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    function handleSearch() {
+        // Use public search using title and then return back the title, cover image episode count and  year
+        const query = `
+        query ($search: String) {
+            Page(page: 1, perPage: 10) {
+            media(search: $search, type: ANIME) {
+                id
+                title {
+                romaji
+                english
+                }
+                coverImage {
+                large
+                }
+                episodes
+                startDate {
+                year
+                }
+            }
+            }
+        }
+        `;
+        fetch("https://graphql.anilist.co", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query,
+                variables: {
+                    search: searchQuery,
+                },
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                setSearchResults(data.data.Page.media);
+            })
+            .catch(error => {
+                console.error("Error fetching search results:", error);
+            });
+    }
+
+    function handleIDSearch() {
+        const query = `
+        query ($id: Int) {
+            Media(id: $id, type: ANIME) {
+                id
+                title {
+                    romaji
+                    english
+                }
+                coverImage {
+                    large
+                }
+                episodes
+                startDate {
+                    year
+                }
+            }
+        }
+        `;
+        fetch("https://graphql.anilist.co", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query,
+                variables: {
+                    id: idSearch,
+                },
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                setSearchResults([data.data.Media]);
+            })
+            .catch(error => {
+                console.error("Error fetching search results:", error);
+            });
+    }
+
+    function confirmMapping(anime: AnimeData, anilistID: number) {
+        const serverCalls = new ServerCalls();
+        fetch(
+            serverCalls.confirmAniListMapping(anime.seriesFolderName, anilistID)
+        );
+    }
+
+    useEffect(() => {
+        if (idSearch) {
+            // setSearchQuery(idSearch);
+            handleIDSearch();
+        } else if (defaultSearch) {
+            handleSearch();
+        }
+    }, []);
+
+    return (
+        <form className="text-center">
+            {/* Search Bar */}
+            <div className="d-flex">
+                <input
+                    type="text"
+                    className="form-control me-2"
+                    placeholder="Search AniList..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                />
+                <Button className="btn btn-primary" onClick={handleSearch}>
+                    Search
+                </Button>
+            </div>
+
+            {/* Results Box */}
+            <div>
+                {searchResults.map(result => (
+                    // display results as image cards with the title overlayed at the bottom
+                    <div>
+                        <AnimeCard
+                            key={result.id}
+                            imageSrc={result.coverImage.large}
+                            title={result.title.romaji || result.title.english}
+                            topLeftComponent={
+                                <AniListLogoLink aniListID={result.id} />
+                            }
+                            topRightComponent={
+                                <div>
+                                    {result.episodes
+                                        ? `${result.episodes} eps`
+                                        : "?? eps"}{" "}
+                                    (
+                                    {result.startDate.year
+                                        ? result.startDate.year
+                                        : "20XX"}
+                                    )
+                                </div>
+                            }
+                        />
+                        <Button
+                            variant="success"
+                            onClick={() => {
+                                confirmMapping(anime, result.id);
+                                document.location.reload();
+                            }}
+                        >
+                            Confirm Mapping
+                        </Button>
+                    </div>
+                ))}
+            </div>
+        </form>
+    );
+}
 
 export function EpisodeViewPage(props: EpisodeViewPageProps) {
+    const [showModal, setShowModal] = useState(false);
+
     useEffect(() => {
-        const currentHour = new Date().getHours();
-
-        // if (currentHour <= 5) {
-        //     alert("It's past midnight, you should get some rest");
-        //     document.location.href = "/anime";
-        // }
-
         /**
          * Steps Alerts
          */
@@ -55,10 +221,15 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
 
     const { animeData, seriesFolderName } = props;
 
-    console.log("EpisodeViewPage", animeData);
     const anime = animeData.find(
         anime => anime.seriesFolderName === seriesFolderName
     );
+
+    useEffect(() => {
+        if (anime && !anime?.anilistIDConfirmed) {
+            setShowModal(true);
+        }
+    }, [anime]);
 
     if (animeData.length === 0 || !anime) {
         return <h1>Loading...</h1>;
@@ -122,6 +293,29 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                 alignItems: "center",
             }}
         >
+            <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm AniList Mapping</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {/* Scenario 1: No AniList ID <> Show search page with title prepopulated */}
+                    <AnilistSearchComponent
+                        defaultSearch={anime.seriesTitle}
+                        idSearch={anime.anilistID ? `${anime.anilistID}` : ""}
+                        anime={anime}
+                    />
+                    {/* Scenario 2: AniList ID exists <> Show mapped anime and confirm button */}
+                    {/* Scenario 3: AniList ID confirmed <> Show success message and close*/}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        variant="primary"
+                        onClick={() => setShowModal(false)}
+                    >
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             {/* Details */}
             <Button variant="info" size="sm" onClick={() => navigate(`/anime`)}>
                 Return to Series

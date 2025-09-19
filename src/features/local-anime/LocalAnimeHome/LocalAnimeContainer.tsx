@@ -397,6 +397,8 @@ export function LocalUserAnimeContainer({
                                     )
                         )
                         .map((anime: any, index: number) => {
+                            // const link = `/anime/${anime.folderName}`;
+                            const link = `/local-anime/${anime.localAnimeID}`;
                             return (
                                 <div
                                     key={anime.localAnimeID}
@@ -404,12 +406,14 @@ export function LocalUserAnimeContainer({
                                 >
                                     <AnimeContainerCard
                                         anime={anime}
-                                        onImageClickLink={`/local-anime/${anime.localAnimeID}`}
-                                        onTitleClickLink={`/local-anime/${anime.localAnimeID}`}
+                                        onImageClickLink={link}
+                                        onTitleClickLink={link}
                                         topLeftComponent={
-                                            <AniListLogoLink
-                                                aniListID={anime.aniListID}
-                                            />
+                                            anime.aniListID ? (
+                                                <AniListLogoLink
+                                                    aniListID={anime.aniListID}
+                                                />
+                                            ) : null
                                         }
                                         topRightComponent={
                                             <div>
