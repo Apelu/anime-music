@@ -82,11 +82,7 @@ function ProfileDropdown({ isInvisible }: { isInvisible?: boolean }) {
                         Watch Controller
                     </Nav.Link>
                 </Dropdown.Item>
-                <Dropdown.Item>
-                    <Nav.Link as={Link} to={Paths.Controller}>
-                        Download Queue
-                    </Nav.Link>
-                </Dropdown.Item>
+
                 <Dropdown.Item>
                     <Nav.Link as={Link} to={Paths.Features}>
                         Features

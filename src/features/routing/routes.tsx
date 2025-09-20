@@ -6,7 +6,6 @@ import OfflineAnimeV2, {
 import NavBar from "@features/ui/NavBar";
 import AnimeDownloadPage from "@pages/AnimeDownloadPage";
 import BackgroundLibrary from "@pages/BackgroundLibrary";
-import ControllerPage from "@pages/ControllerPage";
 import ErrorPage from "@pages/ErrorPage";
 import FeaturesPage from "@pages/FeaturesPage";
 import LoginPage from "@pages/LoginPage";
@@ -16,7 +15,7 @@ import ProfilePage from "@pages/ProfilePage";
 import { Outlet, createBrowserRouter } from "react-router-dom";
 import "../../assets/App.css";
 import { WatchControllerPage } from "../../pages/WatchControllerPage";
-import ProviderParent from "../contexts/ProviderParent";
+import ProviderParent from "../contexts/default/ProviderParent";
 import { LocalAnime } from "../local-anime/LocalAnime/LocalAnime";
 import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
 import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo/LocalAnimeVideo";
@@ -29,7 +28,6 @@ export enum Paths {
     Music = "/music",
     Login = "/login",
     AnimeDownload = "/anime-download",
-    Controller = "/controller",
     Profile = "/profile",
     Features = "/features",
     BackgroundLibrary = "/background-library",
@@ -80,11 +78,6 @@ const appRouter = createBrowserRouter([
                 element: <AniListRedirectPage />,
             },
 
-            // TODO
-            // /local-anime-home
-            // /local-anime/:animeID            ==Redirects=To==> /local-anime/:animeID/<AnimeName>
-            // /local-anime-video/:animeID/:episodeID ==Redirects=To==> /local-anime/:animeID/<AnimeName>/:episodeID
-
             {
                 path: "/local-anime-home",
                 element: <LocalAnimeHome />,
@@ -127,7 +120,6 @@ const appRouter = createBrowserRouter([
             },
 
             { path: Paths.Music, element: <MusicPage /> },
-            { path: Paths.Controller, element: <ControllerPage /> },
             { path: Paths.AnimeDownload, element: <AnimeDownloadPage /> },
             { path: Paths.Profile, element: <ProfilePage /> },
             { path: Paths.Features, element: <FeaturesPage /> },

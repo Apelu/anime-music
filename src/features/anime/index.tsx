@@ -1,5 +1,5 @@
 import { Feature, FeatureStatus } from "@features/documentation/constants";
-import { AnimeSubBarFeature } from "./AnimeSubBar";
+// import { AnimeSubBarFeature } from "./AnimeSubBar";
 
 const SubBarFeatures = [
     {
@@ -38,7 +38,7 @@ export const topLevelAnimeFeature: Feature = {
     title: "Anime",
     description: "All the features related to anime.",
     status: FeatureStatus.InProgress,
-    subfeatures: [AnimeSubBarFeature],
+    // subfeatures: [AnimeSubBarFeature],
 };
 
 /**

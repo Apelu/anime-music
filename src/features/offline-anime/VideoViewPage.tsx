@@ -1,4 +1,3 @@
-import { useToastDispatch } from "@features/contexts/ToastContext";
 import { ServerCalls } from "@pages/AnimeDownloadPage";
 import { AnimeEpisode } from "@pages/OfflineAnime";
 import { useState, useEffect, useRef } from "react";
@@ -6,7 +5,6 @@ import { Badge } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import videojs from "video.js";
 import { ExpectedParams } from "./OfflineAnimeV2";
-import { use } from "video.js/dist/types/tech/middleware";
 
 export interface StepsAlertType {
     showAlert: boolean;
@@ -41,7 +39,6 @@ function VideoPlayerView(props: { data: any }) {
     const [seriesSecondsLeft, setSeriesSecondsLeft] = useState<number | null>(
         null
     );
-    const toastDispatch = useToastDispatch();
 
     const videoRef = useRef<HTMLVideoElement>(null);
 

@@ -3,11 +3,40 @@ import { createContext, useContext, useReducer } from "react";
 const MyContext = createContext<MyData | null>(null);
 const MyDispatchContext = createContext<React.Dispatch<MyAction> | null>(null);
 
+export enum MyActionType {
+    Placeholder = "Placeholder",
+}
+
+interface MyAction {
+    type: MyActionType;
+    payload?: any;
+}
+
+interface MyData {}
+
+const initialData = getInitialData();
+
+function myReducer(data: MyData, action: MyAction) {
+    switch (action.type) {
+        case MyActionType.Placeholder:
+            return {
+                ...data,
+                // payload: action.payload,
+            };
+        default:
+            throw new Error("Unknown action type");
+    }
+}
+
+function getInitialData() {
+    return {};
+}
+
 export function MyProvider({ children }: { children: JSX.Element }) {
-    const [displaySettings, dispatch] = useReducer(myReducer, intialData);
+    const [data, dispatch] = useReducer(myReducer, initialData);
 
     return (
-        <MyContext.Provider value={displaySettings}>
+        <MyContext.Provider value={data}>
             <MyDispatchContext.Provider value={dispatch}>
                 {children}
             </MyDispatchContext.Provider>
@@ -30,28 +59,3 @@ export function useMyDispatch() {
     }
     return context;
 }
-
-function myReducer(data: MyData, action: MyAction) {
-    switch (action.type) {
-        case MyActionType.Placeholder:
-            return {
-                ...data,
-                // payload: action.payload,
-            };
-        default:
-            throw new Error("Unknown action type");
-    }
-}
-
-export enum MyActionType {
-    Placeholder = "Placeholder",
-}
-
-interface MyAction {
-    type: MyActionType;
-    payload?: any;
-}
-
-interface MyData {}
-
-const intialData = {};
