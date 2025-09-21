@@ -3,7 +3,6 @@ import {
     SubBarSettingsContext,
     SubBarSettingsDispatchContext,
 } from "@features/contexts/SubBarContext";
-import { Feature, FeatureStatus } from "@features/documentation/constants";
 import {
     faArrowLeft,
     faArrowRight,
@@ -14,41 +13,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useContext } from "react";
-import AnimeContainerSettingsSubBar from "./AnimeContainerSettingsSubBar";
-
-export const AnimeSubBarFeature: Feature = {
-    title: "Anime SubBar",
-    description:
-        "A small menu right below the NavBar that displays quick actions for the current page without taking up a lot of space.",
-    status: FeatureStatus.InProgress,
-    subfeatures: [
-        {
-            title: "Sort By",
-            description: "Sort the anime by [Sort By] in [Sort Direction]",
-            status: FeatureStatus.InProgress,
-        },
-        {
-            title: "Group By",
-            description: "Group the anime by [Group By] in [Group Direction]",
-            status: FeatureStatus.InProgress,
-        },
-        {
-            title: "Filters",
-            description: "Filter the anime by [Status, Format, Tag]",
-            status: FeatureStatus.InProgress,
-        },
-        {
-            title: "View Type",
-            description: "Change the view type [Card, List, Carousel]",
-            status: FeatureStatus.InProgress,
-        },
-        {
-            title: "Search",
-            description: "Search for anime by [Search Text]",
-            status: FeatureStatus.InProgress,
-        },
-    ],
-};
 
 function SubBar({
     currentItemIndex,

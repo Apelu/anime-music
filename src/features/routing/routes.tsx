@@ -1,15 +1,10 @@
-import Background from "@features/background/Background";
 import { UserProvider, useUserData } from "@features/contexts/UserContext";
 import OfflineAnimeV2, {
     AniListRedirectPage,
 } from "@features/offline-anime/OfflineAnimeV2";
-import NavBar from "@features/ui/NavBar";
-import AnimeDownloadPage from "@pages/AnimeDownloadPage";
-import BackgroundLibrary from "@pages/BackgroundLibrary";
+import NavBar from "@ui/NavBar";
 import ErrorPage from "@pages/ErrorPage";
-import FeaturesPage from "@pages/FeaturesPage";
 import LoginPage from "@pages/LoginPage";
-import MusicPage from "@pages/MusicPage";
 import OfflineAnime from "@pages/OfflineAnime";
 import ProfilePage from "@pages/ProfilePage";
 import { Outlet, createBrowserRouter } from "react-router-dom";
@@ -19,18 +14,15 @@ import ProviderParent from "../contexts/default/ProviderParent";
 import { LocalAnime } from "../local-anime/LocalAnime/LocalAnime";
 import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
 import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo/LocalAnimeVideo";
+import Background from "@ui/Background";
 
 export enum Paths {
     Anime = "/anime",
     LocalAnime = "/local-anime-home",
     AnimeInfo = "/anime/:seriesFolderName",
     AnimeVideo = "/anime/:seriesFolderName/:episodeNumber",
-    Music = "/music",
     Login = "/login",
-    AnimeDownload = "/anime-download",
     Profile = "/profile",
-    Features = "/features",
-    BackgroundLibrary = "/background-library",
     AnilistLoginRedirect = "/login-redirect",
     WatchController = "/watch-controller",
 }
@@ -119,14 +111,7 @@ const appRouter = createBrowserRouter([
                 element: <OfflineAnimeV2 />,
             },
 
-            { path: Paths.Music, element: <MusicPage /> },
-            { path: Paths.AnimeDownload, element: <AnimeDownloadPage /> },
             { path: Paths.Profile, element: <ProfilePage /> },
-            { path: Paths.Features, element: <FeaturesPage /> },
-            {
-                path: Paths.BackgroundLibrary,
-                element: <BackgroundLibrary />,
-            },
         ],
         errorElement: <ErrorPage />,
     },

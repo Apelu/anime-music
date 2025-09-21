@@ -1,11 +1,11 @@
-import { SortDirection, ViewType } from "@data/constants";
+import { SortDirection, ViewType } from "@utils/constants";
 import {
     ModalActionType,
     useSetShowingModalDispatch,
 } from "@features/contexts/ModalContext";
 import { useUserData } from "@features/contexts/UserContext";
-import { AnimeContainerSettings } from "@features/subBars/AnimeContainerSettingsSubBar";
-import SubBar from "@features/subBars/SubBar";
+import { AnimeContainerSettings } from "ui/SubBar/AnimeContainerSettingsSubBar";
+import SubBar from "@ui/SubBar/SubBar";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SortOptions } from "@shared/constant";

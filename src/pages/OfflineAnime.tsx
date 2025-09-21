@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "video.js/dist/video-js.css";
 import "videojs-hotkeys";
-import { ServerCalls } from "./AnimeDownloadPage";
+import { ServerCalls } from "../features/ServerCalls";
 
 function OfflineAnime(props: any) {
     const params = useParams();

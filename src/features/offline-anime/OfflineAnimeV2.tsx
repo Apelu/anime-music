@@ -4,7 +4,7 @@ import {
     useAnimeData,
     useAnimeDispatch,
 } from "@features/contexts/AnimeContext";
-import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { ServerCalls } from "@features/ServerCalls";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { EpisodeViewPage } from "./EpisodeViewPage";

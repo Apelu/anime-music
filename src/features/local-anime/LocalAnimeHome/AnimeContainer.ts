@@ -1,4 +1,4 @@
-import { SortDirection, ViewType } from "@data/constants";
+import { SortDirection, ViewType } from "@utils/constants";
 import { FilterTemplate } from "@shared/constant";
 
 export interface UserAnimeContainer {

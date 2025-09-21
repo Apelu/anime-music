@@ -3,7 +3,7 @@ import {
     SortDirection,
     AniListSortOptions,
     ViewType,
-} from "@data/constants";
+} from "../../utils/constants";
 import { createContext, useReducer } from "react";
 
 export const DisplaySettingsContext = createContext<DisplaySettings | null>(

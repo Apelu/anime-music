@@ -1,5 +1,5 @@
 import { totalmem } from "os";
-import { MediaParamType, MediaSort, MediaType } from "./aconstants";
+import { MediaParamType, MediaSort, MediaType } from "./constants";
 
 class AniListAPIClass {
     basreURL = "https://graphql.anilist.co";
@@ -24,21 +24,6 @@ class AniListAPIClass {
     }
 }
 
-// formatAsGraphQL(`
-//     id
-// title
-//                 {
-// romaji
-
-// english}
-// bannerImage
-// coverImage
-//                 {
-// extraLarge
-
-// large
-
-// medium}`)
 function formatAsGraphQL(text: string) {
     return text
         .split("\n")

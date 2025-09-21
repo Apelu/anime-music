@@ -6,7 +6,9 @@
             "@pages/*": ["pages/*"],
             "@data/*": ["data/*"],
             "@assets/*": ["assets/*"],
-            "@shared/*": ["shared/*"]
+            "@shared/*": ["shared/*"],
+            "@ui/*": ["ui/*"],
+            "@utils/*": ["utils/*"]
         }
     }
 }

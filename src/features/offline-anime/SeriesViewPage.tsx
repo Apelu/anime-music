@@ -7,11 +7,14 @@ import {
 } from "./OfflineAnimeV2";
 import { useEffect, useState } from "react";
 import { doc } from "firebase/firestore";
-import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { ServerCalls } from "@features/ServerCalls";
+import { ConfirmAniListMappingModal } from "./EpisodeViewPage";
 
 export function SeriesViewPage(props: SeriesViewPageProps) {
     const [anilistOrder, setAnilistOrder] = useState<number[]>([]);
     const [pageNumber, setPageNumber] = useState(1);
+    const [showModal, setShowModal] = useState(false);
+    const [anime, setAnime] = useState<AnimeData | null>(null);
 
     async function fetchMoreData() {
         const accessToken = localStorage.getItem(StorageKeys.accessToken);
@@ -148,11 +151,16 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
         185756: true,
     };
 
-    var missingAnilistID = animeData.filter(a => !a.anilistID);
+    var missingAnilistID = animeData.filter(
+        a => !a.anilistID && !a.anilistIDConfirmed
+    );
 
     const groups: {
         [groupName: string]: AnimeData[];
     } = {
+        ...(missingAnilistID.length > 0 && {
+            "Missing AniList ID": missingAnilistID,
+        }),
         // Reccomended: animeData.filter(
         //     a => a.anilistID && recs[parseInt(a.anilistID)]
         // ),
@@ -163,10 +171,6 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
         All: animeData,
     };
 
-    // if (missingAnilistID.length > 0) {
-    //     groups["Missing AniList ID"] = missingAnilistID;
-    // }
-
     return (
         <div
             style={{
@@ -174,6 +178,14 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
                 minHeight: "10000vh",
             }}
         >
+            {anime && (
+                <ConfirmAniListMappingModal
+                    showModal={showModal}
+                    setShowModal={setShowModal}
+                    anime={anime}
+                />
+            )}
+
             {Object.keys(groups).map(groupName => {
                 const data = groups[groupName];
                 return (
@@ -183,6 +195,8 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
                         data={data}
                         anilistOrder={anilistOrder}
                         refreshData={props.refreshData}
+                        setAnime={setAnime}
+                        setShowModal={setShowModal}
                     />
                 );
             })}

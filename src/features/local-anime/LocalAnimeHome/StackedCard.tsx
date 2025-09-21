@@ -1,4 +1,4 @@
-import TheUltimateDropdown from "@features/ui/TheUltimateDropdown";
+import TheUltimateDropdown from "@ui/TheUltimateDropdown";
 import { Card } from "react-bootstrap";
 
 function StackedCard(props: any) {

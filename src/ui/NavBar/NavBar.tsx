@@ -1,11 +1,3 @@
-/**
- * Navigation Bar (Horizontal):
- * -Site Logo (Firebreather)
- * -Anime (Watch Sites Dropdown)
- * -Music (Playlists, Artists, Albums, Songs)
- * -Profile Image (Login, Register, Profile, Settings)
- */
-
 import { userStorageKey, useUserData } from "@features/contexts/UserContext";
 import { Paths } from "@features/routing/routes";
 import { faDragon } from "@fortawesome/free-solid-svg-icons";
@@ -38,9 +30,6 @@ export function NavBar() {
                         <Nav.Link as={Link} to={Paths.LocalAnime}>
                             LocalAnime
                         </Nav.Link>
-                        <Nav.Link as={Link} to={Paths.Music}>
-                            Music
-                        </Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
                 <ProfileDropdown />
@@ -71,21 +60,11 @@ function ProfileDropdown({ isInvisible }: { isInvisible?: boolean }) {
                         Profile ({userData.username})
                     </Nav.Link>
                 </Dropdown.Item>
-                {/* <Dropdown.Item>
-                    <Nav.Link as={Link} to={Paths.BackgroundLibrary}>
-                        My Backgrounds (Saved, Library)
-                    </Nav.Link>
-                </Dropdown.Item> */}
+
                 <DropdownDivider />
                 <Dropdown.Item>
                     <Nav.Link as={Link} to={Paths.WatchController}>
                         Watch Controller
-                    </Nav.Link>
-                </Dropdown.Item>
-
-                <Dropdown.Item>
-                    <Nav.Link as={Link} to={Paths.Features}>
-                        Features
                     </Nav.Link>
                 </Dropdown.Item>
 

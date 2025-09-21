@@ -7,15 +7,17 @@ import {
     faMagnifyingGlass,
     faMagnifyingGlassMinus,
 } from "@fortawesome/free-solid-svg-icons";
-import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { ServerCalls } from "@features/ServerCalls";
 
 export function AnimeGroup(props: {
     groupName: string;
     data: AnimeData[];
     anilistOrder: number[];
     refreshData: () => void;
+    setAnime: (anime: AnimeData | null) => void;
+    setShowModal: (show: boolean) => void;
 }) {
-    const { groupName, data, refreshData } = props;
+    const { groupName, data, refreshData, setAnime, setShowModal } = props;
 
     const [search, setSearch] = useState({
         isSearching: false,
@@ -239,14 +241,17 @@ export function AnimeGroup(props: {
                                             </a>
                                         </span>
                                     ) : (
-                                        <a
-                                            href={`https://anilist.co/search/anime?search=${removeWords(
-                                                anime.seriesTitle
-                                            )}`}
-                                            target="_blank"
+                                        // map to anilist
+                                        <Button
+                                            size="sm"
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                setAnime(anime);
+                                                setShowModal(true);
+                                            }}
                                         >
-                                            Missing Anilist ID
-                                        </a>
+                                            Map to AniList
+                                        </Button>
                                     )
                                 }
                                 topRightComponent={

@@ -6,6 +6,53 @@ const ModalDispatchContext = createContext<React.Dispatch<ModalAction> | null>(
     null
 );
 
+export enum ModalActionType {
+    Placeholder = "Placeholder",
+    CreateNewContainer = "CreateNewContainer",
+    UpdateContainer = "UpdateContainer",
+    ClearModal = "ClearModal",
+}
+
+interface ModalAction {
+    type: ModalActionType;
+    payload?: UpdateContainerPayload;
+}
+
+interface ShowingModal {
+    type: ModalActionType | null;
+    payload?: UpdateContainerPayload;
+}
+
+const initialShowingModal: ShowingModal = {
+    type: null,
+    payload: undefined,
+};
+
+function modalReducer(data: ShowingModal, action: ModalAction) {
+    switch (action.type) {
+        case ModalActionType.Placeholder:
+            return {
+                ...data,
+                // payload: action.payload,
+            };
+        case ModalActionType.CreateNewContainer:
+            return {
+                type: ModalActionType.CreateNewContainer,
+            };
+        case ModalActionType.UpdateContainer:
+            return {
+                type: ModalActionType.UpdateContainer,
+                payload: action.payload,
+            };
+        case ModalActionType.ClearModal:
+            return {
+                type: null,
+            };
+        default:
+            throw new Error("Unknown action type");
+    }
+}
+
 export function ModalProvider({ children }: { children: JSX.Element }) {
     const [modalState, dispatch] = useReducer(
         modalReducer,
@@ -38,50 +85,3 @@ export function useSetShowingModalDispatch() {
     }
     return context;
 }
-
-function modalReducer(data: ShowingModal, action: ModalAction) {
-    switch (action.type) {
-        case ModalActionType.Placeholder:
-            return {
-                ...data,
-                // payload: action.payload,
-            };
-        case ModalActionType.CreateNewContainer:
-            return {
-                type: ModalActionType.CreateNewContainer,
-            };
-        case ModalActionType.UpdateContainer:
-            return {
-                type: ModalActionType.UpdateContainer,
-                payload: action.payload,
-            };
-        case ModalActionType.ClearModal:
-            return {
-                type: null,
-            };
-        default:
-            throw new Error("Unknown action type");
-    }
-}
-
-export enum ModalActionType {
-    Placeholder = "Placeholder",
-    CreateNewContainer = "CreateNewContainer",
-    UpdateContainer = "UpdateContainer",
-    ClearModal = "ClearModal",
-}
-
-interface ModalAction {
-    type: ModalActionType;
-    payload?: UpdateContainerPayload;
-}
-
-interface ShowingModal {
-    type: ModalActionType | null;
-    payload?: UpdateContainerPayload;
-}
-
-const initialShowingModal: ShowingModal = {
-    type: null,
-    payload: undefined,
-};

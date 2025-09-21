@@ -1,4 +1,4 @@
-import { BackgroundItem, BackgroundKey } from "../constants";
+import { BackgroundItem, BackgroundKey } from "./constants";
 
 export function BackgroundImage({
     selectedBackgroundItem,

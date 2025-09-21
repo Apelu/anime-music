@@ -1,5 +1,5 @@
 import { AnimeData } from "@features/contexts/AnimeContext";
-import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { ServerCalls } from "@features/ServerCalls";
 import { useEffect } from "react";
 import { Button, Card, ProgressBar } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -10,14 +10,57 @@ import { Modal } from "react-bootstrap";
 import AniListLogoLink from "@features/local-anime/Global/AniListLogoLink";
 import { use } from "video.js/dist/types/tech/middleware";
 
+export function ConfirmAniListMappingModal({
+    showModal,
+    setShowModal,
+    anime,
+}: {
+    showModal: boolean;
+    setShowModal: (show: boolean) => void;
+    anime: AnimeData;
+}) {
+    return (
+        <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Confirm AniList Mapping</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                {/* Scenario 1: No AniList ID <> Show search page with title prepopulated */}
+                <AnilistSearchComponent
+                    defaultSearch={anime.seriesTitle}
+                    idSearch={anime.anilistID ? `${anime.anilistID}` : ""}
+                    anime={anime}
+                    setShowingModal={setShowModal}
+                />
+                {/* Scenario 2: AniList ID exists <> Show mapped anime and confirm button */}
+                {/* Scenario 3: AniList ID confirmed <> Show success message and close*/}
+            </Modal.Body>
+            <Modal.Footer>
+                <Button
+                    variant="primary"
+                    onClick={e => {
+                        e.preventDefault();
+
+                        setShowModal(false);
+                    }}
+                >
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+}
+
 function AnilistSearchComponent({
     defaultSearch = "",
     idSearch = "",
     anime,
+    setShowingModal,
 }: {
     defaultSearch?: string;
     idSearch?: string;
     anime: AnimeData;
+    setShowingModal: (show: boolean) => void;
 }) {
     const [searchQuery, setSearchQuery] = useState(defaultSearch);
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -165,13 +208,24 @@ function AnilistSearchComponent({
                             variant="success"
                             onClick={() => {
                                 confirmMapping(anime, result.id);
-                                document.location.reload();
+                                setShowingModal(false);
+                                // document.location.reload();
                             }}
                         >
                             Confirm Mapping
                         </Button>
                     </div>
                 ))}
+                <Button
+                    variant="success"
+                    onClick={() => {
+                        confirmMapping(anime, -1);
+                        setShowingModal(false);
+                        // document.location.reload();
+                    }}
+                >
+                    Confirm No Mapping
+                </Button>
             </div>
         </form>
     );
@@ -293,29 +347,11 @@ export function EpisodeViewPage(props: EpisodeViewPageProps) {
                 alignItems: "center",
             }}
         >
-            <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Confirm AniList Mapping</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {/* Scenario 1: No AniList ID <> Show search page with title prepopulated */}
-                    <AnilistSearchComponent
-                        defaultSearch={anime.seriesTitle}
-                        idSearch={anime.anilistID ? `${anime.anilistID}` : ""}
-                        anime={anime}
-                    />
-                    {/* Scenario 2: AniList ID exists <> Show mapped anime and confirm button */}
-                    {/* Scenario 3: AniList ID confirmed <> Show success message and close*/}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button
-                        variant="primary"
-                        onClick={() => setShowModal(false)}
-                    >
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <ConfirmAniListMappingModal
+                showModal={showModal}
+                setShowModal={setShowModal}
+                anime={anime}
+            />
             {/* Details */}
             <Button variant="info" size="sm" onClick={() => navigate(`/anime`)}>
                 Return to Series

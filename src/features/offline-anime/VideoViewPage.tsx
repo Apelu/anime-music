@@ -1,4 +1,4 @@
-import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { ServerCalls } from "@features/ServerCalls";
 import { AnimeEpisode } from "@pages/OfflineAnime";
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "react-bootstrap";
@@ -106,10 +106,12 @@ function VideoPlayerView(props: { data: any }) {
             selectedSeriesData[nextEpisodeIndex]?.episodeNumber;
 
         if (nextEpisodeNumber) {
+            // TODO: Mark episode as complete in AniList
             window.location.href = `/anime/${
                 params.seriesFolderName
             }/${encodeURIComponent(nextEpisodeNumber)}`;
         } else {
+            // TODO: Caught up / Series complete
             alert(`No ${goToNextEpisode ? "next" : "previous"} episode found`);
         }
     }

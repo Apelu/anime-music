@@ -4,7 +4,7 @@
  * -Displays Anime Data in Grid or List View
  */
 
-import { AniListSortOptions } from "@data/constants";
+import { AniListSortOptions } from "utils/constants";
 import {
     DisplaySettingsActionType,
     DisplaySettingsContext,

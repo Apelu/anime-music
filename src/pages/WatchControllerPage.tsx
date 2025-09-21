@@ -13,7 +13,7 @@ import {
     faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ServerCalls } from "@pages/AnimeDownloadPage";
+import { ServerCalls } from "../features/ServerCalls";
 import React, { useRef } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";

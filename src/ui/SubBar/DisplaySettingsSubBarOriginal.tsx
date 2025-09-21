@@ -3,15 +3,13 @@ import {
     SortType,
     ViewType,
     ViewTypeIcons,
-} from "@data/constants";
+} from "utils/constants";
 import {
     DisplaySettingsActionType,
     DisplaySettingsContext,
     DisplaySettingsDispatchContext,
 } from "@features/contexts/DisplaySettingsContext";
-import TheUltimateDropdown, {
-    TitleType,
-} from "@features/ui/TheUltimateDropdown";
+import TheUltimateDropdown, { TitleType } from "@ui/TheUltimateDropdown";
 import {
     faClose,
     faFilter,

@@ -4,14 +4,12 @@ import {
     SortType,
     ViewType,
     ViewTypeIcons,
-} from "@data/constants";
+} from "../../utils/constants";
 import {
     AnimeContainerAction,
     AnimeContainerActionType,
 } from "@features/local-anime/LocalAnimeHome/AnimeContainer";
-import TheUltimateDropdown, {
-    TitleType,
-} from "@features/ui/TheUltimateDropdown";
+import TheUltimateDropdown, { TitleType } from "@ui/TheUltimateDropdown";
 import {
     faClose,
     faFilter,
@@ -189,6 +187,7 @@ function AnimeContainerSettingsSubBar(
             {animeContainer.isSearching && (
                 <>
                     <Form.Control
+                        autoFocus
                         type="search"
                         placeholder="Keyword Search"
                         className="mb-2"
