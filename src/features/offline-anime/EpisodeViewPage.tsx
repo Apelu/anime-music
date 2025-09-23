@@ -173,6 +173,12 @@ function AnilistSearchComponent({
                     placeholder="Search AniList..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
+                    onKeyDown={e => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleSearch();
+                        }
+                    }}
                 />
                 <Button className="btn btn-primary" onClick={handleSearch}>
                     Search

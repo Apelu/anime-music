@@ -15,6 +15,26 @@ class MyLocalServer {
         });
     }
 
+    static async aniListLoginRedirect(
+        userID: string,
+        hashData: {
+            access_token: string | null;
+            token_type: string | null;
+            expires_in: string | null;
+        }
+    ) {
+        return fetch(this.serverURL + "/user/aniListLoginRedirect", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                userID,
+                ...hashData,
+            }),
+        });
+    }
+
     static async pullUserAnimeLists(userID: string) {
         return fetch(this.serverURL + "/user/anime-lists", {
             method: "POST",

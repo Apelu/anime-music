@@ -9,8 +9,14 @@ import { useEffect, useState } from "react";
 import { doc } from "firebase/firestore";
 import { ServerCalls } from "@features/ServerCalls";
 import { ConfirmAniListMappingModal } from "./EpisodeViewPage";
+import { useUserData } from "@features/contexts/UserContext";
+import { useNavigate } from "react-router-dom";
+import AniListLoginButton from "@pages/LoginPage/AniListLoginButton";
 
 export function SeriesViewPage(props: SeriesViewPageProps) {
+    const user = useUserData();
+    const navigate = useNavigate();
+
     const [anilistOrder, setAnilistOrder] = useState<number[]>([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [showModal, setShowModal] = useState(false);
@@ -95,6 +101,8 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
         };
     }, []);
 
+    useEffect(() => {}, [user.aniList?.access_token]);
+
     const startedAnime = animeData
         .filter(anime => getLatestWatchedEpisode(anime))
         .sort((a, b) => {
@@ -178,6 +186,8 @@ export function SeriesViewPage(props: SeriesViewPageProps) {
                 minHeight: "10000vh",
             }}
         >
+            {!user.aniList?.access_token && <AniListLoginButton />}
+
             {anime && (
                 <ConfirmAniListMappingModal
                     showModal={showModal}

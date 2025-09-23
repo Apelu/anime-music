@@ -16,11 +16,23 @@ interface UserAction {
     type: UserActionType;
     payload?: any;
 }
-
+/*
+const hash = new URLSearchParams(location.hash.replace("#", "?"));
+    const hashData = {
+        access_token: hash.get("access_token"),
+        token_type: hash.get("token_type"),
+        expires_in: hash.get("expires_in"),
+    };
+*/
 interface UserData {
     id: string;
-    isLoggedIn: boolean;
     username: string;
+    isLoggedIn: boolean;
+    aniList?: {
+        access_token?: string;
+        token_type?: string;
+        expires_in?: string;
+    };
 }
 
 const initialUserData = getIntialData();
@@ -51,14 +63,10 @@ function userReducer(data: UserData, action: UserAction) {
 
         case UserActionType.HandleLogin:
             if (action.payload && action.payload.id) {
-                if (action.payload.username == "Apelu") {
-                    action.payload.id = "84f2fafd-1a25-4e18-ad8a-afff07374810";
-                }
                 var newState = {
                     ...data,
                     isLoggedIn: true,
-                    id: action.payload.id,
-                    username: action.payload.username,
+                    ...action.payload,
                 };
                 localStorage.setItem(userStorageKey, JSON.stringify(newState));
                 return newState;

@@ -2,11 +2,55 @@ import { totalmem } from "os";
 import { MediaParamType, MediaSort, MediaType } from "./constants";
 
 class AniListAPIClass {
-    basreURL = "https://graphql.anilist.co";
+    baseURL = "https://graphql.anilist.co";
     accessToken: string | null = null;
+    userId: number | null = null;
+
+    // constructor() {
+    //     const animeUserRaw = localStorage.getItem("animeUser");
+    //     let userData: any = null;
+    //     if (animeUserRaw) {
+    //         userData = JSON.parse(animeUserRaw);
+    //         this.accessToken = userData.aniList.access_token;
+    //     }
+    //     this.authorizeUser();
+    // }
+
+    // async ensureAuthorized(): Promise<void> {
+    //     var animeUser: {
+    //         aniList?: { access_token?: string };
+    //     } = {}
+    //     try {
+    //         animeUser = JSON.parse(localStorage.getItem("animeUser") || "{}");
+    //     } catch (error) {
+    //         console.error("Error parsing animeUser:", error);
+    //     }
+
+    //     if(animeUser?.aniList?.access_token) {
+
+    // async authorizeUser(): Promise<void> {
+    //     if (!this.accessToken) {
+    //         // Redirect to login or show login prompt
+    //         console.log("User not authorized");
+    //     } else {
+    //         // Fetch user information using the access token
+    //         const response = await this.performFetch(`
+    //             query {
+    //                 Viewer {
+    //                     id
+    //                     name
+    //                 }
+    //             }
+    //         `);
+    //         const data = await response.json();
+
+    //         console.log("Authorized user:", data);
+    //         this.userId = data.data.Viewer.id;
+    //     }
+    // }
 
     async performFetch(query: string): Promise<Response> {
-        return fetch(this.basreURL, {
+        return fetch(this.baseURL, {
             method: "POST",
             headers: {
                 ...{
@@ -29,6 +73,18 @@ function formatAsGraphQL(text: string) {
         .split("\n")
         .map(line => line.trim())
         .join("\n");
+}
+
+export function updateAniListEpisodeProgress(
+    aniListID: number,
+    episodeNumber: number,
+    isEpisodeEnd = true
+) {
+    console.log("Updating AniList Episode Progress", {
+        aniListID,
+        episodeNumber,
+        isEpisodeEnd,
+    });
 }
 
 interface MediaFieldList {

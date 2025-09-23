@@ -1,13 +1,11 @@
 import { UserProvider, useUserData } from "@features/contexts/UserContext";
-import OfflineAnimeV2, {
-    AniListRedirectPage,
-} from "@features/offline-anime/OfflineAnimeV2";
+import OfflineAnimeV2 from "@features/offline-anime/OfflineAnimeV2";
 import NavBar from "@ui/NavBar";
 import ErrorPage from "@pages/ErrorPage";
 import LoginPage from "@pages/LoginPage";
 import OfflineAnime from "@pages/OfflineAnime";
 import ProfilePage from "@pages/ProfilePage";
-import { Outlet, createBrowserRouter } from "react-router-dom";
+import { Outlet, createBrowserRouter, useLocation } from "react-router-dom";
 import "../../assets/App.css";
 import { WatchControllerPage } from "../../pages/WatchControllerPage";
 import ProviderParent from "../contexts/default/ProviderParent";
@@ -15,6 +13,7 @@ import { LocalAnime } from "../local-anime/LocalAnime/LocalAnime";
 import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
 import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo/LocalAnimeVideo";
 import Background from "@ui/Background";
+import LoginRedirect from "@pages/LoginRedirect";
 
 export enum Paths {
     Anime = "/anime",
@@ -23,15 +22,18 @@ export enum Paths {
     AnimeVideo = "/anime/:seriesFolderName/:episodeNumber",
     Login = "/login",
     Profile = "/profile",
-    AnilistLoginRedirect = "/login-redirect",
+    LoginRedirect = "/login-redirect",
     WatchController = "/watch-controller",
 }
 
 function Root() {
     const user = useUserData();
+    const location = useLocation();
 
     if (user.isLoggedIn) {
-        return (
+        return location.pathname === Paths.WatchController ? (
+            <WatchControllerPage />
+        ) : (
             <main className="text-light ">
                 <Background />
                 <NavBar />
@@ -54,6 +56,14 @@ const appRouter = createBrowserRouter([
         ),
     },
     {
+        path: Paths.LoginRedirect,
+        element: (
+            <UserProvider>
+                <LoginRedirect />
+            </UserProvider>
+        ),
+    },
+    {
         path: Paths.WatchController,
         element: <WatchControllerPage />,
     },
@@ -66,8 +76,8 @@ const appRouter = createBrowserRouter([
         ),
         children: [
             {
-                path: Paths.AnilistLoginRedirect,
-                element: <AniListRedirectPage />,
+                path: Paths.LoginRedirect,
+                element: <LoginRedirect />,
             },
 
             {

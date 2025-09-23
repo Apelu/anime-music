@@ -168,16 +168,6 @@ export function WatchControllerPage() {
     );
 }
 
-function BottomContent() {
-    return (
-        <div>
-            <div>Watch</div>
-            <div>Download</div>
-            <div>Settings</div>
-        </div>
-    );
-}
-
 interface Item {
     seriesFolderName: string;
     progress: number;

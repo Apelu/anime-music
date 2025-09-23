@@ -17,6 +17,17 @@ export class ServerCalls {
         // this.baseURL = "http://localhost:5555/api/animeDownload/";
     }
 
+    updateWatchProgress(
+        accessToken: string,
+        anilistID: number,
+        episodeNumber: number
+    ) {
+        return fetch(
+            baseURL +
+                `:2222/updateWatchProgress?accessToken=${accessToken}&anilistID=${anilistID}&progress=${episodeNumber}`
+        );
+    }
+
     getListItems(listName: string, searchText: string, limit: number = 50) {
         return (
             this.baseURL +

@@ -5,6 +5,8 @@ import { Badge } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import videojs from "video.js";
 import { ExpectedParams } from "./OfflineAnimeV2";
+import { updateAniListEpisodeProgress } from "@features/AniList/AniListAPI";
+import { useUserData } from "@features/contexts/UserContext";
 
 export interface StepsAlertType {
     showAlert: boolean;
@@ -22,6 +24,7 @@ export interface StepsAlertType {
 }
 
 function VideoPlayerView(props: { data: any }) {
+    const user = useUserData();
     const navigate = useNavigate();
     const { data } = props;
 
@@ -68,6 +71,8 @@ function VideoPlayerView(props: { data: any }) {
             episode.episodeNumber === params.episodeNumber
     );
 
+    console.log({ selected });
+
     useEffect(() => {
         const video = videoRef.current;
         if (video) {
@@ -86,11 +91,16 @@ function VideoPlayerView(props: { data: any }) {
                 } else {
                     video.currentTime = 0;
                 }
+                updateAniListEpisodeProgress(
+                    selected.anilistID,
+                    parseInt(selected.episodeNumber),
+                    false
+                );
             };
         }
     }, [videoRef]);
 
-    function handleEnded(goToNextEpisode = true) {
+    async function handleEnded(goToNextEpisode = true) {
         // replace episodeNumber param with next episode number
         const selectedSeriesData = data.selectedSeriesData;
         selectedSeriesData.sort((a: AnimeEpisode, b: AnimeEpisode) => {
@@ -105,7 +115,27 @@ function VideoPlayerView(props: { data: any }) {
         const nextEpisodeNumber =
             selectedSeriesData[nextEpisodeIndex]?.episodeNumber;
 
+        if (user?.aniList?.access_token && selected.anilistID) {
+            const serverCalls = new ServerCalls();
+            const response = await serverCalls.updateWatchProgress(
+                user.aniList.access_token,
+                selected.anilistID,
+                parseInt(selected.episodeNumber)
+            );
+
+            if (response.status != 200) {
+                alert(
+                    "Failed to update AniList watch progress: " +
+                        response.statusText
+                );
+            }
+        }
+
         if (nextEpisodeNumber) {
+            updateAniListEpisodeProgress(
+                selected.aniListID,
+                parseInt(selected.episodeNumber)
+            );
             // TODO: Mark episode as complete in AniList
             window.location.href = `/anime/${
                 params.seriesFolderName
@@ -142,7 +172,7 @@ function VideoPlayerView(props: { data: any }) {
 
         eventSource.onmessage = event => {
             const eventData = JSON.parse(event.data);
-            console.log("Received update:", eventData);
+            // console.log("Received update:", eventData);
 
             const MyEvents = {
                 StepsUpdated: "StepsUpdated",
@@ -584,6 +614,7 @@ function VideoUIMenu({
     const [time, setTime] = useState(getCurrentTime());
     useEffect(() => {
         // refreshTime every second
+        document.title = `${selected.episodeNumber} | ${selected.seriesTitle}`;
 
         const interval = setInterval(() => {
             setTime(getCurrentTime());

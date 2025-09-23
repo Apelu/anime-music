@@ -5,11 +5,10 @@ import {
     useAnimeDispatch,
 } from "@features/contexts/AnimeContext";
 import { ServerCalls } from "@features/ServerCalls";
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Link, useParams } from "react-router-dom";
 import { EpisodeViewPage } from "./EpisodeViewPage";
 import { SeriesViewPage } from "./SeriesViewPage";
-import VideoPlayerView from "./VideoViewPage";
 
 export interface ExpectedParams {
     seriesFolderName: string;
@@ -162,79 +161,6 @@ export async function hasAnilistAccessTokenExpired() {
 
     return true;
 }
-export function AniListRedirectPage() {
-    const { hash } = useLocation();
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const isOnline = window.navigator.onLine;
-
-        // if (isOnline) {
-        //     const accessToken = getHashObj(hash).access_token;
-
-        //     if (accessToken) {
-        //         localStorage.setItem(StorageKeys.accessToken, accessToken);
-        //         navigate("/anime");
-        //     } else if (!localStorage.getItem(StorageKeys.accessToken)) {
-        //         // Redirect to AniList
-        //         const result = window.confirm(
-        //             "You are not logged in to AniList. Do you want to login now? [" +
-        //                 localStorage.getItem(StorageKeys.accessToken)
-        //         );
-        //         if (!result) {
-        //             return;
-        //         }
-        //         window.location.href = `https://anilist.co/api/v2/oauth/authorize?client_id=15485&response_type=token`;
-        //         return;
-        //     }
-        // }
-    }, []);
-
-    return <h1>Storing Access Token</h1>;
-}
-
-// function OfflineAnimeV2() {
-//     interface Client {
-//         id: number;
-//         name: string;
-//     }
-//     const [clients, setClients] = useState<{
-//         clients: Client[];
-//     }>({ clients: [] });
-//     useEffect(() => {
-//         const serverCalls = new ServerCalls();
-
-//         const eventSource = new EventSource(serverCalls.getClients());
-
-//         eventSource.onmessage = (event: { data: string }) => {
-//             const eventData: {
-//                 clients: Client[];
-//             } = JSON.parse(event.data);
-//             console.log("Received update:", eventData);
-
-//             setClients({ clients: eventData.clients });
-//         };
-//     }, []);
-//     return (
-//         <div>
-//             {/* Dropdown to select controller [Off, Controller1, ...] */}
-//             <select>
-//                 <option value="off">Off</option>
-//                 {clients.clients.map(client => {
-//                     return (
-//                         <option key={client.id} value={client.id}>
-//                             {client.name}
-//                         </option>
-//                     );
-//                 })}
-//             </select>
-
-//             <OfflineAnimeV2Inner />
-//         </div>
-//     );
-// }
-
-// REFACTOR SERVER CODE
 
 function OfflineAnimeV2() {
     const params = useParams();
