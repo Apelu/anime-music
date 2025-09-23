@@ -91,11 +91,6 @@ function VideoPlayerView(props: { data: any }) {
                 } else {
                     video.currentTime = 0;
                 }
-                updateAniListEpisodeProgress(
-                    selected.anilistID,
-                    parseInt(selected.episodeNumber),
-                    false
-                );
             };
         }
     }, [videoRef]);
@@ -115,7 +110,11 @@ function VideoPlayerView(props: { data: any }) {
         const nextEpisodeNumber =
             selectedSeriesData[nextEpisodeIndex]?.episodeNumber;
 
-        if (user?.aniList?.access_token && selected.anilistID) {
+        if (
+            user?.aniList?.access_token &&
+            selected.anilistID &&
+            goToNextEpisode
+        ) {
             const serverCalls = new ServerCalls();
             const response = await serverCalls.updateWatchProgress(
                 user.aniList.access_token,
