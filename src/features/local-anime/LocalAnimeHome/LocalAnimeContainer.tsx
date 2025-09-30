@@ -15,7 +15,7 @@ import PullLocalUserAnimeContainer, {
 import UpdateLocalUserAnimeContainer from "@shared/serverCalls/UpdateLocalUserAnimeContainer";
 import { useEffect, useRef, useState } from "react";
 import { Badge, Button, Container, FormControl } from "react-bootstrap";
-import AniListLogoLink from "../Global/AniListLogoLink";
+import AniListLogoLink from "../ui/AniListLogoLink";
 import {
     AnimeContainerAction,
     AnimeContainerActionType,

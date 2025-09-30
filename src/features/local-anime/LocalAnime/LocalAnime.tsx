@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button, Container } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import MyLocalServer, { AnimeData } from "@shared/MyLocalServer";
-import AniListLogoLink from "../Global/AniListLogoLink";
+import AniListLogoLink from "../ui/AniListLogoLink";
 import { AnimeContainerCard } from "../LocalAnimeHome/LocalAnimeContainerCard";
 import LocalAnimeEpisodeCards from "./LocalAnimeEpisodeCards";
 import TimeCard from "./TimeCard";

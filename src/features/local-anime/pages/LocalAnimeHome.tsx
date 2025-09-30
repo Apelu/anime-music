@@ -2,7 +2,7 @@ import { useUserData } from "@features/contexts/UserContext";
 import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 
-import { LocalUserAnimeContainer } from "./LocalAnimeContainer";
+import { LocalUserAnimeContainer } from "../LocalAnimeHome/LocalAnimeContainer";
 import PullLocalUserAnimeContainers, {
     PullLocalUserAnimeContainersResponse,
     UserContainer,
@@ -24,7 +24,6 @@ export function LocalAnimeHome() {
             const data: PullLocalUserAnimeContainersResponse =
                 await response.json();
 
-            console.log({ userContainers: data.userContainers });
             setUserContainers(data.userContainers);
         } catch (e) {
             console.error(e);

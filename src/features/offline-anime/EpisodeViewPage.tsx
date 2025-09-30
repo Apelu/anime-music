@@ -7,7 +7,7 @@ import { removeWords } from "./AnimeGroup";
 import { AnimeCard, getLatestWatchedEpisode } from "./OfflineAnimeV2";
 import { useState } from "react";
 import { Modal } from "react-bootstrap";
-import AniListLogoLink from "@features/local-anime/Global/AniListLogoLink";
+import AniListLogoLink from "@features/local-anime/ui/AniListLogoLink";
 import { use } from "video.js/dist/types/tech/middleware";
 
 export function ConfirmAniListMappingModal({
@@ -68,7 +68,7 @@ function AnilistSearchComponent({
         // Use public search using title and then return back the title, cover image episode count and  year
         const query = `
         query ($search: String) {
-            Page(page: 1, perPage: 10) {
+            Page(page: 1, perPage: 100) {
             media(search: $search, type: ANIME) {
                 id
                 title {

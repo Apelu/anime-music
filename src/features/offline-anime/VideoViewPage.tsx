@@ -140,8 +140,15 @@ function VideoPlayerView(props: { data: any }) {
                 params.seriesFolderName
             }/${encodeURIComponent(nextEpisodeNumber)}`;
         } else {
-            // TODO: Caught up / Series complete
-            alert(`No ${goToNextEpisode ? "next" : "previous"} episode found`);
+            // redirect to anilist page if no next episode
+            if (selected.anilistID) {
+                window.location.href = `https://anilist.co/anime/${selected.anilistID}`;
+                return;
+            } else {
+                alert("No more episodes found and no AniList ID found");
+            }
+
+            // alert(`No ${goToNextEpisode ? "next" : "previous"} episode found`);
         }
     }
 

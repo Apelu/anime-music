@@ -10,10 +10,11 @@ import "../../assets/App.css";
 import { WatchControllerPage } from "../../pages/WatchControllerPage";
 import ProviderParent from "../contexts/default/ProviderParent";
 import { LocalAnime } from "../local-anime/LocalAnime/LocalAnime";
-import { LocalAnimeHome } from "../local-anime/LocalAnimeHome/LocalAnimeHome";
-import { LocalAnimeVideo } from "../local-anime/LocalAnimeVideo/LocalAnimeVideo";
+import { LocalAnimeHome } from "../local-anime/pages/LocalAnimeHome";
+import { LocalAnimeVideo } from "../local-anime/pages/LocalAnimeVideo";
 import Background from "@ui/Background";
 import LoginRedirect from "@pages/LoginRedirect";
+import AutomatedDownload from "@pages/AutomatedDownload";
 
 export enum Paths {
     Anime = "/anime",
@@ -24,6 +25,7 @@ export enum Paths {
     Profile = "/profile",
     LoginRedirect = "/login-redirect",
     WatchController = "/watch-controller",
+    AutomatedDownload = "/automated-download",
 }
 
 function Root() {
@@ -119,6 +121,11 @@ const appRouter = createBrowserRouter([
             {
                 path: Paths.Anime,
                 element: <OfflineAnimeV2 />,
+            },
+
+            {
+                path: Paths.AutomatedDownload,
+                element: <AutomatedDownload />,
             },
 
             { path: Paths.Profile, element: <ProfilePage /> },

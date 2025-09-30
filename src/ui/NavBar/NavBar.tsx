@@ -69,6 +69,13 @@ function ProfileDropdown({ isInvisible }: { isInvisible?: boolean }) {
                 </Dropdown.Item>
 
                 <DropdownDivider />
+                <Dropdown.Item>
+                    <Nav.Link as={Link} to={Paths.AutomatedDownload}>
+                        Automated Download
+                    </Nav.Link>
+                </Dropdown.Item>
+
+                <DropdownDivider />
                 <Dropdown.Item
                     onClick={() => {
                         localStorage.removeItem(userStorageKey);
